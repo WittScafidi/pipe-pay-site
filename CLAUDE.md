@@ -1,0 +1,514 @@
+# Pipe Pay — Site Operations Notes
+
+> Self-hosted **WooCommerce** site for `pipepay.app`. The site sells Pipe Pay licenses through Pipe Pay itself (dogfood). First WordPress site on this OptiPlex (the rest are static Jekyll). Don't apply Jekyll deploy patterns here — content lives in the DB and uploads on disk.
+
+## Live URL
+- https://pipepay.app (apex)
+- https://www.pipepay.app (canonical 301 → apex)
+- Admin: https://pipepay.app/wp-admin/
+
+## Server
+- Host: Dell OptiPlex, Ubuntu 24.04.4 LTS
+- SSH: `ssh witt-scafidi@100.102.251.125` (key auth)
+- Site root: `/var/www/pipepay/` (owner `www-data:www-data`)
+- This server also serves: `hellfireindustries.com`, `dashboard.hellfireindustries.com`, `peptideselect.com` — be careful not to reload nginx in a way that affects them; always `nginx -t` first.
+
+## Stack versions (current state 2026-05-07)
+- WordPress: 6.9.4 (core)
+- WooCommerce: 10.7.0
+- Pipe Pay plugin: **1.6.1** — same version on the dogfood gateway AND in the customer-facing zip wired into the WC products. The dogfood install has `PIPEPAY_DISABLE_LICENSING` set in `wp-config.php` (it hosts the license server itself; can't license against itself). Source zip: `/Users/wittscafidi/Desktop/Pipe Pay/pipe-pay-v1.6.1.zip`. License-server URL hardcoded to `https://pipepay.app/`. Staged on the server at `/var/www/pipepay/wp-content/uploads/woocommerce_uploads/pipe-pay-v1.6.1.zip` and wired into all four WC products via `_downloadable_files` + `_product_version=1.6.1`.
+- API Manager for WooCommerce (Kestrel): 3.7.6
+- WooCommerce.com Helper (`woo-update-manager`): 1.0.3 — the bridge that pulls API Manager from the WC.com subscription
+- License resolver mu-plugin: **1.0.0** — `wp-content/mu-plugins/pipepay-license-resolve.php`. Custom REST endpoint at `POST /wp-json/pipepay-license/v1/resolve` that maps a license key to its product ID. Loaded on top of API Manager so customers only enter their license key (no product ID). See "Kestrel API Manager licensing" below.
+- nginx: 1.24.0 (Ubuntu)
+- PHP: 8.3 via php-fpm; socket `/run/php/php8.3-fpm.sock`
+- MariaDB: server (system default on 24.04), root auth via unix_socket (i.e. `sudo mysql`)
+- wp-cli: 2.12.0 at `/usr/local/bin/wp`
+
+## nginx
+- Site config: `/etc/nginx/sites-available/pipepay.app`, symlinked into `sites-enabled/`
+- Listens on `:80` only — Cloudflare Tunnel terminates TLS
+- Trusts `CF-Connecting-IP` for real client IPs (`set_real_ip_from 0.0.0.0/0`)
+- `client_max_body_size 32M` for plugin/theme uploads
+
+## Database
+- DB: `pipepay` (utf8mb4 / utf8mb4_unicode_ci)
+- App user: `pipepay@localhost` — password file `~/.pipepay-db-password` on the OptiPlex (also in `.secrets/` on the Mac)
+- Root: unix_socket auth — use `sudo mysql` from the shell
+
+## WordPress admin
+- Username: `pipepayadmin`
+- Email: wittscafidi@gmail.com
+- Password file: `~/.pipepay-wp-admin-password` on the OptiPlex; `.secrets/pipepay-wp-admin-password.txt` on the Mac
+
+## wp-config.php highlights
+Located at `/var/www/pipepay/wp-config.php` (DO NOT commit). Custom additions:
+- Trusts `HTTP_X_FORWARDED_PROTO=https` from Cloudflare → sets `$_SERVER['HTTPS'] = 'on'`
+- `WP_HOME` and `WP_SITEURL` hardcoded to `https://pipepay.app`
+- `DISALLOW_FILE_EDIT` = true (no theme/plugin editor in admin)
+- `WP_AUTO_UPDATE_CORE` = `'minor'`
+- `PIPEPAY_DISABLE_LICENSING` = `true` — bypasses the Pipe Pay plugin's license-activation UI. **Set on this dogfood install only.** The site IS the license server; activating against itself would be circular. Backup of the original wp-config.php from the 1.5.1 deploy is at `/tmp/wp-config-backup-20260506-230111.php` if you ever need the pre-constant version.
+
+## Cloudflare
+- Zone: `pipepay.app` (DNS at Cloudflare; registrar Porkbun, NS pointed at CF)
+- Tunnel: existing `hellfire` Cloudflare Tunnel (token-based, configured via Zero Trust dashboard, not local config.yml)
+  - Public hostnames added: `pipepay.app` → `http://localhost:80`, `www.pipepay.app` → `http://localhost:80`
+  - **Watch out:** the prompt mentions port 3005 as a *reserved* port for a hypothetical sidecar — do NOT use it for this site. WP is on :80.
+- SSL/TLS: Full (NOT Full Strict — origin has no cert), Always Use HTTPS: On
+
+### Cache Rules (Caching → Cache Rules)
+Two rules. **Order matters: later rule wins for cache eligibility** (Cloudflare's documented semantics). Order in the dashboard list MUST be:
+1. **Cache anonymous HTML** — match `(http.host eq "pipepay.app")`, set Cache eligibility = Eligible for cache, Edge TTL 2h, Browser TTL = Respect existing headers (WP sends `no-cache` so browsers always revalidate)
+2. **Bypass dynamic + logged-in** — match the long expression covering `/wp-admin/*`, `/wp-login*`, `/checkout/*`, `/cart/*`, `/my-account/*`, `/wp-json/*`, `/wp-cron*`, query containing `add-to-cart=`, and cookies `wordpress_logged_in_*`/`woocommerce_session*`/`wp_woocommerce_session_*`/`comment_author_*`. Set Cache eligibility = Bypass cache.
+
+If the bypass rule is above the cache rule, cache wins for /cart/, /my-account/, etc., and Cloudflare WILL serve cached cart/account responses to other visitors — **session leak**. Don't reverse the order. After publishing site changes, Caching → Configuration → Purge Everything (or wait up to 2h for edge TTL).
+
+## Backups
+- Daily DB dump at 03:00 UTC via root crontab → `/home/witt-scafidi/backups/pipepay-db-YYYY-MM-DD.sql.gz`
+- Script: `/usr/local/sbin/pipepay-backup.sh` (root, 700)
+- Credentials file: `/root/.pipepay-backup.cnf` (mysqldump `--defaults-extra-file`, 600)
+- Retention: 30 days (script auto-deletes older)
+- Log: `/var/log/pipepay-backup.log`
+- **Not yet set up:** off-server backup of `/var/www/pipepay/wp-content/uploads/` — recommend UpdraftPlus → S3/B2 once any content exists.
+
+## Repository / version control
+- **Plugin repo (GitHub):** https://github.com/WittScafidi/pipe-pay (private). Contains `pipe-pay/` (source), `specs/` (internal docs including Pro V1 spec), `README.md`, `.gitignore`. Local clone at `~/Desktop/Pipe Pay/pipe-pay-extracted/`. Push directly with `git push origin main`. Tag releases as `v1.x.y` matching `PIPEPAY_VERSION`.
+- **Site repo (GitHub):** NOT YET CREATED. Recommended path: create `github.com/WittScafidi/pipe-pay-site` (private), import the contents of `~/Desktop/Pipe Pay/pipe-pay-site/` (theme + this CLAUDE.md + planning docs). Critical: `.gitignore` the `.secrets/` directory before any `git add .` (contains WP admin password and DB password as plaintext .txt files).
+- Server-side: WordPress core, content, uploads, and DB still live on the OptiPlex. The repo is a developer source-of-truth, not a deploy mechanism. Theme syncs are still done via the `tar czf`/`scp`/`tar xzf` cheatsheet command.
+
+## Sudo posture
+- During setup, NOPASSWD sudo was granted to `witt-scafidi` via `/etc/sudoers.d/99-witt-scafidi-nopasswd`. Consider removing once the site is stable: `sudo rm /etc/sudoers.d/99-witt-scafidi-nopasswd`.
+
+## Plugins (active)
+- **WooCommerce** 10.7.0 — the commerce engine.
+- **Pipe Pay** 1.6.1 — the plugin we sell, installed here as the live payment gateway AND as the same build customers receive. License layer is bypassed via `PIPEPAY_DISABLE_LICENSING` in `wp-config.php` (see above). To upgrade the dogfood install: deactivate, drop a newer zip's contents into `/var/www/pipepay/wp-content/plugins/pipe-pay/`, fix ownership to `www-data:www-data`, reactivate via wp-cli. Same flow as customer in-line updates, just done by hand on this site.
+- **mu-plugins/pipepay-license-resolve.php** 1.0.0 — must-use plugin (auto-loaded, not in the regular plugins list). Provides the license-key → product-ID resolver endpoint. See "Kestrel API Manager licensing" below.
+- **API Manager for WooCommerce** (Kestrel) 3.7.6 — license generation + auto-update server for the Pipe Pay plugin sold via this site. (See "Kestrel licensing" below.)
+- **Woo Update Manager** 1.0.3 — the WooCommerce.com Helper. Authenticates to `wittscafidi@gmail.com`'s WC.com account so the API Manager subscription pulls in updates automatically. Don't deactivate or API Manager stops getting updates.
+- **Wordfence** 8.2.0 — firewall, malware scan, login throttling. Free tier; runs out of the box.
+- **Two Factor** 0.16.0 — official WP.org plugin. Users enable 2FA from `Users → Profile → Two-Factor Options`. **Enable on the `pipepayadmin` account before launch.**
+- **GenerateBlocks** 2.2.1 — block library, available for any future page that wants block-built sections. The homepage doesn't use it (custom theme template instead).
+
+### Plugins inactive but on disk (rollback option)
+- **Easy Digital Downloads Pro** 3.6.7 — abandoned in favor of WooCommerce + API Manager. Plugin files retained for the 14-day refund window. Can be removed once refund clears.
+
+## Kestrel API Manager licensing (the dogfood + auto-update infrastructure)
+This is what makes "selling a WordPress plugin" work end-to-end on this site.
+
+**What it does:**
+1. When a customer checks out via WC, API Manager generates a license key and ties it to their WC user account.
+2. The Pipe Pay plugin embeds Kestrel's free [PHP SDK](https://github.com/kestrelcommerce/wc-api-manager-php-library) (verbatim, dropped in at `includes/wc-am-client.php`) which talks back to `pipepay.app` for license activation, deactivation, and version checks.
+3. When we ship a new Pipe Pay zip, customers see "Update Available" in their standard WordPress admin notification flow — **no zip re-uploads required**. This is the entire reason Kestrel was chosen over alternative licensing systems.
+
+**One-field activation (since v1.6.0):**
+The Kestrel SDK natively requires the customer to enter both a license key AND a product ID. We sell four tiers (#34/#35/#36/#38) so we can't hardcode a single product ID, and asking customers to look up the product ID is bad UX. To dodge this, the plugin ships with a custom License page (`WP Admin → Pipe Pay → License`) that has a single field — license key. On activation, the plugin POSTs the key to a custom resolver endpoint on this site, gets the product ID back, then hands both to the Kestrel SDK.
+
+**Where the resolver lives:**
+- File: `/var/www/pipepay/wp-content/mu-plugins/pipepay-license-resolve.php`
+- Endpoint: `POST https://pipepay.app/wp-json/pipepay-license/v1/resolve`
+- Body: `api_key=<license-key>` (POST body, NOT query string — keeps the key out of nginx access logs)
+- Response 200: `{"success": true, "product_id": 34, "product_title": "Pipe Pay (Single Site)"}`
+- Response 404 / 403 / 429: `{"success": false, "code": "...", "message": "..."}`
+- Backed by a direct `wpdb` query against `wp_wc_am_api_resource` (the API Manager table), filtered to `active=1` rows.
+- Per-IP rate limit: 60 requests/hour using transients, IP via `REMOTE_ADDR` (nginx already does the trusted CF rewrite — see `set_real_ip_from 0.0.0.0/0` in nginx config).
+- Source of truth: `/Users/wittscafidi/Desktop/Pipe Pay/pipe-pay-site/mu-plugins/pipepay-license-resolve.php`. Sync to the server on changes.
+
+**How the license/update flow works (end-to-end):**
+1. Customer pastes license key into `WP Admin → Pipe Pay → License` on their store.
+2. Plugin POSTs to `pipepay.app/wp-json/pipepay-license/v1/resolve` → gets back `product_id`.
+3. Plugin POSTs to `pipepay.app/?wc-api=wc-am-api&wc_am_action=activate&...` (the legacy WC API shim Kestrel uses) with the resolved `product_id`, the customer's `api_key`, a stable per-site `instance` token, and the site URL.
+4. Kestrel records the activation, returns success. Plugin populates the SDK's option storage (`wc_am_client_<pid>` array + `wc_am_<pid>_activated`) so the SDK's update hooks find the api_key on subsequent requests.
+5. WordPress's standard `pre_set_site_transient_update_plugins` filter (registered by the SDK) checks for new versions on its normal cron schedule. When a new version is staged, customer sees "Update Available" in their plugins list, clicks "Update now," WP downloads + installs.
+
+**Tier upgrades:** customer clicks Deactivate, pastes new key, clicks Activate. Plugin re-resolves, gets new product_id, cleans up the OLD product's SDK options before binding the new one. No zip swap required.
+
+**Idempotency:** re-clicking Activate with an already-active key is a local no-op (no second server call, no second seat burned). Deactivation only clears local state when the server confirms — prevents orphan seats when the deactivate request fails mid-flight.
+
+**Where the API Manager itself is licensed from:**
+- Bought through [woocommerce.com](https://woocommerce.com/products/woocommerce-api-manager/) (the WC.com Marketplace listing for Kestrel's plugin), $199/yr.
+- **There is NO traditional license key for API Manager.** Activation is via the WC.com Helper "Connect your store" flow — the site authenticates against the `wittscafidi@gmail.com` woocommerce.com account and pulls the subscription's plugin + updates over the Helper API. Don't disconnect that connection or API Manager stops getting updates and may eventually stop functioning.
+- To verify or re-authenticate: WP Admin → WooCommerce → Extensions → My Subscriptions.
+
+**Where the WC products (license tiers) live:**
+| Product | WC ID | Slug | Price | Activations | Expiry | Visibility |
+|---|---|---|---|---|---|---|
+| Pipe Pay (Single Site) | 34 | `pipe-pay-single-site` | $249 | 1 | 365 days | shop |
+| Pipe Pay (5 Sites) | 35 | `pipe-pay-five-sites` | $499 | 5 | 365 days | shop |
+| Pipe Pay (Unlimited Sites) | 36 | `pipe-pay-unlimited` | $999 | unlimited | 365 days | shop |
+| Pipe Pay 7-Day Trial | 38 | `pipe-pay-trial` | $0 | 1 | 7 days | hidden (only via direct add-to-cart URL) |
+
+API Manager meta on each product: `_is_api=yes`, `_api_resource_type=wp_plugin`, `_api_activations` + `_api_activations_unlimited`, `_access_expires` (days). All four products self-reference for `_api_resource_product_id` (single-product = single-resource pattern).
+
+## WooCommerce config
+- Default country: `US:NY` (placeholder — change if you're elsewhere)
+- Currency: USD
+- Tax: off (revisit after LLC formation + nexus check)
+- Guest checkout: enabled
+- Account creation at checkout + on /my-account: enabled
+- Coming Soon mode: disabled
+- Onboarding wizard: skipped, marketing suggestions disabled
+- Default WC pages: `/shop` (id 27), `/cart` (id 28), `/checkout` (id 29 — slug taken back from the deleted EDD checkout), `/my-account` (id 30)
+
+## Pipe Pay (the gateway, configured on this site)
+- Registered as the only enabled WC payment gateway. Settings live in option `woocommerce_pipepay_settings`.
+- Title shown to customer: "Pipe Pay"
+- Description: "Pay with Venmo, Cash App, PayPal, or Zelle. After placing the order you will be shown payment instructions; upload a screenshot of the payment to complete checkout."
+- Brand accent color: `#1336a8`
+- Reminder cadence: 5 / 20 / 45 minutes; auto-cancel at 60 min (matches the brief)
+- Proof retention: 90 days
+- AI provider: **empty** → manual review mode (every order requires admin approval from the Proofs queue)
+- **Placeholder P2P handles must be replaced before launch** (see open to-dos)
+
+## CTA wiring (homepage → WC)
+| Button | Lands at | Behavior |
+|---|---|---|
+| Header "Start free trial" | `/checkout/?add-to-cart=38` | Adds the trial product to cart |
+| Hero "Start 7-day free trial" | same | same |
+| Final-CTA "Start 7-day free trial" | same | same |
+| Pricing card "Single Site" | `/checkout/?add-to-cart=34` | Adds Single Site tier |
+| Pricing card "5 Sites" | `/checkout/?add-to-cart=35` | Adds 5 Sites tier |
+| Pricing card "Unlimited Sites" | `/checkout/?add-to-cart=36` | Adds Unlimited tier |
+
+A `woocommerce_add_cart_item_data` filter in `functions.php` empties the cart before adding any Pipe Pay product, so a "Start trial" click after browsing a paid tier doesn't pile both in the cart.
+
+## Theme
+- **Active theme:** `pipepay-child` (custom child of GeneratePress 3.6.1)
+- Source of truth: `pipe-pay-site/pipepay-child/` in this directory (sync to server with `tar czf`/`scp`/`tar xzf`).
+- On server: `/var/www/pipepay/wp-content/themes/pipepay-child/`
+- Files:
+  - `style.css` — variables + section styles + the substantial WooCommerce overrides block at the bottom (classic + Block Checkout, ~500 lines of WC styling). **Note:** GeneratePress auto-enqueues this with `filemtime()` cache-busting under handle `generate-child` — do NOT also `wp_enqueue_style` it from functions.php (creates a duplicate `<link>` and stale CDN-cached versions can win cascade). Removing that duplicate enqueue was the fix for the early mobile-nav bug.
+  - `functions.php` — Manrope + Geist Mono font loading, body class, title/meta filters, robots.txt, WC hooks (page hero injection via `woocommerce_before_main_content`, no-sidebar layout via `generate_sidebar_layout`, cart deduplication via `woocommerce_add_cart_item_data`), inline mobile hamburger toggle JS via `wp_footer`, **dequeue of all WC frontend scripts/styles + jQuery on non-WC pages** (`wp_enqueue_scripts` priority 99) — saves ~6 JS files and ~4 CSS files on home/how-it-works/pricing/docs/changelog/contact/legal pages
+  - `front-page.php` — homepage (8 sections after the IA split): Hero, persona triptych ("You're probably one of three kinds of store"), 4-step How it works (with "Read the full breakdown →" link to /how-it-works), Pricing cards, Compat, Testimonials, Ship log, Final CTA. Bypasses `get_header()`/`get_footer()` and inlines its own header markup.
+  - `header.php` + `footer.php` — used by all non-homepage pages. Both contain the inline blue-background hamburger button (`.pp-nav-toggle`) that toggles a drawer at ≤760px viewports
+  - `page.php` — default sub-page template (privacy, terms, refunds)
+  - `page-checkout.php` — wraps WC's `[woocommerce_checkout]` shortcode in a Pipe Pay page hero. Cart-aware: shows "Start your 7-day free trial" hero when the trial product is in cart, "Complete your purchase" hero for paid tiers.
+  - `page-how-it-works.php` — long-form pitch: pain, founder story, traceable workflow features, AI deep-dive, security, onboarding (now ICP2-aware), final CTA
+  - `page-pricing.php` — pricing cards, "Is Pipe Pay for you?" yes/no qualification (5 bullets each side), "What Pipe Pay isn't," FAQ, final CTA
+  - `page-changelog.php` / `page-docs.php` / `page-contact.php` — custom templates for those slugs
+  - `page-doc-stub.php` — single template for all 9 `/docs/{slug}/` child pages. Holds full article bodies in a `$docs` PHP array (HEREDOC) keyed by slug; renders the article when present or falls back to a "coming soon" stub + topic outline when absent
+- **Layout convention:** the first content section after a `pp-page-hero` uses `pp-section--tight` (60px top/bottom padding) so the gap between the hero and the body stays tight. Applied across all subpage templates and the WC hero hook in functions.php.
+- **Mobile nav:** ≤760px shows a blue rounded-square hamburger; tap opens a full-width drawer with all 4 nav links + the Start free trial button. Closes on ESC, link click, or hamburger toggle. Markup lives in both `front-page.php` and `header.php`; JS in `functions.php` via `wp_footer` action.
+- The homepage renders directly from `front-page.php`. It bypasses the child's `header.php`/`footer.php` (it inlines its own header markup and skips `get_header()`/`get_footer()`) and also hides any GeneratePress chrome via `display:none` on `body.is-front-page`. Subpages get the child's `header.php`/`footer.php`.
+- Brand: `#1336a8` royal blue, Manrope sans + Geist Mono, white + `#f7f8fa` alternating sections. Matches the brief.
+- **Logo lives inline as SVG in FOUR places — keep them in sync when changing the mark:**
+  1. `front-page.php` `$logo_svg` (homepage header, currentColor)
+  2. `header.php` `$logo_svg` (subpage header, currentColor)
+  3. `footer.php` `$logo_svg` (subpage + homepage footer, currentColor)
+  4. `front-page.php` final-CTA inline `<svg>` (white-on-blue inverse variant)
+- Screenshot placeholders are intentional — replace with real product screenshots from a v1.4.0 install (see open to-dos).
+
+## Open to-dos
+
+### Before launching the store (you, in WP Admin)
+- [ ] **Replace placeholder Pipe Pay P2P handles** — `WP Admin → WooCommerce → Settings → Payments → Pipe Pay → Manage`. Currently:
+  - Venmo: `@your-venmo-handle`
+  - Cash App: `$your-cashapp`
+  - PayPal F&F: `wittscafidi@gmail.com` (confirm or replace)
+  - Zelle: `wittscafidi@gmail.com` (confirm or replace)
+- [ ] **Add an AI provider key** in the same settings panel (Claude / OpenAI / OpenRouter), or stay in manual review mode. Without a key every order requires you to approve from the Proofs queue manually.
+- [ ] **Set up SMTP relay** so order receipts, license-key emails, and trial reminders deliver. Server can't send mail directly (residential IP). Recommended: WP Mail SMTP plugin + Resend (free 3k/mo) or Postmark (free 100/day) + the SMTP creds from whichever you pick.
+- [ ] **Refund EDD Pro** within the 14-day window (purchased 2026-05-06). EDD support email or use the link in your purchase receipt. The plugin is already deactivated; safe to remove plugin files after refund clears: `sudo -u www-data wp --path=/var/www/pipepay plugin delete easy-digital-downloads-pro`.
+- [ ] **Enable Two-Factor on `pipepayadmin`** — Users → Profile → Two-Factor Options.
+- [ ] **Update the default WC country** if you're not in NY — WP Admin → WooCommerce → Settings → General.
+- [ ] **File for an LLC** (mentioned in earlier conversation) and update WC store legal name + the Terms of Service / Privacy Policy / Refund Policy pages once incorporated.
+
+### End-to-end test path (run before launch)
+- [ ] Visit https://pipepay.app in an incognito window. Click any "Start 7-day free trial" CTA. Should land on `/checkout/?add-to-cart=38` with hero kicker "TRIAL," title "Start your 7-day free trial."
+- [ ] Fill in dummy email/address. "Place Order." Order should complete (no payment step needed for $0 trial).
+- [ ] Confirm in WP Admin → WooCommerce → Orders that the order exists, status "Completed."
+- [ ] Confirm in WP Admin → WooCommerce → API Manager → Licenses that a 7-day license was issued for the test customer.
+- [ ] Check the WP Admin Mail Log (or your inbox once SMTP is wired) for: order-confirmation email + license-key email.
+- [ ] Repeat with a paid tier: visit homepage, scroll to pricing, click "5 Sites." Should land on `/checkout/?add-to-cart=35` with hero kicker "CHECKOUT."
+- [ ] Confirm Pipe Pay payment option is preselected with the description "Pay with Venmo, Cash App, PayPal, or Zelle..."
+- [ ] Place order. Status should be "Pending payment."
+- [ ] (Once you've replaced the P2P handles) confirm the post-checkout page shows your real handles + the customer's amount + order number in the upload-screenshot UI.
+- [ ] (Once a real test order exists) manually mark the order "Processing" or "Completed" in WC admin. API Manager should auto-issue a 1-year license.
+- [ ] **End-to-end license activation test for v1.6.1 (one-field flow + audit fixes).** All four WC products (34/35/36/38) point at `pipe-pay-v1.6.1.zip` with `_product_version=1.6.1` (done 2026-05-07). Existing 1.5.x customers will see "Update available" within ~12h of next WP cron. Smoke test before publicly recommending the upgrade:
+  1. Buy a Pipe Pay tier (or manually create an order + mark it Processing) so API Manager issues a real license key.
+  2. On a separate test WC install, install `pipe-pay-v1.6.1.zip` (do NOT set `PIPEPAY_DISABLE_LICENSING` on the test site — that constant is for the dogfood install only; the test site needs the License page visible).
+  3. Go to *WP Admin → Pipe Pay → License*. Paste **only the license key** — no product ID field should appear.
+  4. Click Activate. Confirm: notice says "License activated for [tier name]…", page now shows the activated card with masked key + tier title + Deactivate button.
+  5. Verify the network: open DevTools → Network. The resolver call should be `POST /wp-json/pipepay-license/v1/resolve` with the api_key in the request body, NOT in the URL.
+  6. In `pipepay.app/wp-admin/`, check API Manager → Activations: the test site should appear with activation count = 1.
+  7. On the test site, go to *Plugins → Installed Plugins → Pipe Pay → "View details"*. Confirm the Plugin Info popup loads (means the SDK's plugins_api hook resolved against pipepay.app).
+  8. Idempotency: click Deactivate, then immediately re-paste the same key and click Activate twice quickly. Server should record only ONE re-activation (check API Manager → Activations).
+  9. Tier upgrade: click Deactivate. Buy/create an order on a different tier (e.g. unlimited, product 36). Paste the new key into the same License page. Confirm it resolves to product 36 and re-activates without any zip swap. Check the WP options table — the OLD product's `wc_am_client_<old_pid>` row should be gone.
+  10. Auto-update flow: bump `pipe-pay.php` version to 1.6.2 locally, rebuild `pipe-pay-v1.6.2.zip`, replace product files + bump `_product_version` to 1.6.2 on product 34 (or whichever tier you tested with). On the test site, *Dashboard → Updates* should show "Update available" within ~12h or after clicking "Check Again."
+
+### Operations
+- [ ] **Add `pipepay.app` to Google Search Console** — verify via DNS TXT record (Cloudflare DNS panel makes this easy), then submit `https://pipepay.app/wp-sitemap.xml`. Leave the existing `pipepay.money` property in place so the 301 traffic stays monitored as it migrates over.
+- [ ] Off-server uploads backup (UpdraftPlus → S3/B2/Backblaze; needs creds)
+- [ ] Decide whether to remove NOPASSWD sudo for `witt-scafidi` after this push of work is done
+- [ ] Wire smoke-test ALERT log to a real notification channel (Discord/Slack webhook, or external monitor like UptimeRobot/BetterStack). Currently logs only to `/var/log/pipepay-uptime.log` and `journalctl -p err`.
+
+### Theme + content
+- [ ] Take real product screenshots from a working install of v1.4.0 and drop them in `/var/www/pipepay/wp-content/uploads/`. Replace the inline placeholders in `front-page.php` (search for `screenshot-placeholder`):
+  - Hero: customer payment page (QR, handle, sticky upload bar)
+  - How-it-works composite: end-to-end customer flow
+  - AI deep-dive: admin Proofs review queue with confidence badges
+- [ ] Replace placeholder testimonials in section 11 of `front-page.php` with real ones once collected
+- [ ] Wire `/contact` to a real contact form (Fluent Forms recommended; needs SMTP first)
+
+### Resolved
+- [x] www vs apex canonical: **apex** is canonical, `www` 301s to apex
+- [x] Daily DB backup cron + 30-day retention
+- [x] Smoke-test cron (every 5 min)
+- [x] Wordfence + Two-Factor + GenerateBlocks installed
+- [x] Theme: hand-coded child of GeneratePress
+- [x] Homepage v1: all 16 sections from the brief rendering
+- [x] Sub-pages built (changelog, docs, 9 doc stubs, contact, refund-policy, privacy, terms)
+- [x] robots.txt + WP core sitemap configured (`/wp-sitemap.xml`)
+- [x] Commerce stack: WooCommerce + Kestrel API Manager + Pipe Pay (dogfood) replaces the abandoned EDD path
+- [x] 4 WC products created with API Manager licensing meta (3 paid tiers + free trial)
+- [x] Pipe Pay registered as the only enabled WC gateway
+- [x] WooCommerce pages (shop, cart, checkout, my-account) restyled to match site brand including Block Checkout
+- [x] Cart deduplication: only one Pipe Pay product can be in the cart at a time
+- [x] Trial vs paid checkout flow: `/checkout/?add-to-cart=38` for trial, `?add-to-cart=34/35/36` for paid tiers
+- [x] WC checkout hero is cart-aware (Trial vs Checkout copy)
+- [x] **Domain migration `pipepay.money` → `pipepay.app`** (2026-05-06): new Cloudflare zone, tunnel public hostnames, nginx server block (with `pipepay.money` permanent 301 to `pipepay.app`), `WP_HOME`/`WP_SITEURL` flipped, full DB `wp search-replace` (93 replacements across 11 tables), theme files updated + synced, Pipe Pay plugin rebuilt as v1.5.1 with `pipepay.app` license-server URL, v1.5.1 zip wired into all 4 WC products via `_downloadable_files` + `_product_version`
+- [x] **Multi-page IA split** (2026-05-07): homepage trimmed from 16 sections → 8; new `/how-it-works` and `/pricing` pages absorb the deep sections (problem, story, features, AI deep-dive, security, onboarding, what-Pipe-Pay-isn't, FAQ). Header nav switched from in-page anchors to page links; "Start free trial" button now goes straight to `/checkout/?add-to-cart=38` instead of a `#pricing` anchor jump.
+- [x] **Persona triptych on home** (2026-05-07): replaces the original "What it is" section. Three cards in their own voice — high-risk vertical / validating an idea / tired of paying fees — each with a pull-quote and resolution paragraph.
+- [x] **"Is Pipe Pay for you?" yes/no qualification on `/pricing`** (2026-05-07): 5 green ✓ "yes if any of these are you" bullets covering all three ICPs, 5 red × "probably not" structural disqualifiers (cards, subscriptions, customers won't move off card, no chargeback insurance, non-WooCommerce platform).
+- [x] **All 9 doc articles written** (2026-05-07): `getting-started`, `ai-verification`, `admin-guide`, `configuration`, `order-lifecycle`, `refunds`, `security`, `license-management`, `troubleshooting`. Bodies live in the `$docs` array in `page-doc-stub.php`; the template auto-renders the body when a `body` key is present and falls back to "coming soon" + outline otherwise.
+- [x] **Mobile hamburger nav** (2026-05-07): blue rounded-square button at ≤760px opens a full-width drawer. Replaces the previous broken behavior where nav links just `display: none`'d with no replacement. Root cause of the visible bug was a duplicate `wp_enqueue_style` of the child stylesheet — Cloudflare CDN was serving an old `?ver=0.8.5` copy on top of the fresh GeneratePress-enqueued one. Removed the duplicate enqueue.
+- [x] **Speed wins** (2026-05-07): Cloudflare Cache Rules cache HTML for anonymous visitors with bypasses for `/wp-admin/*`, `/wp-login*`, `/checkout/*`, `/cart/*`, `/my-account/*`, `/wp-json/*`, `/wp-cron*`, `add-to-cart=` queries, and logged-in cookies. Plus dequeue of all WC frontend JS + jQuery on marketing pages — home went from 9 JS files → 2. Marketing-page TTFB dropped from ~290ms to ~50ms cached at edge.
+- [x] **Page-hero alignment** (2026-05-07): removed the 880px container override from `.pp-page-hero` and the auto-centering on `.pp-pricing-grid` so kicker, title, and pricing card borders align flush-left with the standard container edge.
+- [x] **First-section padding tightened** (2026-05-07): the section right under any `pp-page-hero` now uses `pp-section--tight` (60px top) instead of the default 104px; applied across `/docs`, `/docs/*`, `/how-it-works`, `/pricing`, `/changelog`, `/contact`, `/privacy`, `/terms`, `/refund-policy`, `/checkout`, and the WC hero hook.
+- [x] **Pipe Pay v1.5.0 — Kestrel SDK integration** (2026-05-06): embedded the Kestrel WC API Manager PHP SDK (`includes/wc-am-client.php`), wired update hooks via `pre_set_site_transient_update_plugins` / `plugins_api`, added `PIPEPAY_DISABLE_LICENSING` escape hatch.
+- [x] **Pipe Pay v1.6.0 — one-field license activation** (2026-05-06): custom resolver mu-plugin on pipepay.app maps license key → product ID. Plugin's License page is a single field (no product ID). Tier upgrades work without zip swap. Migration path for existing 1.5.x customers is automatic — they just upgrade and re-paste their key.
+- [x] **Pipe Pay v1.6.1 — security/correctness audit hardening** (2026-05-07): fixes from a parallel three-agent code review of the Kestrel implementation. Resolver call moved to POST body (was URL query string — keys were landing in nginx access logs). Tier-upgrade cleanup of old SDK options. Deactivate only clears local state on server confirm. Idempotent re-activation (no double-burn). `manage_woocommerce` capability instead of `manage_options`. Stale-nonce friendly notice. `esc_html` on remote response messages. Resolver IP detection simplified to `REMOTE_ADDR` (nginx already does the trusted CF rewrite). uninstall.php sweeps license options + SDK option residue.
+
+## Common operations cheatsheet
+
+```bash
+# SSH
+ssh witt-scafidi@100.102.251.125
+
+# wp-cli (always run as www-data, with --path)
+sudo -u www-data wp --path=/var/www/pipepay <command>
+
+# Disable a misbehaving plugin
+sudo -u www-data wp --path=/var/www/pipepay plugin deactivate <slug>
+
+# View the Pipe Pay gateway settings as JSON
+sudo -u www-data wp --path=/var/www/pipepay option get woocommerce_pipepay_settings --format=json
+
+# List all WC orders
+sudo -u www-data wp --path=/var/www/pipepay wc shop_order list --user=pipepayadmin
+
+# Manually mark an order complete (issues the API Manager license)
+sudo -u www-data wp --path=/var/www/pipepay wc shop_order update <order_id> --status=completed --user=pipepayadmin
+
+# Run a backup right now
+sudo /usr/local/sbin/pipepay-backup.sh
+
+# Tail nginx errors
+sudo tail -f /var/log/nginx/error.log
+
+# Tail cloudflared
+sudo journalctl -u cloudflared -f
+
+# Reload nginx after a config change
+sudo nginx -t && sudo systemctl reload nginx
+
+# Sync the local theme to the server
+cd "/Users/wittscafidi/Desktop/Pipe Pay/pipe-pay-site" && tar czf /tmp/pipepay-child.tgz --exclude='._*' -C . pipepay-child && scp /tmp/pipepay-child.tgz witt-scafidi@100.102.251.125:/tmp/ && ssh witt-scafidi@100.102.251.125 'sudo rm -rf /var/www/pipepay/wp-content/themes/pipepay-child && sudo tar xzf /tmp/pipepay-child.tgz -C /var/www/pipepay/wp-content/themes/ && sudo find /var/www/pipepay/wp-content/themes/pipepay-child -name "._*" -delete && sudo chown -R www-data:www-data /var/www/pipepay/wp-content/themes/pipepay-child && sudo systemctl reload php8.3-fpm'
+
+# Sync the resolver mu-plugin to the server
+scp "/Users/wittscafidi/Desktop/Pipe Pay/pipe-pay-site/mu-plugins/pipepay-license-resolve.php" witt-scafidi@100.102.251.125:/tmp/ && ssh witt-scafidi@100.102.251.125 'sudo install -o www-data -g www-data -m 644 /tmp/pipepay-license-resolve.php /var/www/pipepay/wp-content/mu-plugins/pipepay-license-resolve.php && rm /tmp/pipepay-license-resolve.php && sudo systemctl reload php8.3-fpm'
+
+# Replace the dogfood gateway with a new zip (deactivate, swap files, reactivate)
+ssh witt-scafidi@100.102.251.125 'sudo tar -czf /tmp/pipe-pay-backup-$(date +%Y%m%d-%H%M%S).tar.gz -C /var/www/pipepay/wp-content/plugins pipe-pay && sudo -u www-data wp --path=/var/www/pipepay plugin deactivate pipe-pay && sudo rm -rf /var/www/pipepay/wp-content/plugins/pipe-pay && sudo unzip -q /var/www/pipepay/wp-content/uploads/woocommerce_uploads/pipe-pay-v1.6.1.zip -d /var/www/pipepay/wp-content/plugins/ && sudo chown -R www-data:www-data /var/www/pipepay/wp-content/plugins/pipe-pay && sudo find /var/www/pipepay/wp-content/plugins/pipe-pay -type f -exec chmod 644 {} \; && sudo find /var/www/pipepay/wp-content/plugins/pipe-pay -type d -exec chmod 755 {} \; && sudo -u www-data wp --path=/var/www/pipepay plugin activate pipe-pay && sudo systemctl reload php8.3-fpm'
+
+# Smoke-test the resolver endpoint (with an invalid key — should 404)
+curl -s -X POST -d "api_key=test_invalid_key_xxxx" https://pipepay.app/wp-json/pipepay-license/v1/resolve
+
+# Inspect a live license key in API Manager (returns product_id, activations, instance, etc.)
+ssh witt-scafidi@100.102.251.125 'sudo -u www-data wp --path=/var/www/pipepay db query "SELECT api_resource_id, master_api_key, product_id, product_title, active, activations_total, activations_purchased FROM wp_wc_am_api_resource\G"'
+```
+
+## Local zips
+- `/Users/wittscafidi/Desktop/Pipe Pay/pipe-pay-v1.6.1.zip` — **current customer-facing release AND what's installed on the dogfood gateway.** License-server URL hardcoded to `https://pipepay.app/`. Wired into all 4 WC products. Also staged on the server at `/var/www/pipepay/wp-content/uploads/woocommerce_uploads/`.
+- `/Users/wittscafidi/Desktop/Pipe Pay/pipe-pay-v1.6.0.zip` — first build with one-field activation. Superseded by 1.6.1's audit hardening; keep for rollback only.
+- `/Users/wittscafidi/Desktop/Pipe Pay/pipe-pay-v1.5.1.zip` — last release before the one-field flow. Forced customers to enter both license key + product ID. Keep for rollback.
+- `/Users/wittscafidi/Desktop/Pipe Pay/pipe-pay-v1.5.0.zip` — initial Kestrel SDK integration; URL still on `pipepay.money`. Not safe to ship.
+- `/Users/wittscafidi/Desktop/Pipe Pay/pipe-pay-v1.4.2.zip`, `pipe-pay-v1.4.1.zip`, `pipe-pay-v1.4.0.zip` — pre-licensing builds. Functional gateway only, no auto-update. Rollback floor.
+- `/Users/wittscafidi/Desktop/Pipe Pay/woocommerce-api-manager.zip` — Kestrel API Manager 3.7.6, kept as a backup. Live install pulls updates via WC.com Helper, not from this zip.
+- `/Users/wittscafidi/Desktop/Pipe Pay/easy-digital-downloads-pro-3.6.7.zip` — abandoned commerce stack. Delete after EDD refund clears.
+
+---
+
+# Product & strategy considerations (from external planning review, 2026-05-06)
+
+> The block below was drafted in a separate planning conversation and has not been validated against the current site or plugin state. Treat it as a backlog and decision queue, not as shipped commitments. Items that conflict with what is already live on `pipepay.app` are flagged inline.
+
+# Pipe Pay Pro — subscription tier (decided 2026-05-07, NOT yet built or launched)
+
+> Strategic shift: **Pipe Pay Pro** is a separate paid tier above Pipe Pay core. NOT an add-on. Customers pick core OR Pro at signup. Adds native recurring P2P subscriptions, prepaid balance ledger, and smart refunds. Full engineering spec lives in the **plugin repo** at [`pipe-pay-extracted/specs/pipe-pay-pro-v1.md`](../pipe-pay-extracted/specs/pipe-pay-pro-v1.md) (sibling of the plugin source dir, so it doesn't ship inside the customer-download zip).
+
+## Pricing changes that fall out of this
+
+### Core (revised) — **LIVE on the site as of 2026-05-07**
+| Tier | Old | New |
+|---|---|---|
+| Single Site | $249/yr | **$299/yr** |
+| 5 Sites | $499/yr | **$599/yr** |
+| Unlimited | $999/yr | **$1,199/yr** |
+
+Hunter's recommendation. $249 was anchored to the B2C "just below $250" psych threshold which doesn't apply to merchants evaluating on ROI math. $299 reads as "real software" rather than "side project" without changing buyer consideration meaningfully. Shipped: WC products 34/35/36 `_regular_price`/`_price` updated, hardcoded prices in `front-page.php` and `page-pricing.php` bumped, persona triptych ICP3 body recomputed (breakeven $8,500 → $10,300 in card volume).
+
+### Pro (new tier) — NOT launchable until plugin is built (~6 weeks of engineering)
+| Tier | Price |
+|---|---|
+| Single Site | $699/yr |
+| 5 Sites | $1,399/yr |
+| Unlimited | $2,899/yr |
+
+Pro is ~2.3x core. Replaces WooCommerce Subscriptions ($279/yr) plus eliminates integration time, dual-system maintenance, and dual-vendor support burden. At 50+ active subscribers, Pro pays for itself in the first month.
+
+## Architectural principle
+
+We are NOT rebuilding WooCommerce Subscriptions or a card-rail recurring billing engine. We are building a **recurrence schedule + balance ledger + customer-initiated payment flow** for P2P rails. Closer to "gift card with a calendar trigger" than Stripe Billing. The hard parts of card recurring billing (stored tokens, decline retries, dunning, complex proration) don't apply to P2P rails.
+
+## V1 scope (one-paragraph summary, full detail in spec)
+
+Two subscription approaches: (1) reminder-driven manual recurring (reuses existing one-off flow); (2) prepaid balance ledger with auto-deduct. Six first-class subscription states with a real Pause that defers (not skips) the next billing date — critical for protocol-driven verticals like peptides where pause is more common than cancel. Three refund types: A (instant balance credit, default), B (manual external send via P2P app, queued), C (full prepay refund). Customer portal + merchant admin views + email notifications + per-merchant chargeback fraud signal feed. **Anything not in the spec's V1 list is V2.** Default response to scope creep: "V2."
+
+## Build order (V1) — DO NOT INVERT
+
+1. Subscription data model + state machine
+2. WooCommerce subscription product type integration
+3. Approach 1: reminder-driven recurring
+4. Refund Type B/C
+5. Approach 2: prepaid balance ledger
+6. Refund Type A (depends on balance ledger)
+7. Subscription states (full — pause, suspend)
+8. Customer portal
+9. Merchant admin views
+10. Email notifications
+11. Chargeback fraud signal feed
+
+## Marketing-site work that falls out of this
+
+**Shipped 2026-05-07:**
+- [x] WC products 34/35/36 `_regular_price`/`_price` flipped to 299/599/1199
+- [x] Pricing card display in `front-page.php` and `page-pricing.php` updated
+- [x] Persona triptych ICP3 body: "$249 a year, flat" → "$299 a year, flat"; breakeven recomputed to $10,300
+
+**Still pending (depend on Pro launch):**
+- [ ] When Pro is buyable: add three new WC products at $699/$1,399/$2,899 with the same `_is_api`/`_api_resource_type` meta pattern as the core tiers (do NOT reuse 34/35/36 — those stay as core)
+- [ ] Two-tier pricing page presentation (core + Pro side-by-side) with the comparison table from the spec
+- [ ] Upgrade path UX (core → Pro prorated) — handled by the SaaS billing system, no custom code
+
+**Decision still open:**
+- [ ] "Coming soon: Pipe Pay Pro" teaser on `/pricing`. Risk: telegraphs roadmap to competitors and signals "wait to buy until Pro ships." Recommendation: skip until Pro is shippable.
+
+---
+
+## Decisions that conflict with current state (need a user call)
+
+- ~~**Domain: `pipepay.app` vs `pipepay.money`.**~~ **Resolved 2026-05-06:** migrated to `pipepay.app`. `pipepay.money` zone + nginx server block kept in place to permanent-301 inbound links; do not delete.
+- **SaaS billing rails for our own subscription.** External review flags the long-term risk that Stripe (or any mainstream processor we use to collect Pipe Pay subscription dollars) will eventually classify Pipe Pay itself as "facilitating high-risk activity" and shut us down. Recommended merchant-of-record alternatives: Paddle, Lemon Squeezy, FastSpring. **Current state: Pipe Pay is dogfooded as the gateway — no Stripe in the loop at all,** so this risk does not apply today. Revisit before introducing any Stripe-based billing path (e.g. a future managed-key tier that auto-bills).
+- **Pipe Pay gateway has a single `ai_provider` setting.** External review wants merchants to choose between OpenAI / Anthropic / Gemini at minimum. Plugin-side change, not site-side.
+
+## Pre-launch must-haves (in addition to the to-dos already listed above)
+
+- [ ] **Refund / dispute flow.** A "mark as refunded" state inside WC that closes the loop, plus user-facing copy on the order detail + a docs page explaining that merchants must issue refunds manually inside Cash App / Zelle / Venmo / PayPal / Chime — Pipe Pay cannot push refunds back through P2P rails. Expected to be the single biggest source of confused support tickets.
+- [ ] **Terms of Service drafted by a fintech lawyer** (budget $1,500-$3,000). Three required functions: (a) frame Pipe Pay as a verification tool, NOT a payment processor or money transmitter (FinCEN / state MSB licensing exposure), (b) put final approval responsibility on the merchant, (c) prohibit merchants in actually-illegal verticals so we have grounds to terminate.
+- [ ] **Privacy + data retention policy.** Screenshots contain phone numbers, payment handles, amounts, sometimes profile photos. Lean short: 90 days for verified screenshots, then delete or keep only a perceptual hash. Already aligned with the gateway's `proof_retention_days = 90` setting — make sure the policy page matches.
+- [ ] **Manual review fallback mode** — if AI verification is unavailable (provider outage, expired key, rate-limit hit), screenshots must still flow through the approval queue marked "manual review — AI unavailable." Orders should never be auto-rejected due to infrastructure failure. Verify the Pipe Pay plugin handles this gracefully before single-rail launches (especially WWP).
+
+## Pipe Pay product roadmap (plugin-level, not site)
+
+V1 / pre-scale:
+1. **60-second onboarding video** walking through OpenAI / Anthropic account creation, payment-method setup, API-key generation, and pasting into Pipe Pay. Screenshots for every step as a fallback.
+2. **Concierge setup** as an Unlimited-tier perk — we set up the API key for them.
+3. **Per-error-source messaging.** Distinguish API-key-side failures (expired card, usage cap, invalid key) from Pipe Pay platform failures. Each error type gets its own user-facing message with the fix.
+4. **AI cost transparency on the pricing page.** Show estimated cost per 100 orders so merchants aren't surprised by their first OpenAI / Anthropic bill.
+5. **Multi-provider support** — OpenAI, Anthropic, Gemini at minimum (gateway change).
+6. **PayPal F&F vs G&S detection.** Admin-configurable G&S behavior, two options: auto-reject, or flag-and-warn for manual review. Default to flag-and-warn (avoids false-rejecting customers who tapped the wrong button but intended F&F). Marketing angle: "Pipe Pay protects your PayPal account by flagging G&S payments."
+7. **Chime support** — recognize both Chime-to-Chime UI and Zelle-via-Chime flows.
+8. **Manual-review queue as a universal safety valve** — any P2P app that produces a screenshot flows through the queue without AI verification, explicitly marked "manual review." Lets marketing say "supports any P2P app" without committing engineering to AI accuracy on every layout.
+9. **Status page** for Pipe Pay infrastructure so merchants (especially WWP under single-rail) can distinguish "AI down" from "site broken."
+
+V2 / deferred:
+- Apple Cash (iPhone-only, screenshot lives inside Messages, high visual variation, low ROI vs eng cost)
+- Crypto wallet screenshots → ship as a paid add-on ("Pipe Pay Crypto," $99-199/yr on top of base) once V1 has 50-100 paying customers and we know which chains/tokens to prioritize
+- Detect when the PayPal sender is a **business account** (these F&F payments often get auto-reversed by PayPal)
+- **Managed-key tier** for non-technical merchants who bounce on BYOK setup. Mark up AI costs, capture the segment that would otherwise churn at signup.
+
+## Fraud detection (V1 design)
+
+BYOK + per-merchant screenshot isolation means **centralized screenshot storage for cross-merchant duplicate detection breaks the privacy posture.** V1 sticks to intra-screenshot signals only, all enforced inside the AI prompt with structured JSON output (per-check pass/fail + confidence score):
+
+1. **Timestamp recency** — reject or flag if transaction time is > 30 minutes old, or in the future.
+2. **Recipient handle exact match** against the merchant's configured handle for that rail.
+3. **Amount edit detection** — anti-aliasing inconsistencies, font mismatches, pixel-level smudging around the amount field.
+4. **Font + layout consistency** across the whole screenshot (photoshopped amounts often have subtle differences).
+5. **Pending vs completed status** — reject "pending" or "cancelled"; only completed/sent transactions are valid.
+
+V1.5 / V2 — **perceptual-hash-only cross-merchant detection.** Store *only* a pHash of each verified screenshot in a central Pipe Pay DB (no bytes, no merchant attribution, no PII). Hash collision = "this screenshot may have been used elsewhere — please verify manually." Preserves merchant data isolation while catching the dominant fraud pattern (fraudsters spraying the same fake screenshot across multiple stores). Not a launch blocker, but without some form of cross-merchant signal the fraud-detection ceiling is low.
+
+## WWP (peptide store) single-rail dogfood
+
+External review endorses launching WWP with Pipe Pay as the **only** payment option. Required guardrails before going single-rail:
+
+1. **Manual review fallback** (above) — orders never auto-rejected on infra failure.
+2. **Conversion monitoring** for 30-60 days vs prior baseline. Within ~15% of baseline → keep the play. > 15% drop → add a backup option (likely BTCPay Server for crypto; brand-aligned, no third-party processor).
+3. **Public status page** for Pipe Pay so WWP customers can see a known issue rather than assuming the site is broken.
+
+Why this is defensible specifically for WWP (and not for a mainstream e-commerce store): peptide buyers are already conditioned to P2P payment flows, and many actively prefer not putting peptide purchases on a credit card. The conversion penalty that would kill a mainstream store is much smaller in this vertical.
+
+## Marketing / SEO backlog
+
+- **Headline + subhead alternatives.** Five options drafted for post-launch A/B testing: pain-led ("Stop manually matching Cash App screenshots to WooCommerce orders"), category-led ("Accept Cash App, Zelle, Venmo, and PayPal on your WooCommerce store"), outcome-led ("Your WooCommerce checkout for when Stripe says no"), direct/blunt ("P2P payments on WooCommerce, finally automated"), and time-saving ("Turn 12 hours a week of payment matching into 12 minutes"). Current hero copy on `front-page.php` predates these — keep current copy live; test alternatives once there is real traffic.
+- **"What this is" disambiguation paragraph** — required to prevent confusion with consumer P2P apps. One paragraph anchored under the hero, before features or pricing: "Pipe Pay sits inside your WooCommerce checkout. When a customer pays you via Cash App, Zelle, Venmo, PayPal, Chime, or another P2P app, they upload a screenshot of the payment. Pipe Pay's AI verifies the screenshot matches the order — correct amount, correct recipient handle, no signs of tampering — then queues it for your approval. One click releases the order."
+- **Naming + terminology guidance:** keep "P2P" as a supporting term, never the headline category (carries Venmo/Zelle consumer-app baggage). Always anchor "P2P" to "WooCommerce store" or "your store" in the same sentence. Name the actual apps as often as possible — app names convert better than abstract categories. Avoid: "peer-to-peer payment platform," "send and receive money." Use: "P2P checkout for WooCommerce," "customer-to-merchant P2P verification."
+- **SEO keyword priorities** (long-tail, high-intent, instead of fighting for "P2P payments"): `accept Cash App on WooCommerce`, `accept Zelle WooCommerce plugin`, `WooCommerce Venmo payment`, `WooCommerce PayPal Friends and Family`, `accept PayPal F&F WooCommerce`, `Stripe alternative high-risk WooCommerce`, `WooCommerce manual payment verification`, `accept P2P payments WooCommerce store`, `Cash App for online business WooCommerce`.
+- **Priority blog post: "What to do when your Stripe account gets flagged."** Target reader: merchant who just got the Stripe email, panicked, searching, ready to buy. Outline: why Stripe flags accounts, what "flagged" actually means (review hold vs funds freeze vs termination), 24-hour checklist (download history, notify customers, pause orders), options ranked by effort (appeal / high-risk processor / P2P + verification / crypto), why P2P + verification works specifically for high-risk WC, soft CTA. Internal links to plan: pricing, AI cost estimator, demo video, comparison page.
+- **Sibling post: "What to do when your PayPal account gets frozen."** Same structure, different audience moment. PayPal F&F merchants will eventually have an account die — capture that search intent.
+- **Comparison page** "Pipe Pay vs high-risk processors" (Authorize.net, NMI, Easy Pay Direct, etc.). $249/yr + 0% per transaction looks incredible against 4-8% per transaction.
+
+## Pre-50-customer decisions (don't block launch, decide before scaling)
+
+- **Merchant verification at signup.** Fully open vs light verification ("must have a published WC store with at least one product"). Filters out bad actors, adds signup friction.
+- **"Site" definition for pricing tiers.** Multi-store WC networks count as one or many? Staging environments? Two completely separate stores in different verticals? Define on the pricing page to head off month-two refund disputes.
+- **Pricing test: $29/month tier** converting to annual after 3 months. May lift conversion among panicked just-banned merchants who don't have $249 cash on hand. A/B test post-launch.
+
+## Referral / affiliate program
+
+**V1 decision: no formal program at launch.** 15% commission + 10% discount = ~24% revenue haircut per referred customer ($60 lost on the $249 tier, $240 lost on the $999 tier). Too steep while bootstrapping AI / infra / legal costs out of revenue. Acquisition strategy doesn't depend on it (WWP anchor, Hunter's network, direct outreach, "Stripe banned my account" SEO). Easy to launch later, hard to remove once active.
+
+Compensating mechanisms (cheap, no structural commitment):
+- Ad-hoc thank-you gestures when a customer mentions referring someone (free month, tier upgrade for a quarter, $50 gift card).
+- "How did you hear about us?" onboarding question. Names that come up repeatedly = personal thank-you email + first-invite list when a formal program eventually launches.
+
+Reconsider when growth stalls 30+ days without organic referral momentum, or 6 months post-launch (whichever comes first).
+
+If/when launched (parked spec): 15% recurring lifetime, tier bump to 20% at 10+ active referrals, 180-day cookie, monthly payout, $50 minimum threshold, existing customers grandfather in immediately as charter affiliates.
+
+## Domain + email setup (if migrating to PipePay.app)
+
+User-facing branding stays unified (`@pipepay.app`); sending splits across subdomains so each has its own deliverability reputation pool (the Stripe pattern):
+
+- `you@pipepay.app` — human business / customer replies / partner conversations
+- `support@pipepay.app` — support inbox
+- `noreply@notifications.pipepay.app` — transactional (signup confirmations, billing receipts, license-key emails, AI verification result notifications). Subdomain isolates transactional sending reputation from human email.
+- `outreach@send.pipepay.app` — volume cold outreach. Subdomain isolates reputation so deliverability issues don't poison the main domain. Not needed at launch (direct outreach is 1-to-1 to ~10-50 merchants/week); set up before any volume campaign.
+
+Required DNS for any sending domain: **SPF + DKIM + DMARC.** Without all three, even `.com` lands in spam; with them, `.app` delivers indistinguishably from `.com` in practice.
+
+Transactional service: Resend or Postmark (NOT the Workspace inbox). Both walk through SPF/DKIM/DMARC and have free/cheap early tiers. This dovetails with the existing SMTP relay to-do above.
+
+Human inbox: Google Workspace ($6/user/mo) or Fastmail ($5/user/mo). Workspace integrates better if Hunter or others need access later; Fastmail is cheaper and more privacy-respecting.
+
+Sender names: configure as "Pipe Pay Support," "Pipe Pay Notifications" — not raw addresses. Reduces the half-second "is this real?" pause on a non-`.com` TLD; disappears entirely after first interaction.
+
+## Post-launch roadmap (not blocking)
+
+- Comparison page (above)
+- Merchant analytics dashboard: approval rate, denial rate, time-to-approval, dollar volume processed. Plan the data model now to avoid refactoring later.
+- WooCommerce.com marketplace + CodeCanyon listings — long approval cycles, audience is mostly mainstream, but provides credibility signals when high-risk merchants evaluate Pipe Pay.
+- High-risk hosting partnerships (SiteGround Cloud, Liquid Web, specialty high-risk WC hosts) around month 3.
+- Pipe Pay Crypto paid add-on (above) once V1 has 50-100 paying customers and clear chain/token demand signal.
+- Managed-key tier (above).
