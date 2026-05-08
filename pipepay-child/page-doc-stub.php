@@ -131,7 +131,7 @@ HTML,
 <h2>What the AI's reasoning text contains</h2>
 <p>Pipe Pay asks the AI to return structured JSON with a per-check pass/fail and one-sentence rationale. You see all of that in the proof detail view. Example:</p>
 <pre><code>amount_matches: true   - Screenshot shows $87.50, order total is $87.50.
-handle_matches: true   - Recipient @northrange-supply matches configured Venmo handle.
+handle_matches: true   - Recipient @your-handle matches configured Venmo handle.
 edit_artifacts: false  - No anti-aliasing inconsistencies detected around amount field.
 timestamp_recent: true - Transaction time is 2 minutes ago.
 status_complete: true  - Status reads "Sent" with green checkmark visible.
@@ -359,8 +359,8 @@ HTML,
 <p>You will receive renewal notices from <code>pipepay.app</code> as your annual term approaches expiration. Each email includes a one-click renewal link that takes you straight to checkout with the same tier preselected. Renewal is the same price as the original purchase; we do not auto-bill.</p>
 
 <h2>If the license expires</h2>
-<p>The plugin's license-check piggybacks on WordPress's standard plugin update check (typically every ~12 hours). On the next check after expiration, Pipe Pay stops processing <em>new</em> incoming payments. Existing data, settings, and historical orders all stay intact. The customer-facing payment page shows a "temporarily unavailable" message and the gateway is hidden from new checkouts.</p>
-<p>Renewing reactivates immediately. There is no data migration or reinstall step; the plugin notices the license is valid again on the next check and resumes processing.</p>
+<p>Your license unlocks 1 year of plugin updates and support, and we strongly recommend renewing before your term ends so the transition is seamless. Without an active license you stop receiving WooCommerce-compatibility patches, security updates, and access to support &mdash; over time, as WordPress and WooCommerce release new versions, your install will fall behind and eventually need an update you can no longer get.</p>
+<p>The plugin's license-check piggybacks on WordPress's standard plugin update check (typically every ~12 hours). Existing data, settings, and historical orders all stay intact during a lapse. Renewing at any time restores updates and support on the next check; there is no data migration or reinstall step.</p>
 
 <h2>Reactivating after a long lapse</h2>
 <p>If your license has been expired for months and you renew, the plugin treats it like a fresh activation. Your settings, P2P handles, AI provider key, and historical order data all remain in the database; nothing is wiped during a lapse.</p>
@@ -370,7 +370,7 @@ HTML,
             'Site limits per tier (1 / 5 / unlimited) and how the count is enforced.',
             'Deactivating a license to free up a site slot.',
             'Renewal: notice email cadence, what the renewal email includes.',
-            'License expiration: the plugin stops processing new payments at the next license check; existing data is intact.',
+            'Why renewal matters: keeps WooCommerce-compatibility patches, security updates, and support flowing so the install stays current with WP and WC releases.',
             'Reactivating after a lapsed renewal.',
         ),
     ),
