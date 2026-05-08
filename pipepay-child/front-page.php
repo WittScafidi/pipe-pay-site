@@ -261,27 +261,46 @@ $changelog_url   = home_url( '/changelog' );
 
         <div class="pp-how-mock-wrap">
             <ol class="pp-flow" aria-label="End-to-end customer flow">
+                <!-- Step 1: WooCommerce checkout, Pipe Pay as the only payment method.
+                     Shows order summary + contact + payment method + Place order to look
+                     like a real checkout, not just a payment-radio cherry-pick. -->
                 <li class="pp-flow__step">
                     <div class="pp-flow__phone">
-                        <div class="pp-flow__screen">
-                            <div class="pp-flow__row pp-flow__row--head">Payment method</div>
+                        <div class="pp-flow__screen pp-flow__screen--checkout">
+                            <div class="pp-flow__row pp-flow__row--head">Order summary</div>
+                            <div class="pp-flow__cart-line">
+                                <span>Premium widget</span>
+                                <span>$87.50</span>
+                            </div>
+                            <div class="pp-flow__cart-line pp-flow__cart-line--total">
+                                <span>Total</span>
+                                <span>$87.50</span>
+                            </div>
+                            <div class="pp-flow__row pp-flow__row--head pp-flow__row--head-spaced">Contact</div>
+                            <div class="pp-flow__field">your@email.com</div>
+                            <div class="pp-flow__row pp-flow__row--head pp-flow__row--head-spaced">Payment method</div>
                             <div class="pp-flow__row pp-flow__row--option-selected">
                                 <span class="pp-flow__radio"></span>
                                 <span>Pipe Pay <small>Venmo, Cash App, PayPal, Zelle</small></span>
                             </div>
-                            <div class="pp-flow__row">
-                                <span class="pp-flow__radio pp-flow__radio--off"></span>
-                                <span>Credit card</span>
-                            </div>
                             <div class="pp-flow__row pp-flow__row--cta">Place order</div>
                         </div>
                     </div>
-                    <div class="pp-flow__caption"><b>01.</b>Choose Pipe Pay</div>
+                    <div class="pp-flow__caption"><b>01.</b>Choose Pipe Pay at checkout</div>
                 </li>
 
+                <!-- Step 2: Customer payment page. Real plugin has tabs across the top
+                     for the four P2P methods; the customer picks one. Mock shows the
+                     active-tab state with Venmo selected. -->
                 <li class="pp-flow__step">
                     <div class="pp-flow__phone">
                         <div class="pp-flow__screen pp-flow__screen--pay">
+                            <div class="pp-flow__tabs" role="tablist">
+                                <span class="pp-flow__tab pp-flow__tab--active">Venmo</span>
+                                <span class="pp-flow__tab">Cash</span>
+                                <span class="pp-flow__tab">PayPal</span>
+                                <span class="pp-flow__tab">Zelle</span>
+                            </div>
                             <div class="pp-flow__amount">$87.50</div>
                             <div class="pp-flow__handle">@your-handle</div>
                             <div class="pp-flow__qr-mini" aria-hidden="true"></div>
@@ -291,6 +310,8 @@ $changelog_url   = home_url( '/changelog' );
                     <div class="pp-flow__caption"><b>02.</b>Pay through P2P app</div>
                 </li>
 
+                <!-- Step 3: Submitting state — the customer has selected their screenshot
+                     and clicked upload; brief in-progress moment before the success state. -->
                 <li class="pp-flow__step">
                     <div class="pp-flow__phone">
                         <div class="pp-flow__screen">
@@ -306,18 +327,25 @@ $changelog_url   = home_url( '/changelog' );
                     <div class="pp-flow__caption"><b>03.</b>Upload screenshot</div>
                 </li>
 
+                <!-- Step 4: Post-upload success state. Copy matches the actual plugin's
+                     success-state template (templates/pipe-pay-page.php): heading
+                     "Screenshot received" + sub "We have your payment screenshot and
+                     will process your order shortly." Deliberately makes NO mention
+                     of AI verification — customers shouldn't learn the verification
+                     internals. The merchant-facing caption below the phone retains
+                     the AI marketing hook because the homepage audience is merchants. -->
                 <li class="pp-flow__step">
                     <div class="pp-flow__phone">
                         <div class="pp-flow__screen pp-flow__screen--done">
                             <div class="pp-flow__check" aria-hidden="true">
                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
                             </div>
-                            <div class="pp-flow__done-title">Order confirmed</div>
-                            <div class="pp-flow__done-sub">AI verified your payment</div>
-                            <div class="pp-flow__badge">Processing</div>
+                            <div class="pp-flow__done-title">Screenshot received</div>
+                            <div class="pp-flow__done-sub">We&rsquo;ll process your order shortly.</div>
+                            <div class="pp-flow__order-no">Order #1247</div>
                         </div>
                     </div>
-                    <div class="pp-flow__caption"><b>04.</b>AI verifies, order processes</div>
+                    <div class="pp-flow__caption"><b>04.</b>AI handles most; you handle the rest</div>
                 </li>
             </ol>
         </div>

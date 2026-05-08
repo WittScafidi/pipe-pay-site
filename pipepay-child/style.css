@@ -1135,6 +1135,82 @@ body.pipepay-home .pp-hero-h1 {
     font-family: var(--pp-font-mono);
 }
 
+/* Step 1 — full checkout layout (Pipe Pay as only method).
+ * Tighter gap than the default screen so order summary + contact + payment
+ * method + button all fit in the phone aspect 9/16. */
+.pp-flow__screen--checkout {
+    gap: 4px;
+    padding-top: 16px;
+}
+.pp-flow__row--head-spaced { margin-top: 6px; }
+.pp-flow__cart-line {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    padding: 3px 2px;
+    font-size: 10px;
+    line-height: 1.2;
+}
+.pp-flow__cart-line span:last-child {
+    font-family: var(--pp-font-mono);
+    font-variant-numeric: tabular-nums;
+}
+.pp-flow__cart-line--total {
+    font-weight: 700;
+    border-top: 1px solid var(--pp-border);
+    padding-top: 5px;
+    margin-top: 1px;
+}
+.pp-flow__field {
+    border: 1px solid var(--pp-border);
+    border-radius: 5px;
+    padding: 6px 8px;
+    font-size: 10px;
+    color: var(--pp-text-muted);
+    line-height: 1.2;
+    background: #fff;
+}
+
+/* Step 2 — P2P method tabs across the top of the payment page.
+ * Stretches against the screen's center alignment via align-self. */
+.pp-flow__tabs {
+    align-self: stretch;
+    width: 100%;
+    display: flex;
+    gap: 2px;
+    background: var(--pp-bg-alt);
+    border-radius: 6px;
+    padding: 2px;
+    margin-bottom: 4px;
+}
+.pp-flow__tab {
+    flex: 1;
+    text-align: center;
+    padding: 4px 2px;
+    font-size: 9px;
+    font-weight: 500;
+    color: var(--pp-text-muted);
+    border-radius: 4px;
+    line-height: 1;
+    letter-spacing: -0.01em;
+}
+.pp-flow__tab--active {
+    background: #fff;
+    color: var(--pp-blue);
+    font-weight: 700;
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.08);
+}
+
+/* Step 4 — order number line below the success copy.
+ * Subtle mono so it reads as a reference, not a primary message. */
+.pp-flow__order-no {
+    margin-top: 8px;
+    font-family: var(--pp-font-mono);
+    font-size: 9px;
+    color: var(--pp-text-faint);
+    letter-spacing: 0.02em;
+}
+
 /* ============== 5. STORY ============== */
 /* Editorial single-column layout: eyebrow > headline > lead > body > byline.
  * Everything inside the card shares the same max-width so the right edges line
