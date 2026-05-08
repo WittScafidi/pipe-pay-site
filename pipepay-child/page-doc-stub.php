@@ -214,7 +214,7 @@ HTML,
         'body'   => <<<'HTML'
 <h2>Status flow</h2>
 <p>Pipe Pay registers one custom WooCommerce order status: <code>wc-awaiting-proof</code>, shown as <strong>Awaiting Proof</strong>. It's assigned when the customer places the order, and the order stays in it until the customer uploads a screenshot, the auto-cancel timer fires, or you intervene manually.</p>
-<p>When the customer uploads a screenshot and the AI grades it medium or low confidence (or the order amount is above the auto-approval cap), the order moves to standard WooCommerce <strong>On Hold</strong> for your manual review in the Proofs queue. From there, orders move to standard WooCommerce statuses: <em>Processing</em> on approval, <em>Cancelled</em> on rejection or auto-cancel.</p>
+<p>When the customer uploads a screenshot and the AI grades it medium or low confidence (or the order amount is above the auto-approval cap), the order moves to <strong>Awaiting Approval</strong> for your manual review in the Proofs queue. From there, orders move to standard WooCommerce statuses: <em>Processing</em> on approval, <em>Cancelled</em> on rejection or auto-cancel.</p>
 
 <h2>Reminder email cadence</h2>
 <p>If a customer places an order in <em>Awaiting Proof</em> and then bounces away from the payment page without uploading, Pipe Pay schedules three escalating reminder emails:</p>

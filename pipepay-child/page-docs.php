@@ -40,7 +40,7 @@ $sections = array(
         'slug'    => 'order-lifecycle',
         'kicker'  => 'Order lifecycle',
         'title'   => 'Awaiting Proof, reminders, auto-cancel',
-        'desc'    => 'How orders move through Pipe Pay\'s custom statuses: Awaiting Proof to Processing on auto-approval, On Hold for manual review, Cancelled when the customer ghosts. Reminder email cadence and timing.',
+        'desc'    => 'How orders move through Pipe Pay\'s custom statuses: Awaiting Proof to Processing on auto-approval, Awaiting Approval for manual review, Cancelled when the customer ghosts. Reminder email cadence and timing.',
         'topics'  => array( 'Order statuses', 'Reminder emails', 'Auto-cancel timing', 'Stock restoration', 'Customer cancellation email' ),
     ),
     array(
