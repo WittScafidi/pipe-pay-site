@@ -1217,70 +1217,83 @@ body.pipepay-home .pp-hero-h1 {
  * templates/pipe-pay-page.php so the marketing mock matches what customers
  * actually see at /pay/order-N. */
 
-/* Override --pay's center alignment so the upload zone sits at the top, then
- * order line → QR → methods → steps → Open button stack below. Gap controls
- * the breathing room; tighter when the upload zone is at the top because
- * we need more vertical room overall. */
+/* Step 2 + 3 share this layout: upload zone at the top, then order line, QR,
+ * methods, instructions, Open button (step 2 only). justify-content:center
+ * vertical-centers the stack so leftover space distributes top + bottom. */
 .pp-flow__screen--pay {
     align-items: stretch;
+    justify-content: center;
     text-align: center;
-    padding-top: 14px;
-    padding-bottom: 12px;
-    gap: 7px;
+    padding-top: 16px;
+    padding-bottom: 14px;
+    gap: 9px;
 }
 .pp-flow__screen--pay .pp-flow__qr-mini {
-    width: 40px;
-    height: 40px;
+    width: 44px;
+    height: 44px;
     margin: 0 auto;
 }
 
-/* Screenshot upload zone — appears at the top of step 2 (idle) and step 3
- * (submitting). Mirrors the real plugin's wwp-dp-upload-card area,
- * compressed to fit a phone-mock width. */
+/* Screenshot upload zone — square box at the top of step 2 (idle) and step 3
+ * (submitting). Icon/spinner stacks above the label/filename in both states.
+ * Mirrors the visual shape of a "drop file here" zone. */
 .pp-flow__upload-zone {
+    width: 64px;
+    height: 64px;
+    margin: 0 auto;
+    flex-shrink: 0;
     display: flex;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 6px;
-    padding: 7px 8px;
+    gap: 4px;
+    padding: 6px;
     border: 1px dashed var(--pp-border-strong);
-    border-radius: 6px;
+    border-radius: 8px;
     background: var(--pp-bg-alt);
     color: var(--pp-text-muted);
-    font-size: 9.5px;
+    font-size: 8px;
     font-weight: 600;
-    line-height: 1;
+    line-height: 1.15;
+    text-align: center;
 }
 .pp-flow__upload-zone svg {
-    width: 12px;
-    height: 12px;
+    width: 16px;
+    height: 16px;
     color: var(--pp-blue);
     flex-shrink: 0;
 }
+.pp-flow__upload-zone-label {
+    /* "Choose screenshot" — wraps to two lines inside the 64px square. */
+    max-width: 100%;
+}
 
-/* Submitting variant — solid blue border + tinted bg, shows filename inline
- * with a spinner on the right. */
+/* Submitting variant — solid blue border + tinted bg, spinner above the
+ * filename. Filename truncates with ellipsis if it exceeds the square width. */
 .pp-flow__upload-zone--submitting {
     border-style: solid;
     border-color: var(--pp-blue);
     background: rgba(19, 54, 168, 0.05);
     color: var(--pp-text);
-    justify-content: flex-start;
-    text-align: left;
 }
 .pp-flow__upload-zone-name {
-    flex: 1;
     font-family: var(--pp-font-mono);
     font-weight: 500;
-    font-size: 8.5px;
+    font-size: 7px;
+    line-height: 1.2;
+    width: 100%;
     overflow: hidden;
     text-overflow: ellipsis;
-    white-space: nowrap;
+    word-break: break-all;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
     color: var(--pp-text);
 }
 .pp-flow__upload-zone--submitting .pp-flow__spinner {
-    width: 10px;
-    height: 10px;
+    width: 16px;
+    height: 16px;
+    border-width: 2px;
     border-color: rgba(19, 54, 168, 0.25);
     border-top-color: var(--pp-blue);
     flex-shrink: 0;
@@ -1308,28 +1321,29 @@ body.pipepay-home .pp-hero-h1 {
     color: var(--pp-text-faint);
 }
 
-/* Numbered instructions for the active method. Mirrors the real plugin's
- * .wwp-dp-steps with smaller dimensions for the phone-mock context. */
+/* Numbered instructions for the active method. Each li renders as a centered
+ * flex row [number-circle] [text] so the steps cluster horizontally centered
+ * rather than reading left-aligned (visually consistent with the centered
+ * dropbox + order line + QR + methods above). */
 .pp-flow__steps {
     list-style: none;
     counter-reset: pp-flow-steps;
     padding: 0;
     margin: 2px 0 4px;
-    text-align: left;
 }
 .pp-flow__steps li {
     counter-increment: pp-flow-steps;
-    position: relative;
-    padding: 3px 0 3px 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 3px 0;
     font-size: 9px;
     line-height: 1.3;
     color: var(--pp-text);
 }
 .pp-flow__steps li::before {
     content: counter(pp-flow-steps);
-    position: absolute;
-    left: 0;
-    top: 2px;
     width: 13px;
     height: 13px;
     border-radius: 50%;
@@ -1341,6 +1355,7 @@ body.pipepay-home .pp-hero-h1 {
     align-items: center;
     justify-content: center;
     font-family: var(--pp-font-mono);
+    flex-shrink: 0;
 }
 .pp-flow__steps code {
     font-family: var(--pp-font-mono);

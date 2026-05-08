@@ -301,10 +301,11 @@ $changelog_url   = home_url( '/changelog' );
                                  plugin places this in the right column on desktop
                                  / sticky bar on mobile; in the marketing mock we
                                  lift it to the very top so visitors see the upload
-                                 step is part of the same page. -->
+                                 step is part of the same page. Square box matches
+                                 the visual rhythm of a "drop file here" zone. -->
                             <div class="pp-flow__upload-zone">
                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-                                <span>Choose screenshot</span>
+                                <span class="pp-flow__upload-zone-label">Choose screenshot</span>
                             </div>
 
                             <!-- Order line: amount due + order number -->
@@ -356,11 +357,11 @@ $changelog_url   = home_url( '/changelog' );
                 <li class="pp-flow__step">
                     <div class="pp-flow__phone">
                         <div class="pp-flow__screen pp-flow__screen--pay">
-                            <!-- Upload zone in submitting state -->
+                            <!-- Upload zone in submitting state — square box,
+                                 spinner on top, filename underneath. -->
                             <div class="pp-flow__upload-zone pp-flow__upload-zone--submitting">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
-                                <span class="pp-flow__upload-zone-name">venmo-submission.png</span>
                                 <span class="pp-flow__spinner" aria-hidden="true"></span>
+                                <span class="pp-flow__upload-zone-name">venmo-submission.png</span>
                             </div>
 
                             <div class="pp-flow__order-line">
@@ -462,6 +463,24 @@ $changelog_url   = home_url( '/changelog' );
                 <blockquote>I'm not in a restricted vertical, I just hate paying 2.9% on every order. Pipe Pay paid for itself in the first month and now I'm running about 80% of my volume through it.</blockquote>
                 <div class="pp-attr"><strong>Dan W.</strong></div>
             </div>
+        </div>
+    </div>
+</section>
+
+<!-- ============== 12. LIVE DEMO AT CHECKOUT ============== -->
+<section class="pp-section pp-section--tight pp-self-checkout" id="live-demo">
+    <div class="pp-container">
+        <div class="pp-self-checkout__card">
+            <span class="pp-self-checkout__kicker">Live demo at checkout</span>
+            <h2>Our own checkout runs on Pipe Pay.</h2>
+            <p>PipePay.app uses Pipe Pay for its checkout. Pick a tier below and pay with Venmo, Cash App, PayPal F&amp;F, or Zelle &mdash; it's the same flow your customers will go through, and the fastest way to see what they'll experience before you ever install the plugin.</p>
+            <div class="pp-self-checkout__methods" aria-label="Accepted P2P methods at our checkout">
+                <span class="pp-self-checkout__method">Venmo</span>
+                <span class="pp-self-checkout__method">Cash App</span>
+                <span class="pp-self-checkout__method">PayPal F&amp;F</span>
+                <span class="pp-self-checkout__method">Zelle</span>
+            </div>
+            <a class="pp-btn pp-self-checkout__cta" href="#pricing">Pick a tier below &rarr;</a>
         </div>
     </div>
 </section>
