@@ -1211,6 +1211,265 @@ body.pipepay-home .pp-hero-h1 {
     letter-spacing: 0.02em;
 }
 
+/* ============== Step 2 — payment-page mock (real-product layout) ==============
+ * QR at top → method buttons (4 brand-colored pills under the QR) → handle row
+ * → big colored Open button → upload-section hint at the bottom. Layout mirrors
+ * templates/pipe-pay-page.php so the marketing mock matches what customers
+ * actually see at /pay/order-N. */
+
+/* Override --pay's center alignment so the QR sits at the top instead of the
+ * vertical-centered position the existing rule uses. */
+.pp-flow__screen--pay {
+    align-items: stretch;
+    text-align: center;
+    padding-top: 18px;
+    gap: 5px;
+}
+.pp-flow__screen--pay .pp-flow__qr-mini {
+    width: 48px;
+    height: 48px;
+    margin: 2px auto 2px;
+}
+
+/* Order line at the top — amount due + order number, side by side. */
+.pp-flow__order-line {
+    display: flex;
+    align-items: baseline;
+    justify-content: center;
+    gap: 8px;
+    line-height: 1;
+}
+.pp-flow__order-amount {
+    font-family: var(--pp-font-mono);
+    font-variant-numeric: tabular-nums;
+    font-size: 16px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    color: var(--pp-text);
+}
+.pp-flow__order-num {
+    font-family: var(--pp-font-mono);
+    font-size: 9px;
+    color: var(--pp-text-faint);
+}
+
+/* Numbered instructions for the active method. Mirrors the real plugin's
+ * .wwp-dp-steps with smaller dimensions for the phone-mock context. */
+.pp-flow__steps {
+    list-style: none;
+    counter-reset: pp-flow-steps;
+    padding: 0;
+    margin: 2px 0 4px;
+    text-align: left;
+}
+.pp-flow__steps li {
+    counter-increment: pp-flow-steps;
+    position: relative;
+    padding: 3px 0 3px 18px;
+    font-size: 9px;
+    line-height: 1.3;
+    color: var(--pp-text);
+}
+.pp-flow__steps li::before {
+    content: counter(pp-flow-steps);
+    position: absolute;
+    left: 0;
+    top: 2px;
+    width: 13px;
+    height: 13px;
+    border-radius: 50%;
+    background: var(--pp-bg-alt);
+    color: var(--pp-text-muted);
+    font-size: 8px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--pp-font-mono);
+}
+.pp-flow__steps code {
+    font-family: var(--pp-font-mono);
+    background: rgba(19, 54, 168, 0.06);
+    color: var(--pp-blue);
+    padding: 0 3px;
+    border-radius: 2px;
+    font-size: 8.5px;
+    font-weight: 500;
+}
+
+/* Method buttons row — colored circle icons (V/$/P/Z) inspired by the real
+ * plugin's .wwp-dp-method-icon. Active method gets a colored ring + white
+ * background panel matching the wwp-dp-method-tab.is-active treatment. */
+.pp-flow__methods {
+    display: flex;
+    justify-content: center;
+    gap: 4px;
+    margin: 0 auto;
+}
+.pp-flow__method {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2px;
+    border: 1.5px solid transparent;
+    border-radius: 999px;
+    background: #fff;
+    transition: border-color 0.15s, box-shadow 0.15s;
+}
+.pp-flow__method--active {
+    border-color: #008CFF;
+    box-shadow: 0 0 0 2px rgba(0, 140, 255, 0.18);
+}
+.pp-flow__method-icon {
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-size: 10px;
+    font-weight: 800;
+    font-family: var(--pp-font-sans);
+    line-height: 1;
+}
+
+/* Handle row — small label + monospace handle, on a soft card. */
+.pp-flow__handle-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: #fff;
+    border: 1px solid var(--pp-border);
+    border-radius: 6px;
+    padding: 5px 8px;
+    margin: 2px 0;
+    font-size: 10px;
+    line-height: 1;
+}
+.pp-flow__handle-label {
+    color: var(--pp-text-faint);
+    font-size: 8px;
+    font-weight: 500;
+    text-transform: none;
+}
+.pp-flow__handle-value {
+    font-family: var(--pp-font-mono);
+    font-weight: 500;
+    color: var(--pp-text);
+    flex: 1;
+    text-align: right;
+}
+
+/* Open Venmo CTA — full-width brand-colored, white text, with external-link
+ * arrow. Mirrors the real .wwp-dp-open-btn. Inline `style` attribute on the
+ * element supplies the brand color so we don't have to hard-code per method. */
+.pp-flow__open-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    width: 100%;
+    padding: 7px 8px;
+    border-radius: 6px;
+    color: #fff;
+    font-size: 11px;
+    font-weight: 700;
+    text-decoration: none !important;
+    line-height: 1;
+}
+.pp-flow__open-btn svg {
+    width: 10px;
+    height: 10px;
+    flex-shrink: 0;
+}
+
+/* Upload-section hint at the bottom of the payment page mock. Signals the
+ * upload step lives on the same screen (real plugin shows it as a sticky
+ * bar on mobile, a side panel on desktop). */
+.pp-flow__upload-hint {
+    margin-top: auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    padding: 6px 8px;
+    border-top: 1px dashed var(--pp-border-strong);
+    font-size: 9px;
+    font-weight: 600;
+    color: var(--pp-text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+.pp-flow__upload-hint svg {
+    width: 11px;
+    height: 11px;
+    color: var(--pp-blue);
+}
+
+/* ============== Step 3 — uploading-with-spinner state ==============
+ * Customer has chosen a screenshot and clicked submit; the real plugin's
+ * submit button switches to "Submitting..." with a spinning icon. The mock
+ * pairs that button with a thumbnail placeholder + filename above. */
+.pp-flow__screen--upload {
+    align-items: center;
+    text-align: center;
+    padding-top: 22px;
+    gap: 8px;
+}
+.pp-flow__upload-thumb {
+    width: 56px;
+    height: 56px;
+    border-radius: 6px;
+    background: var(--pp-bg-alt);
+    color: var(--pp-text-faint);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin: 6px 0 4px;
+    border: 1px solid var(--pp-border);
+}
+.pp-flow__upload-thumb svg { width: 26px; height: 26px; }
+.pp-flow__upload-filename {
+    font-size: 10px;
+    color: var(--pp-text-muted);
+    font-family: var(--pp-font-mono);
+    line-height: 1.2;
+    word-break: break-all;
+    padding: 0 2px;
+}
+.pp-flow__submit-btn {
+    margin-top: auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    width: 100%;
+    padding: 8px;
+    background: var(--pp-blue);
+    color: #fff;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 700;
+    line-height: 1;
+}
+.pp-flow__submit-btn--loading { opacity: 0.9; }
+.pp-flow__spinner {
+    width: 11px;
+    height: 11px;
+    border: 1.5px solid rgba(255, 255, 255, 0.35);
+    border-top-color: #fff;
+    border-radius: 50%;
+    animation: pp-flow-spin 0.8s linear infinite;
+    flex-shrink: 0;
+}
+@keyframes pp-flow-spin {
+    to { transform: rotate(360deg); }
+}
+@media (prefers-reduced-motion: reduce) {
+    .pp-flow__spinner { animation: none; }
+}
+
 /* ============== 5. STORY ============== */
 /* Editorial single-column layout: eyebrow > headline > lead > body > byline.
  * Everything inside the card shares the same max-width so the right edges line

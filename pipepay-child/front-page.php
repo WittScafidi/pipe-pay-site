@@ -289,39 +289,77 @@ $changelog_url   = home_url( '/changelog' );
                     <div class="pp-flow__caption"><b>01.</b>Choose Pipe Pay at checkout</div>
                 </li>
 
-                <!-- Step 2: Customer payment page. Real plugin has tabs across the top
-                     for the four P2P methods; the customer picks one. Mock shows the
-                     active-tab state with Venmo selected. -->
+                <!-- Step 2: Customer payment page. Mirrors the real plugin layout
+                     (templates/pipe-pay-page.php): order amount + # at top → QR →
+                     method buttons under the QR (pill-shaped, brand colors V/$/P/Z)
+                     → numbered instructions for the ACTIVE method → big brand-
+                     colored Open button → peek of the Upload section. -->
                 <li class="pp-flow__step">
                     <div class="pp-flow__phone">
                         <div class="pp-flow__screen pp-flow__screen--pay">
-                            <div class="pp-flow__tabs" role="tablist">
-                                <span class="pp-flow__tab pp-flow__tab--active">Venmo</span>
-                                <span class="pp-flow__tab">Cash</span>
-                                <span class="pp-flow__tab">PayPal</span>
-                                <span class="pp-flow__tab">Zelle</span>
+                            <!-- Order line: amount due + order number -->
+                            <div class="pp-flow__order-line">
+                                <span class="pp-flow__order-amount">$87.50</span>
+                                <span class="pp-flow__order-num">#1247</span>
                             </div>
-                            <div class="pp-flow__amount">$87.50</div>
-                            <div class="pp-flow__handle">@your-handle</div>
+
                             <div class="pp-flow__qr-mini" aria-hidden="true"></div>
-                            <div class="pp-flow__btn">Open Venmo &rarr;</div>
+
+                            <!-- Method buttons (under the QR per real product) -->
+                            <div class="pp-flow__methods" role="tablist" aria-label="Payment method">
+                                <span class="pp-flow__method pp-flow__method--active" role="tab" aria-selected="true">
+                                    <span class="pp-flow__method-icon" style="background:#008CFF;">V</span>
+                                </span>
+                                <span class="pp-flow__method" role="tab" aria-selected="false">
+                                    <span class="pp-flow__method-icon" style="background:#00D632;">$</span>
+                                </span>
+                                <span class="pp-flow__method" role="tab" aria-selected="false">
+                                    <span class="pp-flow__method-icon" style="background:#003087;">P</span>
+                                </span>
+                                <span class="pp-flow__method" role="tab" aria-selected="false">
+                                    <span class="pp-flow__method-icon" style="background:#6D1ED4;">Z</span>
+                                </span>
+                            </div>
+
+                            <!-- Numbered instructions for the active method -->
+                            <ol class="pp-flow__steps">
+                                <li>Send $87.50 to <code>@your-handle</code></li>
+                                <li>Add memo <code>#1247</code></li>
+                                <li>Screenshot the receipt</li>
+                            </ol>
+
+                            <!-- Open Venmo CTA, colored to match Venmo brand -->
+                            <a class="pp-flow__open-btn" style="background:#008CFF;" aria-hidden="true">
+                                Open Venmo
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+                            </a>
+
+                            <!-- Upload section hint at the bottom (sticky on mobile
+                                 in the real product). -->
+                            <div class="pp-flow__upload-hint">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                                <span>Upload screenshot</span>
+                            </div>
                         </div>
                     </div>
                     <div class="pp-flow__caption"><b>02.</b>Pay through P2P app</div>
                 </li>
 
-                <!-- Step 3: Submitting state — the customer has selected their screenshot
-                     and clicked upload; brief in-progress moment before the success state. -->
+                <!-- Step 3: Uploading state. Customer has picked their file and clicked
+                     submit; the real plugin's submit button switches its label to
+                     "Submitting..." and shows a CSS spinner inline. Mock matches that. -->
                 <li class="pp-flow__step">
                     <div class="pp-flow__phone">
-                        <div class="pp-flow__screen">
-                            <div class="pp-flow__upload-status">Uploading screenshot</div>
-                            <div class="pp-flow__upload-card">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.5-3.5L11 18"/></svg>
-                                <span>venmo-confirmation.png</span>
-                                <small>2.4 MB</small>
+                        <div class="pp-flow__screen pp-flow__screen--upload">
+                            <!-- Image-icon placeholder for the screenshot preview -->
+                            <div class="pp-flow__upload-thumb" aria-hidden="true">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
                             </div>
-                            <div class="pp-flow__progress"><span></span></div>
+                            <div class="pp-flow__upload-filename">venmo-confirmation.png</div>
+                            <div class="pp-flow__submit-btn pp-flow__submit-btn--loading">
+                                <span class="pp-flow__spinner" aria-hidden="true"></span>
+                                Submitting...
+                            </div>
                         </div>
                     </div>
                     <div class="pp-flow__caption"><b>03.</b>Upload screenshot</div>
