@@ -88,17 +88,19 @@ $changelog_url   = home_url( '/changelog' );
 <!-- ============== 1. HERO ============== -->
 <section class="pp-hero" id="top">
     <div class="pp-container">
-        <h1 class="pp-hero-h1">
-            <span class="pp-hero-h1__line">Accept Venmo, Cash App,</span>
-            <span class="pp-hero-h1__line">PayPal, and Zelle in WooCommerce,</span>
-            <span class="pp-hero-h1__line">without chasing payments by hand.</span>
-        </h1>
-        <p class="pp-hero-sub">A WooCommerce plugin that captures customer P2P payment screenshots and verifies them with AI, so the only orders you touch are the ones the AI actually flagged.</p>
-        <div class="pp-hero-ctas">
-            <a class="pp-btn pp-btn--inverse pp-btn--lg" href="<?php echo esc_url( $checkout_url ); ?>">Start 7-day free trial &rarr;</a>
-            <a class="pp-btn pp-btn--ghost-light pp-btn--lg" href="#how">How it works &darr;</a>
+        <div class="pp-hero-text">
+            <h1 class="pp-hero-h1">
+                <span class="pp-hero-h1__line">Accept Venmo, Cash App,</span>
+                <span class="pp-hero-h1__line">PayPal, and Zelle in WooCommerce,</span>
+                <span class="pp-hero-h1__line">without chasing payments by hand.</span>
+            </h1>
+            <p class="pp-hero-sub">A WooCommerce plugin that captures customer P2P payment screenshots and verifies them with AI, so the only orders you touch are the ones the AI actually flagged.</p>
+            <div class="pp-hero-ctas">
+                <a class="pp-btn pp-btn--inverse pp-btn--lg" href="<?php echo esc_url( $checkout_url ); ?>">Start 7-day free trial &rarr;</a>
+                <a class="pp-btn pp-btn--ghost-light pp-btn--lg" href="#how">How it works &darr;</a>
+            </div>
+            <p class="pp-cta-skip pp-cta-skip--inverse"><a href="<?php echo esc_url( $pricing_url ); ?>">or skip the trial &mdash; buy a license now &rarr;</a></p>
         </div>
-        <p class="pp-cta-skip pp-cta-skip--inverse"><a href="<?php echo esc_url( $pricing_url ); ?>">or skip the trial &mdash; buy a license now &rarr;</a></p>
 
         <div class="pp-hero-mock">
             <div class="pp-mock-browser" aria-hidden="true">
