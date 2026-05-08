@@ -12,7 +12,7 @@ if ( ! defined( 'ABSPATH' ) ) { exit; }
  * to avoid the previous pattern of hardcoded version strings drifting per file.
  */
 if ( ! defined( 'PIPEPAY_SITE_VERSION' ) ) {
-    define( 'PIPEPAY_SITE_VERSION', '1.6.5' );
+    define( 'PIPEPAY_SITE_VERSION', '1.7.0' );
 }
 
 add_action( 'wp_enqueue_scripts', function() {

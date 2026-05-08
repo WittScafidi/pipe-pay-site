@@ -251,6 +251,13 @@ A `woocommerce_add_cart_item_data` filter in `functions.php` empties the cart be
   9. Tier upgrade: click Deactivate. Buy/create an order on a different tier (e.g. unlimited, product 36). Paste the new key into the same License page. Confirm it resolves to product 36 and re-activates without any zip swap. Check the WP options table — the OLD product's `wc_am_client_<old_pid>` row should be gone.
   10. Auto-update flow: bump `pipe-pay.php` version to the next patch (e.g. 1.6.5) locally, rebuild the zip, replace product files + bump `_product_version` on product 34 (or whichever tier you tested with). On the test site, *Dashboard → Updates* should show "Update available" within ~12h or after clicking "Check Again."
 
+- [ ] **Hands-on verification of the trial-tier-intent flow (Stages 1-4 shipped 2026-05-07).** Automated tests are 30/30 green: button URLs + cart-item filter + order-item persistence + HMAC round-trip + `/renew/` redirect for intent-bearing licenses + picker fallback + edge cases. What still needs human eyeballs:
+  1. **Update the Cloudflare Cache Rule** "Bypass dynamic + logged-in" to add `/renew/*` alongside `/checkout/*`, `/cart/*`, `/my-account/*`, `/wp-json/*`. The mu-plugin already sends `Cache-Control: no-store, no-cache` headers, so worst case CF respects those — but explicit edge bypass is the belt-and-suspenders move per the cache rules section above. Two-line dashboard change.
+  2. **Real customer browser walkthrough.** In an incognito window: visit `/pricing/`, click "Start 7-day trial" on the Unlimited card, complete the trial checkout (real `WC()->cart` session, real billing form). Then in `/wp-admin/`, manually mark the order completed. API Manager should mint a real trial license. Generate the renewal URL (snippet in the bottom of `pipepay-license-renewals.php`), paste into a fresh incognito window, confirm it 302s to `/checkout/` with the **Unlimited Sites** product preloaded in the cart. Repeat for "no intent" by visiting `/checkout/?add-to-cart=38` directly (no `?intent`) — the renewal URL should render the tier picker, click any tier, confirm cart populates correctly.
+  3. **Visual QA of the tier picker page** at `/renew/?key=...&token=...` on a trial without intent. The page uses the existing `.pp-pricing-grid` styling but renders inside the renewal flow. Check mobile (≤720px) + desktop layouts; confirm hero spacing matches the rest of the site; confirm the "Continue with [tier]" buttons are visually distinct enough.
+  4. **Paid-renewal branch (year-2+ scenario).** The mu-plugin's logic for `product_id ∈ {34, 35, 36}` (i.e. paid licenses, not trials) is implemented but never exercised in our automated tests because we only have trial test data. When the first real paid customer's renewal cycle approaches, run the renewal URL against their license and confirm the cart-item meta `_pipepay_renewal_for_license` is attached on the line item. (Effect of this meta is wired up by the future order-completion hook in the renewal-cadence work below.)
+  5. **Real API Manager license issuance.** Our automated test seeded synthetic rows in `wp_wc_am_api_resource` because the `wc_create_order()` path doesn't fire `woocommerce_payment_complete`, which is what API Manager listens for. Before relying on real customer data, place ONE real test order through the actual checkout flow (Block Checkout, complete payment, mark completed) and verify (a) API Manager auto-mints a license row, (b) the row's `master_api_key` is what shows on the customer's `/my-account` page, (c) the renewal URL built from that real key resolves correctly.
+
 - [ ] **License renewal email cadence + one-click renewal flow.** Server-side on pipepay.app — drives renewal rate without bricking customer gateways. The plugin's gateway always keeps working; only auto-updates and support are gated on license status (per the *Competitive defense → License model* section below). All implementation lives in a new mu-plugin `wp-content/mu-plugins/pipepay-license-renewals.php` next to the existing resolver mu-plugin. Hard prerequisite: SMTP relay must be wired up first (Resend or Postmark free tier; see Operations subsection below).
   - **Cadence (paid tiers — products 34, 35, 36):**
     - T-30: friendly heads-up
@@ -479,6 +486,30 @@ The gateway must NOT stop accepting orders when a license lapses. Why:
 # Product & strategy considerations (from external planning review, 2026-05-06)
 
 > The block below was drafted in a separate planning conversation and has not been validated against the current site or plugin state. Treat it as a backlog and decision queue, not as shipped commitments. Items that conflict with what is already live on `pipepay.app` are flagged inline.
+
+# Deferred plugin work (V2 / V3)
+
+These items came out of the 2026-05-07 code review but were intentionally deferred when reviewed honestly against current ICP and demand. Promote when real demand shows up; until then, the work is busywork.
+
+## Full i18n / translation pass — V2 (revisit when non-English customer demand surfaces)
+
+We added `load_plugin_textdomain( 'pipe-pay', ... )` to `pipe-pay.php` on 2026-05-08 and bulk-wrapped 28 REST error-response messages in `pipepay-hooks.php` with `__()`. That's the structural infrastructure. **Skipped:** wrapping the 1470-line `templates/pipe-pay-page.php` (customer payment page) and the ~50 `class-pipepay-gateway.php` settings labels. Reasons:
+- All Pipe Pay merchants today read English; the product is fundamentally US-rails (Venmo, Cash App, Zelle are US-only). Merchant-facing translations have near-zero current demand.
+- Customer-facing translation (the template) is where i18n would actually move the needle for WWP-style multi-country shops, but wrapping in `__()` without real translations does nothing visible. Real value requires both wrapping AND translators.
+- Nobody has asked. Zero customers in the wild yet.
+
+Promote when: WWP cohort (or another store) reports non-English customers confused at checkout, OR any customer asks. At that point: complete the template wrapping + run `wp i18n make-pot` to generate `languages/pipe-pay.pot`, then commission translations for the highest-demand language.
+
+## Heavy gateway-core refactor — V2/V3
+
+The audit recommended splitting `class-pipepay-gateway.php` (1899 lines) into 5+ files: `PipePay_Settings`, `PipePay_Account_Rotation`, `PipePay_REST_Controller`, `PipePay_Admin_Meta_Box`, etc. v1.7.0 did the cheap pieces (extracted inline admin JS to `assets/js/pipepay-admin.js`, extracted reminder-scheduler functions to their own file). The deep gateway-core split is deferred. Reasons:
+- High risk: WC payment gateway lifecycle has many subtle hooks; splitting touches everything.
+- Low immediate payoff: nothing currently iterating on these files; Pipe Pay Pro is greenfield code in a separate file/class.
+- Tests we have cover the pure-PHP units (vision, IP, uninstall) which are already split out.
+
+Promote when: a refactor would actually unblock work — e.g., adding a new payment rail forces touching the gateway in 5 places, or a Pipe Pay Pro design needs to share rotation logic with the core gateway.
+
+---
 
 # Pipe Pay Pro — subscription tier (decided 2026-05-07, NOT yet built or launched)
 

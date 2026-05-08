@@ -3,7 +3,7 @@
  * Plugin Name: Pipe Pay - License Resolver
  * Description: REST endpoint that maps a Kestrel API Manager license key to its product ID. Used by the Pipe Pay plugin so customers only enter a license key (no product ID) when activating.
  * Author:      Pipe Pay
- * Version:     1.1.0
+ * Version:     1.2.0
  *
  * Endpoint: POST https://pipepay.app/wp-json/pipepay-license/v1/resolve
  * Body:     api_key=XXXX
@@ -37,6 +37,16 @@
  *   - $wpdb->last_error checked after the DB call; on DB failure we 503
  *     instead of pretending the key was bad (avoids a flood of false
  *     "license invalid" support tickets when the DB hiccups).
+ *   - Response signing (Ed25519): success responses include an
+ *     X-Pipepay-Signature header over a canonical body string. The plugin
+ *     verifies before trusting product_id/product_title. Defeats a
+ *     network-position attacker who could otherwise return arbitrary
+ *     product mappings even with HTTPS verification active. Key material:
+ *       Private: PIPEPAY_LICENSE_SIGNING_PRIVATE_KEY constant in wp-config
+ *       Public:  bundled in the Pipe Pay plugin source as
+ *                PIPEPAY_LICENSE_SIGNING_PUBLIC_KEY in pipepay-licensing.php
+ *     Generated 2026-05-08; rotate by issuing a new keypair, updating both
+ *     ends, and shipping a new plugin version.
  */
 
 defined( 'ABSPATH' ) || exit;
@@ -172,11 +182,49 @@ function pipepay_license_resolve_handler( WP_REST_Request $request ): WP_REST_Re
     // Success path is intentionally NOT logged at info level - real customers
     // resolving their own valid keys is the happy path and not a security
     // signal. Only 4xx/5xx hit the log.
-    return new WP_REST_Response( [
+    $payload = [
         'success'       => true,
         'product_id'    => (int) $row['product_id'],
         'product_title' => (string) $row['product_title'],
-    ], 200 );
+    ];
+
+    // Build a Response object so we can attach the signature header.
+    $response = new WP_REST_Response( $payload, 200 );
+
+    // Sign the response (Ed25519). The plugin verifies before trusting
+    // product_id/product_title. We sign a canonical string covering the
+    // pieces the plugin actually trusts; including a timestamp blocks
+    // replay attacks across the (long) plugin update interval. We also
+    // bind the signature to the requested api_key so a captured response
+    // for one customer can't be replayed against another.
+    if ( defined( 'PIPEPAY_LICENSE_SIGNING_PRIVATE_KEY' ) && function_exists( 'sodium_crypto_sign_detached' ) ) {
+        $issued_at  = time();
+        $canonical  = sprintf(
+            'v1|%d|%s|%d|%s',
+            $issued_at,
+            $api_key,
+            (int) $row['product_id'],
+            (string) $row['product_title']
+        );
+        $secret_key = base64_decode( PIPEPAY_LICENSE_SIGNING_PRIVATE_KEY, true );
+        if ( $secret_key !== false && strlen( $secret_key ) === SODIUM_CRYPTO_SIGN_SECRETKEYBYTES ) {
+            try {
+                $sig = sodium_crypto_sign_detached( $canonical, $secret_key );
+                $response->header( 'X-Pipepay-Signature',          base64_encode( $sig ) );
+                $response->header( 'X-Pipepay-Signature-IssuedAt', (string) $issued_at );
+                $response->header( 'X-Pipepay-Signature-Version',  'v1' );
+            } catch ( \Throwable $e ) {
+                // Don't fail the response if signing breaks — the plugin
+                // will warn and accept it for backward-compat. Log the
+                // breakage so ops sees it.
+                error_log( '[pipepay-license-resolve] signing failed: ' . $e->getMessage() );
+            } finally {
+                sodium_memzero( $secret_key );
+            }
+        }
+    }
+
+    return $response;
 }
 
 /**

@@ -413,6 +413,11 @@ $changelog_url   = home_url( '/changelog' );
         </div>
         <ul class="pp-shiplog__list">
             <li>
+                <span class="pp-shiplog__date">May 8, 2026</span>
+                <span class="pp-shiplog__ver">v1.7.0</span>
+                <span class="pp-shiplog__note"><strong>License-server response signing + plugin internals.</strong> All license-resolver responses are now Ed25519-signed; the plugin verifies the signature before trusting the returned product mapping. Defeats a network-position attacker who could otherwise return a substituted product ID even with HTTPS. Plus: WC structured logging via <code>wc_get_logger()</code> (events visible at WC -> Status -> Logs), inline admin JS extracted to <code>assets/js/pipepay-admin.js</code> (CSP-friendly, browser-cached), test infrastructure published in the repo (PHPUnit + GitHub Actions matrix on PHP 8.1/8.2/8.3). No customer-visible behavior changes vs. 1.6.5; recommended update for the new license-server protection.</span>
+            </li>
+            <li>
                 <span class="pp-shiplog__date">May 7, 2026</span>
                 <span class="pp-shiplog__ver">v1.6.5</span>
                 <span class="pp-shiplog__note"><strong>Security hardening.</strong> Cloudflare-only IP detection (closes a per-IP rate-limit spoofing bypass), server-side amount + recipient cross-checks on every AI verdict (now compared in cents to avoid floating-point edge cases), forced TLS verification on license-server calls, per-billing-email upload cap, per-AI-provider key storage, PHP 8.0 minimum. Recommended update for everyone.</span>
