@@ -48,7 +48,7 @@ $changelog_url   = home_url( '/changelog' );
         <span class="pp-release-bar__pulse" aria-hidden="true"></span>
         <span class="pp-release-bar__label">Shipped</span>
         <span class="pp-release-bar__version">v<?php echo esc_html( PIPEPAY_SITE_VERSION ); ?></span>
-        <span class="pp-release-bar__msg">critical Block Checkout payment fix &middot; update strongly recommended</span>
+        <span class="pp-release-bar__msg">license-server response signing &middot; recommended update for everyone</span>
         <a class="pp-release-bar__link" href="<?php echo esc_url( $changelog_url ); ?>">read the changelog &rarr;</a>
     </div>
 </div>
@@ -69,6 +69,7 @@ $changelog_url   = home_url( '/changelog' );
             <a href="<?php echo esc_url( home_url( '/pricing' ) ); ?>">Pricing</a>
             <a href="<?php echo esc_url( home_url( '/changelog' ) ); ?>">Changelog</a>
             <a href="<?php echo esc_url( home_url( '/docs' ) ); ?>">Docs</a>
+            <a href="<?php echo esc_url( home_url( '/my-account' ) ); ?>"><?php echo is_user_logged_in() ? 'Account' : 'Sign in'; ?></a>
             <a class="pp-btn pp-btn--primary" href="<?php echo esc_url( $checkout_url ); ?>">Start free trial</a>
         </nav>
     </div>
@@ -482,14 +483,13 @@ $changelog_url   = home_url( '/changelog' );
                 <a href="<?php echo esc_url( $privacy_url ); ?>">Privacy</a>
                 <a href="<?php echo esc_url( $terms_url ); ?>">Terms</a>
             </nav>
-            <form class="pp-footer-signup" action="<?php echo esc_url( $contact_url ); ?>" method="post">
-                <label for="pp-footer-email">Release notes:</label>
-                <input id="pp-footer-email" type="email" name="email" placeholder="you@yourstore.com" required>
-                <button type="submit">Subscribe</button>
-            </form>
+            <a class="pp-footer-changelog" href="<?php echo esc_url( $changelog_url ); ?>">
+                <span>Release notes</span>
+                <span aria-hidden="true">&rarr;</span>
+            </a>
         </div>
         <div class="pp-footer-ledger">
-            <strong>&copy; <?php echo esc_html( date( 'Y' ) ); ?> Pipe Pay</strong>
+            <strong>&copy; <?php echo esc_html( wp_date( 'Y' ) ); ?> Pipe Pay</strong>
             <span class="pp-footer-ledger__sep">/</span>
             <span>Independent software</span>
             <span class="pp-footer-ledger__sep">/</span>

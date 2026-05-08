@@ -18,18 +18,18 @@ if ( ! defined( 'ABSPATH' ) ) { exit; }
                 <a href="<?php echo esc_url( home_url( '/docs' ) ); ?>">Docs</a>
                 <a href="<?php echo esc_url( home_url( '/changelog' ) ); ?>">Changelog</a>
                 <a href="<?php echo esc_url( home_url( '/contact' ) ); ?>">Contact</a>
+                <a href="<?php echo esc_url( home_url( '/my-account' ) ); ?>">My account</a>
                 <a href="<?php echo esc_url( home_url( '/refund-policy' ) ); ?>">Refunds</a>
                 <a href="<?php echo esc_url( home_url( '/privacy' ) ); ?>">Privacy</a>
                 <a href="<?php echo esc_url( home_url( '/terms' ) ); ?>">Terms</a>
             </nav>
-            <form class="pp-footer-signup" action="<?php echo esc_url( home_url( '/contact' ) ); ?>" method="post">
-                <label for="pp-footer-email">Release notes:</label>
-                <input id="pp-footer-email" type="email" name="email" placeholder="you@yourstore.com" required>
-                <button type="submit">Subscribe</button>
-            </form>
+            <a class="pp-footer-changelog" href="<?php echo esc_url( home_url( '/changelog' ) ); ?>">
+                <span>Release notes</span>
+                <span aria-hidden="true">&rarr;</span>
+            </a>
         </div>
         <div class="pp-footer-ledger">
-            <strong>&copy; <?php echo esc_html( date( 'Y' ) ); ?> Pipe Pay</strong>
+            <strong>&copy; <?php echo esc_html( wp_date( 'Y' ) ); ?> Pipe Pay</strong>
             <span class="pp-footer-ledger__sep">/</span>
             <span>Independent software</span>
             <span class="pp-footer-ledger__sep">/</span>

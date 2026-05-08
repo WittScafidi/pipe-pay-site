@@ -44,6 +44,22 @@ add_action( 'wp_enqueue_scripts', function() {
     // Child stylesheet is auto-enqueued by GeneratePress (handle "generate-child",
     // cache-busted via filemtime) — see generatepress/inc/general.php. Don't
     // double-enqueue here or stale CDN-cached copies of an old ?ver= can win.
+
+    // WC overrides live in their own file and load ONLY on WC pages. Saves
+    // ~30KB on every marketing page (was previously appended to style.css
+    // and shipped to every visitor). The WC bundle itself is also dequeued
+    // on non-WC pages by the priority-99 hook below — this stylesheet is
+    // OUR brand-match overrides, not WC's own CSS.
+    if ( function_exists( 'is_woocommerce' ) && ( is_woocommerce() || is_cart() || is_checkout() || is_account_page() ) ) {
+        $rel = '/woocommerce.css';
+        $abs = get_stylesheet_directory() . $rel;
+        wp_enqueue_style(
+            'pipepay-woocommerce',
+            get_stylesheet_directory_uri() . $rel,
+            array( 'generate-child' ),
+            file_exists( $abs ) ? filemtime( $abs ) : null
+        );
+    }
 }, 20 );
 
 // Apply the site-wide style scope on every page so the same brand styling
