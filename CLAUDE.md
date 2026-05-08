@@ -251,6 +251,39 @@ A `woocommerce_add_cart_item_data` filter in `functions.php` empties the cart be
   9. Tier upgrade: click Deactivate. Buy/create an order on a different tier (e.g. unlimited, product 36). Paste the new key into the same License page. Confirm it resolves to product 36 and re-activates without any zip swap. Check the WP options table — the OLD product's `wc_am_client_<old_pid>` row should be gone.
   10. Auto-update flow: bump `pipe-pay.php` version to the next patch (e.g. 1.6.4) locally, rebuild the zip, replace product files + bump `_product_version` on product 34 (or whichever tier you tested with). On the test site, *Dashboard → Updates* should show "Update available" within ~12h or after clicking "Check Again."
 
+- [ ] **License renewal email cadence + one-click renewal flow.** Server-side on pipepay.app — drives renewal rate without bricking customer gateways. The plugin's gateway always keeps working; only auto-updates and support are gated on license status (per the *Competitive defense → License model* section below). All implementation lives in a new mu-plugin `wp-content/mu-plugins/pipepay-license-renewals.php` next to the existing resolver mu-plugin. Hard prerequisite: SMTP relay must be wired up first (Resend or Postmark free tier; see Operations subsection below).
+  - **Cadence (paid tiers — products 34, 35, 36):**
+    - T-30: friendly heads-up
+    - T-7: 1 week left, slightly firmer
+    - T-0 (expiry day): "your gateway keeps working — only updates pause"
+    - T+7: first post-lapse, 23 days of grace remaining
+    - T+30: final notice, no further reminders
+  - **Cadence (trial — product 38):**
+    - T-2: trial ending in 2 days, here's how to convert
+    - T+0: trial ended, link to paid tiers
+    - No -30/-7/+7/+30 for trials.
+  - **Daily cron** at 02:00 UTC via Action Scheduler. Handler queries `wp_wc_am_api_resource WHERE active=1`, computes `days_to_expiry = ceil((access_expires - now) / 86400)`, matches each license against the cadence schedule with ±1 day tolerance.
+  - **Idempotency:** stamp `_pipepay_renewal_stage_<N>_sent_at` per license per stage so a double-firing cron doesn't double-send. If `wp_mail` returns false, don't stamp — next day retries. After 3 consecutive failed sends per license, log to `error_log` and skip.
+  - **Renewal URL — Option B (one-click HMAC):**
+    - Format: `https://pipepay.app/renew/?key=<license_key>&token=<hmac>`
+    - HMAC inputs: license key + tier product_id + current `access_expires` + a server secret (new constant in `wp-config.php`, e.g. `PIPEPAY_RENEWAL_HMAC_SECRET`)
+    - Lands on a custom WP page that validates the HMAC, looks up the license, pre-fills the cart with the matching tier, and pre-fills checkout fields from the customer's WC record
+    - On successful payment, a `woocommerce_order_status_completed` hook detects the renewal (via a hidden cart-item meta carrying the original license key) and **extends the existing license's `access_expires` by 365 days** instead of letting Kestrel mint a new license. Same key, fresh expiry.
+    - Fallback: if HMAC validation fails or license is unknown, route to `/checkout/?add-to-cart=<tier_id>` and let them complete a normal purchase.
+  - **Edge cases to handle in the handler:**
+    - Customer renews mid-cadence (e.g. between T-30 and T-7) → new `access_expires` puts them out of all schedule windows, no further reminders fire automatically.
+    - Multi-license customers → each license gets its own series, addressed to its own billing email; body disambiguates with "the [tier] license you bought on [date]".
+    - License manually deactivated by admin (`active=0`) → skipped by the WHERE clause.
+    - Customer changed billing email → use the email currently on the WC order via join through `order_id`.
+  - **Testing path before going live:**
+    1. Manually `UPDATE wp_wc_am_api_resource SET access_expires = UNIX_TIMESTAMP() + (30*86400) WHERE api_resource_id=<id>` on a test license to set expiry exactly 30 days out.
+    2. Run cron handler manually: `sudo -u www-data wp --path=/var/www/pipepay action-scheduler run --hooks=pipepay_license_check_renewals`. Confirm one email lands and the stamp is set.
+    3. Re-run cron, confirm NO duplicate email (idempotency check).
+    4. Repeat for -7, 0, +7, +30 by adjusting `access_expires` and clearing the appropriate stage stamp.
+    5. Click the renewal URL from a test email, complete checkout, confirm `access_expires` extends by 365 days on the EXISTING license row (no new row issued).
+  - **Estimated effort:** ~1.5 working days (1 day for cadence + cron + emails, half-day for Option B HMAC renewal flow).
+  - **Local source of truth:** `pipe-pay-site/mu-plugins/pipepay-license-renewals.php`. Sync to server with the existing mu-plugin sync command in the cheatsheet.
+
 ### Operations
 - [ ] **Add `pipepay.app` to Google Search Console** — verify via DNS TXT record (Cloudflare DNS panel makes this easy), then submit `https://pipepay.app/wp-sitemap.xml`. Leave the existing `pipepay.money` property in place so the 301 traffic stays monitored as it migrates over.
 - [ ] Off-server uploads backup (UpdraftPlus → S3/B2/Backblaze; needs creds)
@@ -423,7 +456,7 @@ The gateway must NOT stop accepting orders when a license lapses. Why:
 - After grace: banner intensifies (yellow → red), still informational, gateway still works
 - Email reminders at expiry-30 / -7 / 0 / +7 / +30
 
-If a future feature really demands a "stop accepting orders past expiry" lever, **make it merchant-opt-in**: a checkbox in gateway settings labeled "Stop accepting Pipe Pay orders if my license lapses." Off by default. Flips the bricking decision to the merchant — nobody gets bricked by surprise.
+**Don't build a "stop accepting orders past expiry" toggle either.** Even merchant-opt-in, the customers who turn it on will regret it the first time auto-renewal fails on an expired card — they wake up to a broken store and blame Pipe Pay. The actual lever for renewal rate is the email cadence above and a working one-click renewal URL, not gateway bricking. If a future merchant requests this loudly, point them at the cadence and ask what specific renewal-rate problem they're solving that emails don't already address.
 
 ## Anti-patterns — never do these
 

@@ -7,9 +7,14 @@ if ( ! defined( 'ABSPATH' ) ) { exit; }
 get_header();
 
 $checkout_url    = home_url( '/checkout/?add-to-cart=38' );
-$tier_single_url = home_url( '/checkout/?add-to-cart=34' );
-$tier_five_url   = home_url( '/checkout/?add-to-cart=35' );
-$tier_unlim_url  = home_url( '/checkout/?add-to-cart=36' );
+
+// Trial CTAs from a tier card carry an `intent` param so the customer's tier
+// preference is captured at signup and surfaces again at trial conversion.
+// `intent` is validated to {34, 35, 36} by the woocommerce_add_cart_item_data
+// filter in functions.php — mismatched values are dropped silently.
+$trial_intent_single = home_url( '/checkout/?add-to-cart=38&intent=34' );
+$trial_intent_five   = home_url( '/checkout/?add-to-cart=38&intent=35' );
+$trial_intent_unlim  = home_url( '/checkout/?add-to-cart=38&intent=36' );
 $refund_url      = home_url( '/refund-policy' );
 ?>
 
@@ -36,7 +41,7 @@ $refund_url      = home_url( '/refund-policy' );
                     <li>1 year of email support</li>
                     <li>7-day free trial, no card required</li>
                 </ul>
-                <a class="pp-btn pp-btn--secondary" href="<?php echo esc_url( $tier_single_url ); ?>">Start 7-day trial</a>
+                <a class="pp-btn pp-btn--secondary" href="<?php echo esc_url( $trial_intent_single ); ?>">Start 7-day trial</a>
             </div>
             <div class="pp-pricing-card pp-pricing-card--featured">
                 <span class="pp-pricing-ribbon">Most Popular</span>
@@ -50,7 +55,7 @@ $refund_url      = home_url( '/refund-policy' );
                     <li>1 year of email support</li>
                     <li>7-day free trial, no card required</li>
                 </ul>
-                <a class="pp-btn pp-btn--primary" href="<?php echo esc_url( $tier_five_url ); ?>">Start 7-day trial</a>
+                <a class="pp-btn pp-btn--primary" href="<?php echo esc_url( $trial_intent_five ); ?>">Start 7-day trial</a>
             </div>
             <div class="pp-pricing-card">
                 <h3>Unlimited Sites</h3>
@@ -63,7 +68,7 @@ $refund_url      = home_url( '/refund-policy' );
                     <li>1 year of email support</li>
                     <li>7-day free trial, no card required</li>
                 </ul>
-                <a class="pp-btn pp-btn--secondary" href="<?php echo esc_url( $tier_unlim_url ); ?>">Start 7-day trial</a>
+                <a class="pp-btn pp-btn--secondary" href="<?php echo esc_url( $trial_intent_unlim ); ?>">Start 7-day trial</a>
             </div>
         </div>
         <p class="pp-pricing-fineprint">License entitles you to 1 year of updates and support. The plugin requires an active license to process payments; if your license lapses, the plugin stops accepting new orders until renewed. Cancel anytime before the trial ends and you won't be charged. Once your trial converts to a paid license, all sales are final, no refunds. The 7-day trial is your evaluation window.</p>

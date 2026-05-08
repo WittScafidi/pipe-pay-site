@@ -12,9 +12,13 @@ if ( ! defined( 'ABSPATH' ) ) { exit; }
 $checkout_url    = home_url( '/checkout/?add-to-cart=38' );
 // Tier-specific buttons in the pricing section go to WC checkout with the
 // matching paid tier pre-added to cart.
-$tier_single_url = home_url( '/checkout/?add-to-cart=34' );
-$tier_five_url   = home_url( '/checkout/?add-to-cart=35' );
-$tier_unlim_url  = home_url( '/checkout/?add-to-cart=36' );
+// Trial CTAs from a tier card carry an `intent` param so the customer's tier
+// preference is captured at signup and surfaces again at trial conversion.
+// `intent` is validated to {34, 35, 36} by the woocommerce_add_cart_item_data
+// filter in functions.php — mismatched values are dropped silently.
+$trial_intent_single = home_url( '/checkout/?add-to-cart=38&intent=34' );
+$trial_intent_five   = home_url( '/checkout/?add-to-cart=38&intent=35' );
+$trial_intent_unlim  = home_url( '/checkout/?add-to-cart=38&intent=36' );
 
 $docs_url        = home_url( '/docs' );
 $contact_url     = home_url( '/contact' );
@@ -366,7 +370,7 @@ $changelog_url   = home_url( '/changelog' );
                     <li>1 year of email support</li>
                     <li>7-day free trial, no card required</li>
                 </ul>
-                <a class="pp-btn pp-btn--secondary" href="<?php echo esc_url( $tier_single_url ); ?>">Start 7-day trial</a>
+                <a class="pp-btn pp-btn--secondary" href="<?php echo esc_url( $trial_intent_single ); ?>">Start 7-day trial</a>
             </div>
             <div class="pp-pricing-card pp-pricing-card--featured">
                 <span class="pp-pricing-ribbon">Most Popular</span>
@@ -380,7 +384,7 @@ $changelog_url   = home_url( '/changelog' );
                     <li>1 year of email support</li>
                     <li>7-day free trial, no card required</li>
                 </ul>
-                <a class="pp-btn pp-btn--primary" href="<?php echo esc_url( $tier_five_url ); ?>">Start 7-day trial</a>
+                <a class="pp-btn pp-btn--primary" href="<?php echo esc_url( $trial_intent_five ); ?>">Start 7-day trial</a>
             </div>
             <div class="pp-pricing-card">
                 <h3>Unlimited Sites</h3>
@@ -393,7 +397,7 @@ $changelog_url   = home_url( '/changelog' );
                     <li>1 year of email support</li>
                     <li>7-day free trial, no card required</li>
                 </ul>
-                <a class="pp-btn pp-btn--secondary" href="<?php echo esc_url( $tier_unlim_url ); ?>">Start 7-day trial</a>
+                <a class="pp-btn pp-btn--secondary" href="<?php echo esc_url( $trial_intent_unlim ); ?>">Start 7-day trial</a>
             </div>
         </div>
         <p class="pp-pricing-fineprint">License entitles you to 1 year of updates and support. The plugin requires an active license to process payments; if your license lapses, the plugin stops accepting new orders until renewed. Cancel anytime before the trial ends and you won't be charged. Once your trial converts to a paid license, all sales are final, no refunds. The 7-day trial is your evaluation window.</p>
@@ -410,8 +414,8 @@ $changelog_url   = home_url( '/changelog' );
         <ul class="pp-shiplog__list">
             <li>
                 <span class="pp-shiplog__date">May 7, 2026</span>
-                <span class="pp-shiplog__ver">v1.6.4</span>
-                <span class="pp-shiplog__note"><strong>Security hardening.</strong> Cloudflare-only IP detection (closes a per-IP rate-limit spoofing bypass), server-side amount + recipient cross-checks on every AI verdict (prevents prompt-injection screenshots from auto-approving), forced TLS verification on license-server calls, per-billing-email upload cap, per-AI-provider key storage, PHP 8.0 minimum. Recommended update for everyone.</span>
+                <span class="pp-shiplog__ver">v1.6.5</span>
+                <span class="pp-shiplog__note"><strong>Security hardening.</strong> Cloudflare-only IP detection (closes a per-IP rate-limit spoofing bypass), server-side amount + recipient cross-checks on every AI verdict (now compared in cents to avoid floating-point edge cases), forced TLS verification on license-server calls, per-billing-email upload cap, per-AI-provider key storage, PHP 8.0 minimum. Recommended update for everyone.</span>
             </li>
             <li>
                 <span class="pp-shiplog__date">May 7, 2026</span>

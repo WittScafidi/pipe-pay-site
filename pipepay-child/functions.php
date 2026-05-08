@@ -12,7 +12,7 @@ if ( ! defined( 'ABSPATH' ) ) { exit; }
  * to avoid the previous pattern of hardcoded version strings drifting per file.
  */
 if ( ! defined( 'PIPEPAY_SITE_VERSION' ) ) {
-    define( 'PIPEPAY_SITE_VERSION', '1.6.4' );
+    define( 'PIPEPAY_SITE_VERSION', '1.6.5' );
 }
 
 add_action( 'wp_enqueue_scripts', function() {
@@ -261,6 +261,43 @@ add_filter( 'woocommerce_add_cart_item_data', function( $cart_item_data, $produc
     WC()->cart->empty_cart();
     return $cart_item_data;
 }, 10, 2 );
+
+// WooCommerce: capture tier intent on trial signup. When a customer clicks
+// "Start 7-day trial" from a specific pricing card, the URL carries
+// ?intent=34|35|36 alongside the trial product (38). We persist that as a
+// cart-item meta so the trial order can pre-fill the customer's preferred
+// paid tier at conversion time. Header / hero / final-CTA trial buttons
+// don't carry intent — those customers pick their tier at conversion.
+//
+// Strict allow-list: only {34, 35, 36} are accepted. Any other value is
+// silently dropped, and the order goes through with no intent stored.
+// Priority 11 so we run AFTER the cart-deduplication filter at priority 10.
+add_filter( 'woocommerce_add_cart_item_data', function( $cart_item_data, $product_id ) {
+    if ( 38 !== (int) $product_id ) {
+        return $cart_item_data;
+    }
+    // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+    $intent = isset( $_GET['intent'] ) ? (int) $_GET['intent'] : 0;
+    if ( in_array( $intent, array( 34, 35, 36 ), true ) ) {
+        $cart_item_data['_pipepay_intended_tier_pid'] = $intent;
+    }
+    return $cart_item_data;
+}, 11, 2 );
+
+// WooCommerce: persist tier intent from the cart item to the order line item
+// so it survives session expiry and is queryable later. Stored as an order
+// item meta on the trial product line. Read at trial conversion (Stage 3,
+// lives in the renewal mu-plugin) to pre-fill the customer's preferred
+// paid tier on the conversion checkout page.
+add_action( 'woocommerce_checkout_create_order_line_item', function( $item, $cart_item_key, $values, $order ) {
+    if ( ! empty( $values['_pipepay_intended_tier_pid'] ) ) {
+        $item->add_meta_data(
+            '_pipepay_intended_tier_pid',
+            (int) $values['_pipepay_intended_tier_pid'],
+            true
+        );
+    }
+}, 10, 4 );
 
 // WooCommerce: force the no-sidebar layout via GeneratePress's filter so shop,
 // cart, checkout, my-account, and single product pages get the full container width.
