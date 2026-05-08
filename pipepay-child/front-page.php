@@ -391,6 +391,14 @@ $changelog_url   = home_url( '/changelog' );
                                 <li>Add memo <code>#1247</code></li>
                                 <li>Screenshot the receipt</li>
                             </ol>
+
+                            <!-- Open Venmo CTA — same as step 2; the customer
+                                 can re-open the app any time if they need to
+                                 re-pay or check the transaction. -->
+                            <a class="pp-flow__open-btn" style="background:#008CFF;" aria-hidden="true">
+                                Open Venmo
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+                            </a>
                         </div>
                     </div>
                     <div class="pp-flow__caption"><b>03.</b>Upload screenshot</div>
