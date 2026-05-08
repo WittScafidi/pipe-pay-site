@@ -80,7 +80,7 @@ $refund_url      = home_url( '/refund-policy' );
                 <a class="pp-btn pp-btn--ghost" href="<?php echo esc_url( $buy_unlim ); ?>">Buy now &mdash; skip the trial</a>
             </div>
         </div>
-        <p class="pp-pricing-fineprint">License entitles you to 1 year of updates and support. The plugin requires an active license to process payments; if your license lapses, the plugin stops accepting new orders until renewed. Cancel anytime before the trial ends and you won't be charged. Once your trial converts to a paid license, all sales are final, no refunds. The 7-day trial is your evaluation window.</p>
+        <p class="pp-pricing-fineprint">License entitles you to 1 year of plugin updates and support. If your license lapses, the plugin keeps processing payments &mdash; only updates and support pause, and a renewal banner appears in WP admin until you renew. Cancel anytime before the trial ends and you won't be charged. Once your trial converts to a paid license, all sales are final, no refunds. The 7-day trial is your evaluation window.</p>
     </div>
 </section>
 
@@ -178,7 +178,7 @@ $refund_url      = home_url( '/refund-policy' );
                 ),
                 array(
                     'q' => 'What happens if my license expires?',
-                    'a' => 'The plugin stops processing new payments at the next license check. Existing orders, settings, and historical data all remain intact. Renew and the plugin starts accepting orders again immediately.',
+                    'a' => 'Payments keep processing &mdash; your checkout is unaffected. What stops is plugin updates and support, and a red renewal banner appears in WP admin until you renew. Existing orders, settings, and historical data are unaffected. Renewing clears the banner, reopens support, and resumes plugin updates immediately. We don\'t recommend running on an expired license long-term &mdash; eventually a WooCommerce release will land that needs a matching plugin update to stay compatible, and you won\'t get that update without an active license.',
                 ),
                 array(
                     'q' => 'Does it work with WooCommerce Subscriptions?',

@@ -56,7 +56,7 @@ $changelog_url   = home_url( '/changelog' );
         <span class="pp-release-bar__pulse" aria-hidden="true"></span>
         <span class="pp-release-bar__label">Shipped</span>
         <span class="pp-release-bar__version">v<?php echo esc_html( PIPEPAY_SITE_VERSION ); ?></span>
-        <span class="pp-release-bar__msg">license-server response signing &middot; recommended update for everyone</span>
+        <span class="pp-release-bar__msg">Awaiting Approval status &middot; review-pending email &middot; recommended update for manual-review users</span>
         <a class="pp-release-bar__link" href="<?php echo esc_url( $changelog_url ); ?>">read the changelog &rarr;</a>
     </div>
 </div>
@@ -413,7 +413,7 @@ $changelog_url   = home_url( '/changelog' );
                 <a class="pp-btn pp-btn--ghost" href="<?php echo esc_url( $buy_unlim ); ?>">Buy now &mdash; skip the trial</a>
             </div>
         </div>
-        <p class="pp-pricing-fineprint">License entitles you to 1 year of updates and support. The plugin requires an active license to process payments; if your license lapses, the plugin stops accepting new orders until renewed. Cancel anytime before the trial ends and you won't be charged. Once your trial converts to a paid license, all sales are final, no refunds. The 7-day trial is your evaluation window.</p>
+        <p class="pp-pricing-fineprint">License entitles you to 1 year of plugin updates and support. If your license lapses, the plugin keeps processing payments &mdash; only updates and support pause, and a renewal banner appears in WP admin until you renew. Cancel anytime before the trial ends and you won't be charged. Once your trial converts to a paid license, all sales are final, no refunds. The 7-day trial is your evaluation window.</p>
     </div>
 </section>
 
@@ -425,6 +425,11 @@ $changelog_url   = home_url( '/changelog' );
             <a class="pp-shiplog__more" href="<?php echo esc_url( $changelog_url ); ?>">All releases &rarr;</a>
         </div>
         <ul class="pp-shiplog__list">
+            <li>
+                <span class="pp-shiplog__date">May 8, 2026</span>
+                <span class="pp-shiplog__ver">v1.7.1</span>
+                <span class="pp-shiplog__note"><strong>Custom &ldquo;Awaiting Approval&rdquo; status + dedicated review-pending email.</strong> Manual-review orders (AI disabled, or AI graded medium/low confidence) now land in their own <code>Awaiting Approval</code> status instead of generic <code>On Hold</code>, so the orders list immediately tells you which orders need your decision. Customer email switched from the reused on-hold template to a dedicated <em>&ldquo;we received your screenshot, reviewing now&rdquo;</em> message that matches the actual state. Stock-holding parity with on-hold is preserved. The Pipe Pay Proofs queue and meta-box buttons accept both new and legacy statuses for backward compat. Bundles the proof-image proxy URL nonce fix from earlier today &mdash; admin meta box and Proofs queue now reliably render the screenshot for logged-in admins. Recommended update for any store using manual review.</span>
+            </li>
             <li>
                 <span class="pp-shiplog__date">May 8, 2026</span>
                 <span class="pp-shiplog__ver">v1.7.0</span>
