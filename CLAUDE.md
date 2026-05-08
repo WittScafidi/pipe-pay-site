@@ -178,17 +178,25 @@ API Manager meta on each product: `_is_api=yes`, `_api_resource_type=wp_plugin`,
 - AI provider: **empty** → manual review mode (every order requires admin approval from the Proofs queue)
 - **Placeholder P2P handles must be replaced before launch** (see open to-dos)
 
-## CTA wiring (homepage → WC)
+## CTA wiring (homepage + /pricing → WC)
+Every pricing card has TWO stacked CTAs as of 2026-05-08: a primary "Start 7-day trial" button (trial product with `intent=` carrying the customer's tier preference) and a quieter "Buy now — skip the trial" `.pp-btn--ghost` button (direct add-to-cart for the paid tier). The hero and final-CTA show a primary trial button plus a small `.pp-cta-skip` text link below pointing to `/pricing` for ready-to-buy visitors.
+
 | Button | Lands at | Behavior |
 |---|---|---|
-| Header "Start free trial" | `/checkout/?add-to-cart=38` | Adds the trial product to cart |
-| Hero "Start 7-day free trial" | same | same |
-| Final-CTA "Start 7-day free trial" | same | same |
-| Pricing card "Single Site" | `/checkout/?add-to-cart=34` | Adds Single Site tier |
-| Pricing card "5 Sites" | `/checkout/?add-to-cart=35` | Adds 5 Sites tier |
-| Pricing card "Unlimited Sites" | `/checkout/?add-to-cart=36` | Adds Unlimited tier |
+| Header "Start free trial" (homepage + subpages) | `/checkout/?add-to-cart=38` | Adds the trial product to cart |
+| Hero "Start 7-day free trial" | `/checkout/?add-to-cart=38` | Trial |
+| Hero skip-link "or skip the trial — buy a license now →" | `/pricing` | Sends ready-to-buy visitors to the pricing cards |
+| Final-CTA "Start 7-day free trial" (homepage) | `/checkout/?add-to-cart=38` | Trial |
+| Final-CTA skip-link (homepage) | `/pricing` | Same as hero skip-link |
+| Final-CTA skip-link (`/pricing` page) | `#tiers` | Anchor scroll up to the pricing cards (already on /pricing, so no cross-page hop) |
+| Pricing card "Single Site" — Start 7-day trial | `/checkout/?add-to-cart=38&intent=34` | Trial with Single Site tier preference for the renewal flow |
+| Pricing card "Single Site" — Buy now — skip the trial | `/checkout/?add-to-cart=34` | Direct paid purchase, no trial |
+| Pricing card "5 Sites" — Start 7-day trial | `/checkout/?add-to-cart=38&intent=35` | Trial with 5 Sites preference |
+| Pricing card "5 Sites" — Buy now — skip the trial | `/checkout/?add-to-cart=35` | Direct paid purchase |
+| Pricing card "Unlimited Sites" — Start 7-day trial | `/checkout/?add-to-cart=38&intent=36` | Trial with Unlimited preference |
+| Pricing card "Unlimited Sites" — Buy now — skip the trial | `/checkout/?add-to-cart=36` | Direct paid purchase |
 
-A `woocommerce_add_cart_item_data` filter in `functions.php` empties the cart before adding any Pipe Pay product, so a "Start trial" click after browsing a paid tier doesn't pile both in the cart.
+A `woocommerce_add_cart_item_data` filter in `functions.php` empties the cart before adding any Pipe Pay product, so the user clicking trial then buy-now (or vice versa) doesn't pile both in the cart. `page-checkout.php` is cart-aware and renders the "Complete your purchase" hero when a paid tier (34/35/36) is in the cart vs the "Start your 7-day free trial" hero when product 38 is in the cart.
 
 ## Theme
 - **Active theme:** `pipepay-child` (custom child of GeneratePress 3.6.1)
@@ -312,6 +320,7 @@ A `woocommerce_add_cart_item_data` filter in `functions.php` empties the cart be
 - [ ] Wire `/contact` to a real contact form (Fluent Forms recommended; needs SMTP first)
 
 ### Resolved
+- [x] **Direct-purchase CTA path** (2026-05-08): "Buy now — skip the trial" added across the site for visitors who want to bypass the 7-day trial. Six new buttons: each pricing card on `/` and `/pricing` now stacks a primary "Start 7-day trial" CTA (existing trial-with-intent flow) above a quieter `.pp-btn--ghost` "Buy now" CTA pointing directly at `?add-to-cart=34/35/36`. Two new small `.pp-cta-skip` text links: hero + homepage final-CTA both go to `/pricing`; the `/pricing` final-CTA anchors back up to `#tiers` instead of cross-page-hopping. Header/inline-header left alone — the existing "Pricing" nav link covers that discoverability slot. New CSS: `.pp-btn--ghost` (transparent + blue text, lower emphasis than `--secondary`) and `.pp-cta-skip[--inverse]` (text link with specificity bumped via `.pp-cta-skip.pp-cta-skip--inverse a` to beat `.pp-section--blue a:not(.pp-btn)` on the inverse-blue final CTA). Trial remains the visually-primary CTA everywhere; the buy-now path is an escape hatch, not a competing equal-weight CTA. `page-checkout.php` was already cart-aware so direct-tier purchases automatically get the "Complete your purchase" hero. Updated the CTA wiring table above to reflect the new dual-CTA pattern.
 - [x] www vs apex canonical: **apex** is canonical, `www` 301s to apex
 - [x] Daily DB backup cron + 30-day retention
 - [x] Smoke-test cron (every 5 min)
@@ -549,6 +558,30 @@ Pro is ~2.3x core. Replaces WooCommerce Subscriptions ($279/yr) plus eliminates 
 
 We are NOT rebuilding WooCommerce Subscriptions or a card-rail recurring billing engine. We are building a **recurrence schedule + balance ledger + customer-initiated payment flow** for P2P rails. Closer to "gift card with a calendar trigger" than Stripe Billing. The hard parts of card recurring billing (stored tokens, decline retries, dunning, complex proration) don't apply to P2P rails.
 
+### Data invariant: pipepay.app stores ZERO customer payment screenshots — Core and Pro
+
+**The rule, stated precisely:** pipepay.app NEVER stores screenshot bytes. Pipepay.app MAY (V1.5/V2, by deliberate roadmap decision) store a perceptual hash (pHash, ~32 bytes per image) for cross-merchant scam cross-reference. **Hash ≠ screenshot.** A pHash is a one-way fingerprint — you cannot reconstruct an image from it, you cannot extract a phone number, handle, amount, or face from it. It exists only to answer the question "has this exact-or-near-duplicate image been used somewhere else in the network?"
+
+| Data | Stored on merchant's WP install | Stored on pipepay.app |
+|---|---|---|
+| Screenshot bytes (the image file) | **Yes** — `wp-content/uploads/`, deleted per `proof_retention_days` (default 90) | **Never** |
+| AI extraction output (amount, recipient, timestamp) | Yes — order meta | Never |
+| Order ID, license key, customer email | Yes | License key + activation only (Kestrel) |
+| Perceptual hash (pHash) for fraud cross-reference | n/a | **Maybe** — V1.5/V2 only, no bytes, no merchant attribution, no PII |
+
+Applies to Pipe Pay Core today and to Pipe Pay Pro by design. Screenshots are uploaded to, stored in, processed by (BYOK AI), and deleted by **the merchant's own WordPress install** — full stop. Nothing routes the bytes to pipepay.app: not the license-resolver mu-plugin, not the Kestrel update server, not Pro's subscription/balance/refund endpoints. Pro's DB tables (`subscriptions`, `balances`, `balance_transactions`, `refunds`, etc.) reference order IDs and balance txn metadata only — no image data, no image paths, and no per-merchant pHashes either. The Refund Type B "outbound proof" upload (`sent_screenshot_id` on the `refunds` table) is also a merchant-side audit artifact, not vendor telemetry.
+
+Why this invariant is load-bearing (do not relax it):
+
+- **Privacy posture.** Screenshots contain phone numbers, payment-app handles, sometimes profile photos. The vendor never seeing the bytes removes pipepay.app from the merchant's data-breach blast radius and from any "are you a money transmitter / data processor" framing.
+- **BYOK isolation.** AI verification runs on the merchant's own OpenAI/Anthropic key. Centralizing screenshots would collapse the cost-shifting story AND the per-merchant fraud-isolation story.
+- **Storage cost / scaling.** Image storage at vendor scale (1,000 merchants × 100 orders/mo × 500KB) is multi-GB/mo we don't carry today and won't. pHashes at the same scale are KB/mo.
+- **Legal posture.** The vendor not holding payment-related images materially simplifies the FinCEN / state-MSB / data-processor questions in the ToS work (see pre-launch must-haves above).
+
+**Confusable thing this rule does NOT prohibit (so we don't accidentally re-litigate it later):** sending a 32-byte pHash to pipepay.app for cross-merchant duplicate-screenshot detection is **on the roadmap** under `## Fraud detection` (V1.5/V2). That's been discussed and is allowed — because it isn't the screenshot. The rule prohibits the bytes, not the fingerprint.
+
+**This invariant cannot change inside Pipe Pay Pro V1.** Anything that would require centralizing screenshot bytes (cross-merchant fraud beyond pHash, merchant-of-record audit, a "managed AI tier") is a V2+ architecture-review item, not a V1 build-order shortcut.
+
 ## V1 scope (one-paragraph summary, full detail in spec)
 
 Two subscription approaches: (1) reminder-driven manual recurring (reuses existing one-off flow); (2) prepaid balance ledger with auto-deduct. Six first-class subscription states with a real Pause that defers (not skips) the next billing date — critical for protocol-driven verticals like peptides where pause is more common than cancel. Three refund types: A (instant balance credit, default), B (manual external send via P2P app, queued), C (full prepay refund). Customer portal + merchant admin views + email notifications + per-merchant chargeback fraud signal feed. **Anything not in the spec's V1 list is V2.** Default response to scope creep: "V2."
@@ -617,6 +650,8 @@ V2 / deferred:
 - **Managed-key tier** for non-technical merchants who bounce on BYOK setup. Mark up AI costs, capture the segment that would otherwise churn at signup.
 
 ## Fraud detection (V1 design)
+
+**Hard rule: pipepay.app stores zero customer screenshots.** Screenshots live in the merchant's own WordPress (`wp-content/uploads/`), processed by the merchant's own AI key, deleted on the merchant's own retention schedule. See the data invariant under `## Architectural principle` in the Pipe Pay Pro section above — same rule applies to Core today.
 
 BYOK + per-merchant screenshot isolation means **centralized screenshot storage for cross-merchant duplicate detection breaks the privacy posture.** V1 sticks to intra-screenshot signals only, all enforced inside the AI prompt with structured JSON output (per-check pass/fail + confidence score):
 

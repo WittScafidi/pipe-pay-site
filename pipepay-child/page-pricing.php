@@ -15,6 +15,12 @@ $checkout_url    = home_url( '/checkout/?add-to-cart=38' );
 $trial_intent_single = home_url( '/checkout/?add-to-cart=38&intent=34' );
 $trial_intent_five   = home_url( '/checkout/?add-to-cart=38&intent=35' );
 $trial_intent_unlim  = home_url( '/checkout/?add-to-cart=38&intent=36' );
+// Direct-purchase URLs — skip the trial and add the paid tier straight to the
+// cart. page-checkout.php is cart-aware and renders the "Complete your
+// purchase" hero when these products are present.
+$buy_single      = home_url( '/checkout/?add-to-cart=34' );
+$buy_five        = home_url( '/checkout/?add-to-cart=35' );
+$buy_unlim       = home_url( '/checkout/?add-to-cart=36' );
 $refund_url      = home_url( '/refund-policy' );
 ?>
 
@@ -27,7 +33,7 @@ $refund_url      = home_url( '/refund-policy' );
 </section>
 
 <!-- ============== PRICING CARDS ============== -->
-<section class="pp-section pp-section--tight pp-pricing">
+<section id="tiers" class="pp-section pp-section--tight pp-pricing">
     <div class="pp-container">
         <div class="pp-pricing-grid">
             <div class="pp-pricing-card">
@@ -42,6 +48,7 @@ $refund_url      = home_url( '/refund-policy' );
                     <li>7-day free trial, no card required</li>
                 </ul>
                 <a class="pp-btn pp-btn--secondary" href="<?php echo esc_url( $trial_intent_single ); ?>">Start 7-day trial</a>
+                <a class="pp-btn pp-btn--ghost" href="<?php echo esc_url( $buy_single ); ?>">Buy now &mdash; skip the trial</a>
             </div>
             <div class="pp-pricing-card pp-pricing-card--featured">
                 <span class="pp-pricing-ribbon">Most Popular</span>
@@ -56,6 +63,7 @@ $refund_url      = home_url( '/refund-policy' );
                     <li>7-day free trial, no card required</li>
                 </ul>
                 <a class="pp-btn pp-btn--primary" href="<?php echo esc_url( $trial_intent_five ); ?>">Start 7-day trial</a>
+                <a class="pp-btn pp-btn--ghost" href="<?php echo esc_url( $buy_five ); ?>">Buy now &mdash; skip the trial</a>
             </div>
             <div class="pp-pricing-card">
                 <h3>Unlimited Sites</h3>
@@ -69,6 +77,7 @@ $refund_url      = home_url( '/refund-policy' );
                     <li>7-day free trial, no card required</li>
                 </ul>
                 <a class="pp-btn pp-btn--secondary" href="<?php echo esc_url( $trial_intent_unlim ); ?>">Start 7-day trial</a>
+                <a class="pp-btn pp-btn--ghost" href="<?php echo esc_url( $buy_unlim ); ?>">Buy now &mdash; skip the trial</a>
             </div>
         </div>
         <p class="pp-pricing-fineprint">License entitles you to 1 year of updates and support. The plugin requires an active license to process payments; if your license lapses, the plugin stops accepting new orders until renewed. Cancel anytime before the trial ends and you won't be charged. Once your trial converts to a paid license, all sales are final, no refunds. The 7-day trial is your evaluation window.</p>
@@ -220,6 +229,7 @@ $refund_url      = home_url( '/refund-policy' );
         <h2>Ready to stop reconciling by hand?</h2>
         <p>Start your 7-day free trial. No card required.</p>
         <a class="pp-btn pp-btn--inverse pp-btn--lg" href="<?php echo esc_url( $checkout_url ); ?>">Start 7-day free trial &rarr;</a>
+        <p class="pp-cta-skip pp-cta-skip--inverse"><a href="#tiers">or skip the trial &mdash; pick a tier and buy now &uarr;</a></p>
     </div>
 </section>
 

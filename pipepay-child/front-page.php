@@ -19,6 +19,14 @@ $checkout_url    = home_url( '/checkout/?add-to-cart=38' );
 $trial_intent_single = home_url( '/checkout/?add-to-cart=38&intent=34' );
 $trial_intent_five   = home_url( '/checkout/?add-to-cart=38&intent=35' );
 $trial_intent_unlim  = home_url( '/checkout/?add-to-cart=38&intent=36' );
+// Buy-now URLs skip the trial and add the paid tier directly. Used by the
+// secondary CTA on each pricing card. page-checkout.php detects which product
+// is in the cart and switches its hero copy from "Start your trial" to
+// "Complete your purchase" automatically.
+$buy_single      = home_url( '/checkout/?add-to-cart=34' );
+$buy_five        = home_url( '/checkout/?add-to-cart=35' );
+$buy_unlim       = home_url( '/checkout/?add-to-cart=36' );
+$pricing_url     = home_url( '/pricing' );
 
 $docs_url        = home_url( '/docs' );
 $contact_url     = home_url( '/contact' );
@@ -90,6 +98,7 @@ $changelog_url   = home_url( '/changelog' );
             <a class="pp-btn pp-btn--inverse pp-btn--lg" href="<?php echo esc_url( $checkout_url ); ?>">Start 7-day free trial &rarr;</a>
             <a class="pp-btn pp-btn--ghost-light pp-btn--lg" href="#how">How it works &darr;</a>
         </div>
+        <p class="pp-cta-skip pp-cta-skip--inverse"><a href="<?php echo esc_url( $pricing_url ); ?>">or skip the trial &mdash; buy a license now &rarr;</a></p>
 
         <div class="pp-hero-mock">
             <div class="pp-mock-browser" aria-hidden="true">
@@ -372,6 +381,7 @@ $changelog_url   = home_url( '/changelog' );
                     <li>7-day free trial, no card required</li>
                 </ul>
                 <a class="pp-btn pp-btn--secondary" href="<?php echo esc_url( $trial_intent_single ); ?>">Start 7-day trial</a>
+                <a class="pp-btn pp-btn--ghost" href="<?php echo esc_url( $buy_single ); ?>">Buy now &mdash; skip the trial</a>
             </div>
             <div class="pp-pricing-card pp-pricing-card--featured">
                 <span class="pp-pricing-ribbon">Most Popular</span>
@@ -386,6 +396,7 @@ $changelog_url   = home_url( '/changelog' );
                     <li>7-day free trial, no card required</li>
                 </ul>
                 <a class="pp-btn pp-btn--primary" href="<?php echo esc_url( $trial_intent_five ); ?>">Start 7-day trial</a>
+                <a class="pp-btn pp-btn--ghost" href="<?php echo esc_url( $buy_five ); ?>">Buy now &mdash; skip the trial</a>
             </div>
             <div class="pp-pricing-card">
                 <h3>Unlimited Sites</h3>
@@ -399,6 +410,7 @@ $changelog_url   = home_url( '/changelog' );
                     <li>7-day free trial, no card required</li>
                 </ul>
                 <a class="pp-btn pp-btn--secondary" href="<?php echo esc_url( $trial_intent_unlim ); ?>">Start 7-day trial</a>
+                <a class="pp-btn pp-btn--ghost" href="<?php echo esc_url( $buy_unlim ); ?>">Buy now &mdash; skip the trial</a>
             </div>
         </div>
         <p class="pp-pricing-fineprint">License entitles you to 1 year of updates and support. The plugin requires an active license to process payments; if your license lapses, the plugin stops accepting new orders until renewed. Cancel anytime before the trial ends and you won't be charged. Once your trial converts to a paid license, all sales are final, no refunds. The 7-day trial is your evaluation window.</p>
@@ -461,6 +473,7 @@ $changelog_url   = home_url( '/changelog' );
         <h2>Ready to stop reconciling by hand?</h2>
         <p>Start your 7-day free trial. No card required.</p>
         <a class="pp-btn pp-btn--inverse pp-btn--lg" href="<?php echo esc_url( $checkout_url ); ?>">Start 7-day free trial &rarr;</a>
+        <p class="pp-cta-skip pp-cta-skip--inverse"><a href="<?php echo esc_url( $pricing_url ); ?>">or skip the trial &mdash; buy a license now &rarr;</a></p>
     </div>
 </section>
 

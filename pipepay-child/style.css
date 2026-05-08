@@ -89,6 +89,19 @@ body.pipepay-home {
     text-rendering: optimizeLegibility;
 }
 
+/* Sticky footer: on subpages (header.php + footer.php with a <main class="pp-main">
+ * wrapper), pin the footer to the viewport bottom even when content is short
+ * (lost-password confirmation, empty cart, "coming soon" docs, etc.). Scoped via
+ * :has(.pp-main) so the homepage (front-page.php — no .pp-main) is untouched. */
+body.pipepay-home:has(.pp-main) {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+body.pipepay-home .pp-main {
+    flex: 1 0 auto;
+}
+
 body.pipepay-home h1,
 body.pipepay-home h2,
 body.pipepay-home h3,
@@ -323,6 +336,43 @@ body.pipepay-home .pp-section--blue h4 { color: #fff; }
     border-color: rgba(255, 255, 255, 0.6);
 }
 .pp-btn--lg { padding: 18px 32px; font-size: 16px; }
+/* Low-emphasis variant — used as the "Buy now" CTA below the trial button on pricing cards. Reads as a button (same padding) but visually quieter than --secondary so the trial CTA stays primary. */
+.pp-btn--ghost {
+    background: transparent;
+    color: var(--pp-blue);
+    border-color: transparent;
+    font-weight: 500;
+}
+.pp-btn--ghost:hover,
+.pp-btn--ghost:focus-visible {
+    background: rgba(19, 54, 168, 0.06);
+    color: var(--pp-blue-dark);
+    border-color: transparent;
+}
+
+/* Small text-link CTA shown below the trial button on the hero + final CTA. Sends ready-to-buy visitors to /pricing without diluting the trial-led primary button. The --inverse modifier is for white-text-on-blue contexts (hero, final CTA section). */
+.pp-cta-skip {
+    margin: 16px 0 0;
+    font-size: 14px;
+    line-height: 1.4;
+}
+.pp-cta-skip a {
+    color: var(--pp-blue);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    text-decoration-thickness: 1px;
+}
+.pp-cta-skip a:hover,
+.pp-cta-skip a:focus-visible { color: var(--pp-blue-dark); }
+.pp-cta-skip.pp-cta-skip--inverse a {
+    color: rgba(255, 255, 255, 0.92);
+    text-decoration-color: rgba(255, 255, 255, 0.5);
+}
+.pp-cta-skip.pp-cta-skip--inverse a:hover,
+.pp-cta-skip.pp-cta-skip--inverse a:focus-visible {
+    color: #fff;
+    text-decoration-color: #fff;
+}
 
 /* ============== Release banner (top of page) ============== */
 .pp-release-bar {
@@ -1816,6 +1866,8 @@ body.pipepay-home .pp-hero-h1 {
     background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="%231336a8" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>') no-repeat center;
 }
 .pp-pricing-card .pp-btn { width: 100%; }
+/* When a card stacks two buttons (trial + buy-now), space them so they don't visually fuse. */
+.pp-pricing-card .pp-btn + .pp-btn { margin-top: 8px; }
 body.pipepay-home .pp-pricing-fineprint {
     max-width: 760px;
     margin: 40px auto 0;
@@ -2204,6 +2256,20 @@ body.pipepay-home .pp-pricing-fineprint {
     max-width: 64ch;
     margin: 0;
 }
+
+/* /my-account/ has no hero subhead and a transactional content area below,
+ * so the default hero (top + bottom padding) and the section--tight on top
+ * combine to ~160-220px of vertical air on a page where the form should be
+ * front-and-center. Compress all three on body.woocommerce-account only. */
+body.woocommerce-account .pp-page-hero {
+    padding-top: clamp(24px, 3vw, 40px);
+    padding-bottom: clamp(20px, 2vw, 32px);
+}
+body.woocommerce-account main .pp-section--tight { padding-top: 16px; }
+
+/* My Account dashboard layout (sidebar nav + content side-by-side) lives in
+ * woocommerce.css since it's WC-page-only and should not ship to marketing
+ * pages. See woocommerce.css `My Account dashboard layout` block. */
 
 /* Narrow container for prose / forms */
 .pp-container--narrow { max-width: 760px; }
