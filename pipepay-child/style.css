@@ -1218,17 +1218,22 @@ body.pipepay-home .pp-hero-h1 {
  * actually see at /pay/order-N. */
 
 /* Override --pay's center alignment so the QR sits at the top instead of the
- * vertical-centered position the existing rule uses. */
+ * vertical-centered position the existing rule uses. justify-content:center
+ * keeps the stack vertically centered when there's leftover space; the
+ * larger gap gives the order line / QR / methods / steps / button room
+ * to breathe instead of feeling cramped. */
 .pp-flow__screen--pay {
     align-items: stretch;
+    justify-content: center;
     text-align: center;
-    padding-top: 18px;
-    gap: 5px;
+    padding-top: 16px;
+    padding-bottom: 14px;
+    gap: 9px;
 }
 .pp-flow__screen--pay .pp-flow__qr-mini {
-    width: 48px;
-    height: 48px;
-    margin: 2px auto 2px;
+    width: 44px;
+    height: 44px;
+    margin: 0 auto;
 }
 
 /* Order line at the top — amount due + order number, side by side. */
