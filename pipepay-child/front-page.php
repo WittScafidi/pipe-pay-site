@@ -153,7 +153,7 @@ $changelog_url   = home_url( '/changelog' );
 
                     <button type="button" class="pp-pay__handle">
                         <span class="pp-pay__handle-label">Pay</span>
-                        <span class="pp-pay__handle-value">@northrange-supply</span>
+                        <span class="pp-pay__handle-value">@your-handle</span>
                         <svg class="pp-pay__handle-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
                     </button>
 
@@ -170,7 +170,7 @@ $changelog_url   = home_url( '/changelog' );
 
                     <ol class="pp-pay__steps">
                         <li><span class="pp-pay__step-num">1</span>Open Venmo</li>
-                        <li><span class="pp-pay__step-num">2</span>Send $87.50 to @northrange-supply</li>
+                        <li><span class="pp-pay__step-num">2</span>Send $87.50 to @your-handle</li>
                         <li><span class="pp-pay__step-num">3</span>Screenshot the confirmation</li>
                         <li><span class="pp-pay__step-num">4</span>Upload below</li>
                     </ol>
@@ -283,7 +283,7 @@ $changelog_url   = home_url( '/changelog' );
                     <div class="pp-flow__phone">
                         <div class="pp-flow__screen pp-flow__screen--pay">
                             <div class="pp-flow__amount">$87.50</div>
-                            <div class="pp-flow__handle">@northrange-supply</div>
+                            <div class="pp-flow__handle">@your-handle</div>
                             <div class="pp-flow__qr-mini" aria-hidden="true"></div>
                             <div class="pp-flow__btn">Open Venmo &rarr;</div>
                         </div>

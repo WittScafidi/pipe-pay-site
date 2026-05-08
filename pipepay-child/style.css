@@ -607,7 +607,11 @@ body.pipepay-home .pp-hero h3 {
 body.pipepay-home .pp-hero-h1 {
     max-width: 880px;
     margin-bottom: 24px;
-    font-size: clamp(28px, 4.2vw, 52px);
+    /* clamp tuned for the two-column hero: at wide viewports the text column
+     * is ~555px so the longest forced span ("PayPal, and Zelle in WooCommerce,")
+     * has to fit within that. 44px max keeps span 1 ("Accept Venmo, Cash App,")
+     * on a single line above ~1100px viewports. */
+    font-size: clamp(28px, 3.6vw, 44px);
     line-height: 1.12;
     letter-spacing: -0.02em;
     font-weight: 700;
@@ -741,8 +745,11 @@ body.pipepay-home .pp-hero-h1 {
         align-items: center;
     }
     .pp-hero .pp-container > .pp-hero-mock {
+        /* Cap mock width so the headline reads as the primary signal and
+         * the demo as supporting evidence. Column itself is wider; the
+         * cap keeps the mock proportional to the text block. */
         margin: 0;
-        max-width: 100%;
+        max-width: 460px;
     }
 }
 @media (prefers-reduced-motion: reduce) {
