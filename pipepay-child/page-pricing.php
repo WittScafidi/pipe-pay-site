@@ -37,6 +37,7 @@ $refund_url      = home_url( '/refund-policy' );
     <div class="pp-container">
         <div class="pp-pricing-grid">
             <div class="pp-pricing-card">
+                <svg class="pp-tier-illustration" viewBox="0 0 120 80" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false"><rect x="22" y="12" width="76" height="56" rx="7" fill="#fff" stroke="#1336a8" stroke-width="2"/><circle cx="30" cy="22" r="2" fill="#1336a8"/><circle cx="38" cy="22" r="2" fill="#1336a8" opacity="0.45"/><circle cx="46" cy="22" r="2" fill="#1336a8" opacity="0.22"/><line x1="22" y1="30" x2="98" y2="30" stroke="#1336a8" stroke-width="1" opacity="0.18"/><circle cx="60" cy="48" r="11" fill="#1336a8"/><path d="M54.5 48 l4 4 l7.5 -8" stroke="#fff" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
                 <h3>Single Site</h3>
                 <p class="pp-price-detail">For one WooCommerce store.</p>
                 <div class="pp-price">$299<small></small></div>
@@ -52,6 +53,7 @@ $refund_url      = home_url( '/refund-policy' );
             </div>
             <div class="pp-pricing-card pp-pricing-card--featured">
                 <span class="pp-pricing-ribbon">Most Popular</span>
+                <svg class="pp-tier-illustration" viewBox="0 0 120 80" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false"><g fill="#fff" stroke="#1336a8" stroke-width="1.6"><rect x="15" y="12" width="26" height="22" rx="3"/><rect x="47" y="12" width="26" height="22" rx="3"/><rect x="79" y="12" width="26" height="22" rx="3"/><rect x="31" y="42" width="26" height="22" rx="3"/><rect x="63" y="42" width="26" height="22" rx="3"/></g><g fill="#1336a8"><circle cx="20" cy="17" r="1.3"/><circle cx="52" cy="17" r="1.3"/><circle cx="84" cy="17" r="1.3"/><circle cx="36" cy="47" r="1.3"/><circle cx="68" cy="47" r="1.3"/></g><g stroke="#1336a8" stroke-width="1.4" stroke-linecap="round" opacity="0.45"><line x1="19" y1="26" x2="37" y2="26"/><line x1="51" y1="26" x2="69" y2="26"/><line x1="83" y1="26" x2="101" y2="26"/><line x1="35" y1="56" x2="53" y2="56"/><line x1="67" y1="56" x2="85" y2="56"/></g></svg>
                 <h3>5 Sites</h3>
                 <p class="pp-price-detail">For agencies or multi-store owners.</p>
                 <div class="pp-price">$599<small></small></div>
@@ -66,6 +68,7 @@ $refund_url      = home_url( '/refund-policy' );
                 <a class="pp-btn pp-btn--ghost" href="<?php echo esc_url( $buy_five ); ?>">Buy now &mdash; skip the trial</a>
             </div>
             <div class="pp-pricing-card">
+                <svg class="pp-tier-illustration" viewBox="0 0 120 80" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false"><path d="M22 40 C22 22, 48 22, 60 40 C72 58, 98 58, 98 40 C98 22, 72 22, 60 40 C48 58, 22 58, 22 40 Z" fill="none" stroke="#1336a8" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/><rect x="29" y="35" width="12" height="10" rx="2" fill="#1336a8"/><rect x="79" y="35" width="12" height="10" rx="2" fill="#1336a8"/></svg>
                 <h3>Unlimited Sites</h3>
                 <p class="pp-price-detail">No activation cap. Run it everywhere.</p>
                 <div class="pp-price">$1,199<small></small></div>
@@ -80,7 +83,7 @@ $refund_url      = home_url( '/refund-policy' );
                 <a class="pp-btn pp-btn--ghost" href="<?php echo esc_url( $buy_unlim ); ?>">Buy now &mdash; skip the trial</a>
             </div>
         </div>
-        <p class="pp-pricing-fineprint">License entitles you to 1 year of plugin updates and support. If your license lapses, the plugin keeps processing payments &mdash; only updates and support pause, and a renewal banner appears in WP admin until you renew. Cancel anytime before the trial ends and you won't be charged. Once your trial converts to a paid license, all sales are final, no refunds. The 7-day trial is your evaluation window.</p>
+        <p class="pp-pricing-fineprint">Each license includes 1 year of plugin updates and support. Renew annually to keep receiving WooCommerce-compatibility patches, security updates, and support &mdash; without renewal, your install falls behind each WP and WC release and eventually needs an update you can no longer get. Cancel anytime before the trial ends and you won't be charged. Once your trial converts to a paid license, all sales are final, no refunds. The 7-day trial is your evaluation window.</p>
     </div>
 </section>
 
@@ -95,21 +98,21 @@ $refund_url      = home_url( '/refund-policy' );
             <div class="pp-fit-col pp-fit-col--yes">
                 <h3 class="pp-fit-title pp-fit-title--yes">Yes, if any of these are you</h3>
                 <ul class="pp-fit-list">
-                    <li>Stripe, Square, or Adyen won't underwrite your vertical, or terminated you for being in it.</li>
-                    <li>You've had funds frozen for 180 days, been put on the MATCH list, or been hit with a personal guarantee on a high-risk processor.</li>
-                    <li>You're testing a new product idea and don't want to file an LLC, get an EIN, and hand your SSN to a processor before you know if it works.</li>
-                    <li>You're paying meaningful Stripe or Square fees ($5K+ per year) and want them back.</li>
-                    <li>You already accept Venmo, Cash App, PayPal F&amp;F, or Zelle and reconcile orders by hand against your transaction history.</li>
+                    <li><svg class="pp-fit-icon pp-fit-icon--yes" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="11" fill="currentColor"/><polyline points="7 12.5 11 16.5 17 9" stroke="#fff" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Stripe, Square, or Adyen won't underwrite your vertical, or terminated you for being in it.</span></li>
+                    <li><svg class="pp-fit-icon pp-fit-icon--yes" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="11" fill="currentColor"/><polyline points="7 12.5 11 16.5 17 9" stroke="#fff" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg><span>You've had funds frozen for 180 days, been put on the MATCH list, or been hit with a personal guarantee on a high-risk processor.</span></li>
+                    <li><svg class="pp-fit-icon pp-fit-icon--yes" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="11" fill="currentColor"/><polyline points="7 12.5 11 16.5 17 9" stroke="#fff" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg><span>You're testing a new product idea and don't want to file an LLC, get an EIN, and hand your SSN to a processor before you know if it works.</span></li>
+                    <li><svg class="pp-fit-icon pp-fit-icon--yes" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="11" fill="currentColor"/><polyline points="7 12.5 11 16.5 17 9" stroke="#fff" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg><span>You're paying meaningful Stripe or Square fees ($5K+ per year) and want them back.</span></li>
+                    <li><svg class="pp-fit-icon pp-fit-icon--yes" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="11" fill="currentColor"/><polyline points="7 12.5 11 16.5 17 9" stroke="#fff" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg><span>You already accept Venmo, Cash App, PayPal F&amp;F, or Zelle and match orders to payments by hand.</span></li>
                 </ul>
             </div>
             <div class="pp-fit-col pp-fit-col--no">
                 <h3 class="pp-fit-title pp-fit-title--no">Probably not, if any of these are you</h3>
                 <ul class="pp-fit-list">
-                    <li>You need to accept credit cards directly. Pipe Pay does not process cards and never will.</li>
-                    <li>You sell subscriptions and need recurring billing. Single-payment orders only in this version.</li>
-                    <li>Your customers refuse to use P2P apps and you can't move them off card.</li>
-                    <li>You need chargeback insurance for a vertical with structurally high chargeback rates. P2P rails reverse less often than card networks but they have no insurance product.</li>
-                    <li>You're on Shopify, BigCommerce, Magento, or Squarespace. Pipe Pay is a WooCommerce plugin; there are no ports to other platforms.</li>
+                    <li><svg class="pp-fit-icon pp-fit-icon--no" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="11" fill="currentColor"/><line x1="8" y1="8" x2="16" y2="16" stroke="#fff" stroke-width="2.5" stroke-linecap="round"/><line x1="16" y1="8" x2="8" y2="16" stroke="#fff" stroke-width="2.5" stroke-linecap="round"/></svg><span>You need to accept credit cards directly. Pipe Pay does not process cards and never will.</span></li>
+                    <li><svg class="pp-fit-icon pp-fit-icon--no" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="11" fill="currentColor"/><line x1="8" y1="8" x2="16" y2="16" stroke="#fff" stroke-width="2.5" stroke-linecap="round"/><line x1="16" y1="8" x2="8" y2="16" stroke="#fff" stroke-width="2.5" stroke-linecap="round"/></svg><span>You sell subscriptions and need recurring billing. Single-payment orders only in this version.</span></li>
+                    <li><svg class="pp-fit-icon pp-fit-icon--no" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="11" fill="currentColor"/><line x1="8" y1="8" x2="16" y2="16" stroke="#fff" stroke-width="2.5" stroke-linecap="round"/><line x1="16" y1="8" x2="8" y2="16" stroke="#fff" stroke-width="2.5" stroke-linecap="round"/></svg><span>Your customers refuse to use P2P apps and you can't move them off card.</span></li>
+                    <li><svg class="pp-fit-icon pp-fit-icon--no" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="11" fill="currentColor"/><line x1="8" y1="8" x2="16" y2="16" stroke="#fff" stroke-width="2.5" stroke-linecap="round"/><line x1="16" y1="8" x2="8" y2="16" stroke="#fff" stroke-width="2.5" stroke-linecap="round"/></svg><span>You need chargeback insurance for a vertical with structurally high chargeback rates. P2P rails reverse less often than card networks but they have no insurance product.</span></li>
+                    <li><svg class="pp-fit-icon pp-fit-icon--no" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="11" fill="currentColor"/><line x1="8" y1="8" x2="16" y2="16" stroke="#fff" stroke-width="2.5" stroke-linecap="round"/><line x1="16" y1="8" x2="8" y2="16" stroke="#fff" stroke-width="2.5" stroke-linecap="round"/></svg><span>You're on Shopify, BigCommerce, Magento, or Squarespace. Pipe Pay is a WooCommerce plugin; there are no ports to other platforms.</span></li>
                 </ul>
             </div>
         </div>
@@ -146,7 +149,7 @@ $refund_url      = home_url( '/refund-policy' );
             $faq = array(
                 array(
                     'q' => 'How is this different from manually accepting Venmo?',
-                    'a' => 'The payment part is identical. The reconciliation part isn\'t. Pipe Pay captures the screenshot at checkout, verifies it with AI, and only surfaces the orders that actually need your attention. The manual workflow you\'re doing now scales linearly with order volume; this one doesn\'t.',
+                    'a' => 'The payment part is identical. The figuring-out-who-paid part isn\'t. Pipe Pay captures the screenshot at checkout, verifies it with AI, and only surfaces the orders that actually need your attention. The manual workflow you\'re doing now scales linearly with order volume; this one doesn\'t.',
                 ),
                 array(
                     'q' => 'Can I use my existing Venmo, Cash App, PayPal, and Zelle accounts?',
@@ -178,7 +181,7 @@ $refund_url      = home_url( '/refund-policy' );
                 ),
                 array(
                     'q' => 'What happens if my license expires?',
-                    'a' => 'Payments keep processing &mdash; your checkout is unaffected. What stops is plugin updates and support, and a red renewal banner appears in WP admin until you renew. Existing orders, settings, and historical data are unaffected. Renewing clears the banner, reopens support, and resumes plugin updates immediately. We don\'t recommend running on an expired license long-term &mdash; eventually a WooCommerce release will land that needs a matching plugin update to stay compatible, and you won\'t get that update without an active license.',
+                    'a' => 'Your license unlocks 1 year of plugin updates and support; renew annually to keep both flowing. Without an active license, you stop receiving WooCommerce-compatibility patches, security updates, and access to support &mdash; over time, as WP and WC release new versions, your install will fall behind and eventually need an update you can no longer get. Existing orders, settings, and historical data stay intact, and renewing at any time restores updates and support immediately. We recommend renewing before your term ends so the transition is seamless.',
                 ),
                 array(
                     'q' => 'Does it work with WooCommerce Subscriptions?',
@@ -226,7 +229,7 @@ $refund_url      = home_url( '/refund-policy' );
                 <text x="32" y="38" text-anchor="middle" font-family="Manrope, Inter, sans-serif" font-size="17" font-weight="800" fill="#fff">$</text>
             </svg>
         </div>
-        <h2>Ready to stop reconciling by hand?</h2>
+        <h2>Ready to stop chasing payments by hand?</h2>
         <p>Start your 7-day free trial. No card required.</p>
         <a class="pp-btn pp-btn--inverse pp-btn--lg" href="<?php echo esc_url( $checkout_url ); ?>">Start 7-day free trial &rarr;</a>
         <p class="pp-cta-skip pp-cta-skip--inverse"><a href="#tiers">or skip the trial &mdash; pick a tier and buy now &uarr;</a></p>

@@ -1,7 +1,7 @@
 <?php
 /**
  * Template for /how-it-works.
- * Long-form pitch: the manual-reconciliation pain, the founder story, the
+ * Long-form pitch: the chasing-payments-by-hand pain, the founder story, the
  * traceable workflow, AI deep-dive, security primitives, onboarding shape.
  */
 if ( ! defined( 'ABSPATH' ) ) { exit; }
@@ -24,7 +24,7 @@ $checkout_url = home_url( '/checkout/?add-to-cart=38' );
         <div class="pp-prose-cols">
             <div>
                 <div class="pp-section-head">
-                    <h2>Manual reconciliation breaks quickly.</h2>
+                    <h2>Tracking payments by hand breaks quickly.</h2>
                 </div>
                 <div class="pp-prose">
                     <p>You already accept Venmo, Cash App, PayPal, or Zelle, because card processors won't onboard you, or because the fees are eating margin you can't spare. The hard part isn't the payment. The hard part is everything that happens after.</p>
@@ -86,7 +86,7 @@ $checkout_url = home_url( '/checkout/?add-to-cart=38' );
             <h2 class="pp-story-title">Built by someone who needed it.</h2>
             <div class="pp-prose pp-story-prose">
                 <p class="pp-story-lead">I run businesses in restricted verticals. Every traditional payment processor I tried either refused to onboard me, terminated me after a few months without explanation, or held my funds while my customers waited.</p>
-                <p>I shifted to accepting Venmo, Cash App, PayPal, and Zelle directly. That solved the access problem and immediately created a new one: reconciling 50+ payments a day by hand against my WooCommerce orders. I tried other plugins. None of them did the workflow correctly, and most of them assumed you were a low-risk Stripe-compatible merchant who'd just landed on the wrong page.</p>
+                <p>I shifted to accepting Venmo, Cash App, PayPal, and Zelle directly. That solved the access problem and immediately created a new one: matching 50+ payments a day by hand to the right WooCommerce orders. I tried other plugins. None of them did the workflow correctly, and most of them assumed you were a low-risk Stripe-compatible merchant who'd just landed on the wrong page.</p>
                 <p>I built Pipe Pay because I needed it. The AI verification piece exists because manual review at scale is a tax on growth. The security hardening exists because storing customer payment screenshots casually is unacceptable. The honest-about-its-limits framing exists because I've been burned by overpromising plugins, and I assume you have too.</p>
                 <p>If you're in a similar position, this is the tool I wish I'd had two years ago.</p>
             </div>
@@ -365,7 +365,7 @@ $checkout_url = home_url( '/checkout/?add-to-cart=38' );
                 <text x="32" y="38" text-anchor="middle" font-family="Manrope, Inter, sans-serif" font-size="17" font-weight="800" fill="#fff">$</text>
             </svg>
         </div>
-        <h2>Ready to stop reconciling by hand?</h2>
+        <h2>Ready to stop chasing payments by hand?</h2>
         <p>Start your 7-day free trial. No card required.</p>
         <a class="pp-btn pp-btn--inverse pp-btn--lg" href="<?php echo esc_url( $checkout_url ); ?>">Start 7-day free trial &rarr;</a>
     </div>

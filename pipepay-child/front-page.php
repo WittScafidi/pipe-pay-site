@@ -91,7 +91,7 @@ $changelog_url   = home_url( '/changelog' );
         <h1 class="pp-hero-h1">
             <span class="pp-hero-h1__line">Accept Venmo, Cash App,</span>
             <span class="pp-hero-h1__line">PayPal, and Zelle in WooCommerce,</span>
-            <span class="pp-hero-h1__line">without manual reconciliation.</span>
+            <span class="pp-hero-h1__line">without chasing payments by hand.</span>
         </h1>
         <p class="pp-hero-sub">A WooCommerce plugin that captures customer P2P payment screenshots and verifies them with AI, so the only orders you touch are the ones the AI actually flagged.</p>
         <div class="pp-hero-ctas">
@@ -199,18 +199,21 @@ $changelog_url   = home_url( '/changelog' );
         </div>
         <div class="pp-personas-grid">
             <article class="pp-persona">
+                <span class="pp-persona__icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/><path d="M12 8v4"/><path d="M12 16h.01"/></svg></span>
                 <span class="pp-persona__tag">High-risk vertical</span>
                 <p class="pp-persona__quote">"Stripe terminated my account. PayPal froze $40K for 180 days. Every high-risk processor that'll take me wants four to eight percent plus a personal guarantee."</p>
                 <p class="pp-persona__body">No underwriting to fail. No MCC to scrutinize. No rolling reserve. Your customers pay you directly through Venmo, Cash App, PayPal, or Zelle. There is no merchant relationship for a processor to terminate, because there is no processor. Run multiple P2P apps in rotation to limit single-account exposure, and you stay open.</p>
             </article>
 
             <article class="pp-persona">
+                <span class="pp-persona__icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5"/><path d="M9 18h6"/><path d="M10 22h4"/></svg></span>
                 <span class="pp-persona__tag">Validating an idea</span>
                 <p class="pp-persona__quote">"I don't have an LLC yet. I want to know if this thing works before I file paperwork, get an EIN, and hand my SSN to a payment processor."</p>
                 <p class="pp-persona__body">Pipe Pay is the fastest legal path to a working checkout. No business entity required. No merchant account application. No tax ID handed to a processor for a two-week verification. Use the Venmo and Cash App accounts you already have, install on a basic WordPress site, and you're live the same afternoon. Validate the idea on real customers; incorporate once there's revenue to justify it.</p>
             </article>
 
             <article class="pp-persona">
+                <span class="pp-persona__icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"/><path d="M3 5v14a2 2 0 0 0 2 2h16v-5"/><path d="M18 12a2 2 0 0 0 0 4h4v-4z"/></svg></span>
                 <span class="pp-persona__tag">Tired of paying fees</span>
                 <p class="pp-persona__quote">"I'm bleeding fourteen and a half thousand a year in Stripe fees on $500K of orders. For what, a dashboard?"</p>
                 <p class="pp-persona__body">$299 a year, flat. Zero per-transaction fees on the plugin side. Personal Venmo, Cash App, and PayPal Friends &amp; Family take 0%. Business profiles take 1.9% to 2.75% &mdash; still under Stripe. Pipe Pay pays for itself the moment you cross about $10,300 in annual card volume. Every dollar saved on fees from there forward is yours.</p>
@@ -229,21 +232,25 @@ $changelog_url   = home_url( '/changelog' );
 
         <div class="pp-how-grid">
             <div class="pp-how-card">
+                <span class="pp-step-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="20" r="1.4"/><circle cx="18" cy="20" r="1.4"/><path d="M2 3h3l2.5 12.5a2 2 0 0 0 2 1.5h8a2 2 0 0 0 2-1.5L22 7H7"/></svg></span>
                 <span class="pp-step-num">1</span>
                 <h3>Customer chooses Pipe Pay at checkout.</h3>
                 <p>The plugin places the order in a custom <code>Awaiting Proof</code> status. No order confirmation email yet, the confirmation is the customer's incentive to upload.</p>
             </div>
             <div class="pp-how-card">
+                <span class="pp-step-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2 11 13"/><path d="M22 2 15 22l-4-9-9-4 20-7Z"/></svg></span>
                 <span class="pp-step-num">2</span>
                 <h3>Customer pays via their P2P app.</h3>
                 <p>The payment page shows a QR code, the merchant handle, and an <em>Open Venmo / Cash App / PayPal / Zelle</em> button that takes the customer straight to the right account.</p>
             </div>
             <div class="pp-how-card">
+                <span class="pp-step-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 14.9A7 7 0 1 1 15.7 8h1.8a4.5 4.5 0 0 1 2.5 8.2"/><path d="M12 12v9"/><path d="m16 16-4-4-4 4"/></svg></span>
                 <span class="pp-step-num">3</span>
                 <h3>Customer uploads a screenshot.</h3>
                 <p>A sticky bar at the bottom of the page stays visible until upload completes. If the customer tries to close the tab early, the browser warns them.</p>
             </div>
             <div class="pp-how-card">
+                <span class="pp-step-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg></span>
                 <span class="pp-step-num">4</span>
                 <h3>AI verifies and the order processes.</h3>
                 <p>High-confidence verifications auto-transition to Processing and trigger your normal order emails. Medium and low confidence flow into the Proofs review queue.</p>
@@ -370,6 +377,7 @@ $changelog_url   = home_url( '/changelog' );
         </div>
         <div class="pp-pricing-grid">
             <div class="pp-pricing-card">
+                <svg class="pp-tier-illustration" viewBox="0 0 120 80" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false"><rect x="22" y="12" width="76" height="56" rx="7" fill="#fff" stroke="#1336a8" stroke-width="2"/><circle cx="30" cy="22" r="2" fill="#1336a8"/><circle cx="38" cy="22" r="2" fill="#1336a8" opacity="0.45"/><circle cx="46" cy="22" r="2" fill="#1336a8" opacity="0.22"/><line x1="22" y1="30" x2="98" y2="30" stroke="#1336a8" stroke-width="1" opacity="0.18"/><circle cx="60" cy="48" r="11" fill="#1336a8"/><path d="M54.5 48 l4 4 l7.5 -8" stroke="#fff" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
                 <h3>Single Site</h3>
                 <p class="pp-price-detail">For one WooCommerce store.</p>
                 <div class="pp-price">$299<small></small></div>
@@ -385,6 +393,7 @@ $changelog_url   = home_url( '/changelog' );
             </div>
             <div class="pp-pricing-card pp-pricing-card--featured">
                 <span class="pp-pricing-ribbon">Most Popular</span>
+                <svg class="pp-tier-illustration" viewBox="0 0 120 80" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false"><g fill="#fff" stroke="#1336a8" stroke-width="1.6"><rect x="15" y="12" width="26" height="22" rx="3"/><rect x="47" y="12" width="26" height="22" rx="3"/><rect x="79" y="12" width="26" height="22" rx="3"/><rect x="31" y="42" width="26" height="22" rx="3"/><rect x="63" y="42" width="26" height="22" rx="3"/></g><g fill="#1336a8"><circle cx="20" cy="17" r="1.3"/><circle cx="52" cy="17" r="1.3"/><circle cx="84" cy="17" r="1.3"/><circle cx="36" cy="47" r="1.3"/><circle cx="68" cy="47" r="1.3"/></g><g stroke="#1336a8" stroke-width="1.4" stroke-linecap="round" opacity="0.45"><line x1="19" y1="26" x2="37" y2="26"/><line x1="51" y1="26" x2="69" y2="26"/><line x1="83" y1="26" x2="101" y2="26"/><line x1="35" y1="56" x2="53" y2="56"/><line x1="67" y1="56" x2="85" y2="56"/></g></svg>
                 <h3>5 Sites</h3>
                 <p class="pp-price-detail">For agencies or multi-store owners.</p>
                 <div class="pp-price">$599<small></small></div>
@@ -399,6 +408,7 @@ $changelog_url   = home_url( '/changelog' );
                 <a class="pp-btn pp-btn--ghost" href="<?php echo esc_url( $buy_five ); ?>">Buy now &mdash; skip the trial</a>
             </div>
             <div class="pp-pricing-card">
+                <svg class="pp-tier-illustration" viewBox="0 0 120 80" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false"><path d="M22 40 C22 22, 48 22, 60 40 C72 58, 98 58, 98 40 C98 22, 72 22, 60 40 C48 58, 22 58, 22 40 Z" fill="none" stroke="#1336a8" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/><rect x="29" y="35" width="12" height="10" rx="2" fill="#1336a8"/><rect x="79" y="35" width="12" height="10" rx="2" fill="#1336a8"/></svg>
                 <h3>Unlimited Sites</h3>
                 <p class="pp-price-detail">No activation cap. Run it everywhere.</p>
                 <div class="pp-price">$1,199<small></small></div>
@@ -413,7 +423,7 @@ $changelog_url   = home_url( '/changelog' );
                 <a class="pp-btn pp-btn--ghost" href="<?php echo esc_url( $buy_unlim ); ?>">Buy now &mdash; skip the trial</a>
             </div>
         </div>
-        <p class="pp-pricing-fineprint">License entitles you to 1 year of plugin updates and support. If your license lapses, the plugin keeps processing payments &mdash; only updates and support pause, and a renewal banner appears in WP admin until you renew. Cancel anytime before the trial ends and you won't be charged. Once your trial converts to a paid license, all sales are final, no refunds. The 7-day trial is your evaluation window.</p>
+        <p class="pp-pricing-fineprint">Each license includes 1 year of plugin updates and support. Renew annually to keep receiving WooCommerce-compatibility patches, security updates, and support &mdash; without renewal, your install falls behind each WP and WC release and eventually needs an update you can no longer get. Cancel anytime before the trial ends and you won't be charged. Once your trial converts to a paid license, all sales are final, no refunds. The 7-day trial is your evaluation window.</p>
     </div>
 </section>
 
@@ -475,7 +485,7 @@ $changelog_url   = home_url( '/changelog' );
         <div class="pp-final-cta__mark" aria-hidden="true">
             <?php $pp_logo_variant = 'inverse'; include __DIR__ . '/partials/logo-svg.php'; ?>
         </div>
-        <h2>Ready to stop reconciling by hand?</h2>
+        <h2>Ready to stop chasing payments by hand?</h2>
         <p>Start your 7-day free trial. No card required.</p>
         <a class="pp-btn pp-btn--inverse pp-btn--lg" href="<?php echo esc_url( $checkout_url ); ?>">Start 7-day free trial &rarr;</a>
         <p class="pp-cta-skip pp-cta-skip--inverse"><a href="<?php echo esc_url( $pricing_url ); ?>">or skip the trial &mdash; buy a license now &rarr;</a></p>

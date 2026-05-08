@@ -7,7 +7,7 @@ Draft homepage copy following the structure in `website-copy-brief.md`. Tone: pr
 ## 1. Hero
 
 **Headline:**
-Accept Venmo, Cash App, PayPal, and Zelle in WooCommerce, without manual reconciliation.
+Accept Venmo, Cash App, PayPal, and Zelle in WooCommerce, without chasing payments by hand.
 
 **Subheadline:**
 A WooCommerce plugin that captures customer P2P payment screenshots and verifies them with AI, so the only orders you touch are the ones the AI actually flagged.
@@ -28,14 +28,14 @@ A WooCommerce plugin that captures customer P2P payment screenshots and verifies
 A workflow layer, not a payment processor.
 
 **Body (~80 words):**
-Pipe Pay is a WooCommerce plugin that lets your store accept Venmo, Cash App, PayPal, and Zelle by capturing the customer's payment screenshot and verifying it with AI. Your customers pay you directly through the P2P apps they already use; you stop doing 30 minutes of manual ledger reconciliation a day. It is built for WooCommerce merchants in restricted verticals who can't use standard card processors, and for anyone who'd rather not pay 2.9% plus 30 cents on every order.
+Pipe Pay is a WooCommerce plugin that lets your store accept Venmo, Cash App, PayPal, and Zelle by capturing the customer's payment screenshot and verifying it with AI. Your customers pay you directly through the P2P apps they already use; you stop spending 30 minutes a day chasing payments by hand. It is built for WooCommerce merchants in restricted verticals who can't use standard card processors, and for anyone who'd rather not pay 2.9% plus 30 cents on every order.
 
 ---
 
 ## 3. The problem
 
 **Headline:**
-Manual reconciliation breaks at 30 orders a day.
+Tracking payments by hand breaks at 30 orders a day.
 
 **Body (4 short paragraphs):**
 
@@ -84,7 +84,7 @@ Built by someone who needed it.
 
 I run businesses in restricted verticals. Every traditional payment processor I tried either refused to onboard me, terminated me after a few months without explanation, or held my funds while my customers waited.
 
-I shifted to accepting Venmo, Cash App, PayPal, and Zelle directly. That solved the access problem and immediately created a new one: reconciling 50+ payments a day by hand against my WooCommerce orders. I tried other plugins. None of them did the workflow correctly, and most of them assumed you were a low-risk Stripe-compatible merchant who'd just landed on the wrong page.
+I shifted to accepting Venmo, Cash App, PayPal, and Zelle directly. That solved the access problem and immediately created a new one: matching 50+ payments a day by hand to the right WooCommerce orders. I tried other plugins. None of them did the workflow correctly, and most of them assumed you were a low-risk Stripe-compatible merchant who'd just landed on the wrong page.
 
 I built Pipe Pay because I needed it. The AI verification piece exists because manual review at scale is a tax on growth. The security hardening exists because storing customer payment screenshots casually is unacceptable. The honest-about-its-limits framing exists because I've been burned by overpromising plugins, and I assume you have too.
 
@@ -258,7 +258,7 @@ Questions worth answering before you trial.
 **Accordion list:**
 
 **How is this different from manually accepting Venmo?**
-The payment part is identical. The reconciliation part isn't. Pipe Pay captures the screenshot at checkout, verifies it with AI, and only surfaces the orders that actually need your attention. The manual workflow you're doing now scales linearly with order volume; this one doesn't.
+The payment part is identical. The figuring-out-who-paid part isn't. Pipe Pay captures the screenshot at checkout, verifies it with AI, and only surfaces the orders that actually need your attention. The manual workflow you're doing now scales linearly with order volume; this one doesn't.
 
 **Can I use my existing Venmo, Cash App, PayPal, and Zelle accounts?**
 Yes. Pipe Pay connects to the accounts you already have. We don't open new accounts and we don't move money on your behalf.
@@ -297,7 +297,7 @@ Through WordPress's standard "Update Available" notification, the same way any p
 **Section style:** full-width royal blue (`#1336a8`), white text, single button.
 
 **Headline:**
-Ready to stop reconciling by hand?
+Ready to stop chasing payments by hand?
 
 **Subheadline:**
 Start your 7-day free trial. No card required.
@@ -365,6 +365,6 @@ Start your 7-day free trial. No card required.
 
 - All trial / pricing buttons go to `https://pipepay.app/checkout`. Once EDD is configured with separate product IDs per tier, the buttons inside the pricing cards can deep-link to the specific tier (e.g. `?edd_action=add_to_cart&download_id=XX`).
 - The hero screenshot, the "How it works" composite, the "AI deep-dive" Proofs queue screenshot, the security section accent (optional), and the feature card icons are all visual placeholders that need real screenshots from a working install of v1.4.0.
-- Headlines are deliberately verbal sentence fragments ("Manual reconciliation breaks at 30 orders a day"), not titles. They should typeset slightly larger than headers in conventional landing pages, with line-height ~1.15 and weight 700.
+- Headlines are deliberately verbal sentence fragments ("Tracking payments by hand breaks at 30 orders a day"), not titles. They should typeset slightly larger than headers in conventional landing pages, with line-height ~1.15 and weight 700.
 - Body copy is target ~16-17px with line-height 1.6.
 - All sections except the hero, mid-page CTA, and final CTA are on a white or light-grey alternating background. The royal blue sections only appear three times on the page so they retain their punch.
