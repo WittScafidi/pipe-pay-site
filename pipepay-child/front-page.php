@@ -290,13 +290,23 @@ $changelog_url   = home_url( '/changelog' );
                 </li>
 
                 <!-- Step 2: Customer payment page. Mirrors the real plugin layout
-                     (templates/pipe-pay-page.php): order amount + # at top → QR →
-                     method buttons under the QR (pill-shaped, brand colors V/$/P/Z)
-                     → numbered instructions for the ACTIVE method → big brand-
-                     colored Open button → peek of the Upload section. -->
+                     (templates/pipe-pay-page.php): screenshot drop-zone at the
+                     top → order amount + # → QR → method buttons under the QR
+                     (pill-shaped, brand colors V/$/P/Z) → numbered instructions
+                     for the ACTIVE method → big brand-colored Open button. -->
                 <li class="pp-flow__step">
                     <div class="pp-flow__phone">
                         <div class="pp-flow__screen pp-flow__screen--pay">
+                            <!-- Screenshot drop-zone in its idle state. The real
+                                 plugin places this in the right column on desktop
+                                 / sticky bar on mobile; in the marketing mock we
+                                 lift it to the very top so visitors see the upload
+                                 step is part of the same page. -->
+                            <div class="pp-flow__upload-zone">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                                <span>Choose screenshot</span>
+                            </div>
+
                             <!-- Order line: amount due + order number -->
                             <div class="pp-flow__order-line">
                                 <span class="pp-flow__order-amount">$87.50</span>
@@ -338,13 +348,21 @@ $changelog_url   = home_url( '/changelog' );
                     <div class="pp-flow__caption"><b>02.</b>Pay through P2P app</div>
                 </li>
 
-                <!-- Step 3: Same payment-page layout as step 2 (QR + methods +
-                     instructions stay visible — they're on the same page in the
-                     real plugin) but with the upload section now in its
-                     submitting state at the bottom instead of the Open button. -->
+                <!-- Step 3: same payment-page layout as step 2, but the upload
+                     zone at the top is now in its submitting state — filename
+                     visible, spinner active. Customer paid, came back, picked
+                     their screenshot, and hit submit; payment context stays
+                     visible below since they haven't left the page. -->
                 <li class="pp-flow__step">
                     <div class="pp-flow__phone">
                         <div class="pp-flow__screen pp-flow__screen--pay">
+                            <!-- Upload zone in submitting state -->
+                            <div class="pp-flow__upload-zone pp-flow__upload-zone--submitting">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                                <span class="pp-flow__upload-zone-name">venmo-submission.png</span>
+                                <span class="pp-flow__spinner" aria-hidden="true"></span>
+                            </div>
+
                             <div class="pp-flow__order-line">
                                 <span class="pp-flow__order-amount">$87.50</span>
                                 <span class="pp-flow__order-num">#1247</span>
@@ -372,14 +390,6 @@ $changelog_url   = home_url( '/changelog' );
                                 <li>Add memo <code>#1247</code></li>
                                 <li>Screenshot the receipt</li>
                             </ol>
-
-                            <!-- Submit-with-spinner replaces the Open Venmo button.
-                                 Mirrors the real plugin's submit button switching to
-                                 the "Submitting..." + spinner state during upload. -->
-                            <div class="pp-flow__submit-btn pp-flow__submit-btn--loading">
-                                <span class="pp-flow__spinner" aria-hidden="true"></span>
-                                Submitting...
-                            </div>
                         </div>
                     </div>
                     <div class="pp-flow__caption"><b>03.</b>Upload screenshot</div>

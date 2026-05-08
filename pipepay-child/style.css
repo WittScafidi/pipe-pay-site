@@ -1217,23 +1217,73 @@ body.pipepay-home .pp-hero-h1 {
  * templates/pipe-pay-page.php so the marketing mock matches what customers
  * actually see at /pay/order-N. */
 
-/* Override --pay's center alignment so the QR sits at the top instead of the
- * vertical-centered position the existing rule uses. justify-content:center
- * keeps the stack vertically centered when there's leftover space; the
- * larger gap gives the order line / QR / methods / steps / button room
- * to breathe instead of feeling cramped. */
+/* Override --pay's center alignment so the upload zone sits at the top, then
+ * order line → QR → methods → steps → Open button stack below. Gap controls
+ * the breathing room; tighter when the upload zone is at the top because
+ * we need more vertical room overall. */
 .pp-flow__screen--pay {
     align-items: stretch;
-    justify-content: center;
     text-align: center;
-    padding-top: 16px;
-    padding-bottom: 14px;
-    gap: 9px;
+    padding-top: 14px;
+    padding-bottom: 12px;
+    gap: 7px;
 }
 .pp-flow__screen--pay .pp-flow__qr-mini {
-    width: 44px;
-    height: 44px;
+    width: 40px;
+    height: 40px;
     margin: 0 auto;
+}
+
+/* Screenshot upload zone — appears at the top of step 2 (idle) and step 3
+ * (submitting). Mirrors the real plugin's wwp-dp-upload-card area,
+ * compressed to fit a phone-mock width. */
+.pp-flow__upload-zone {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 7px 8px;
+    border: 1px dashed var(--pp-border-strong);
+    border-radius: 6px;
+    background: var(--pp-bg-alt);
+    color: var(--pp-text-muted);
+    font-size: 9.5px;
+    font-weight: 600;
+    line-height: 1;
+}
+.pp-flow__upload-zone svg {
+    width: 12px;
+    height: 12px;
+    color: var(--pp-blue);
+    flex-shrink: 0;
+}
+
+/* Submitting variant — solid blue border + tinted bg, shows filename inline
+ * with a spinner on the right. */
+.pp-flow__upload-zone--submitting {
+    border-style: solid;
+    border-color: var(--pp-blue);
+    background: rgba(19, 54, 168, 0.05);
+    color: var(--pp-text);
+    justify-content: flex-start;
+    text-align: left;
+}
+.pp-flow__upload-zone-name {
+    flex: 1;
+    font-family: var(--pp-font-mono);
+    font-weight: 500;
+    font-size: 8.5px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: var(--pp-text);
+}
+.pp-flow__upload-zone--submitting .pp-flow__spinner {
+    width: 10px;
+    height: 10px;
+    border-color: rgba(19, 54, 168, 0.25);
+    border-top-color: var(--pp-blue);
+    flex-shrink: 0;
 }
 
 /* Order line at the top — amount due + order number, side by side. */
