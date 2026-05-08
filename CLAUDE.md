@@ -16,7 +16,7 @@
 ## Stack versions (current state 2026-05-07)
 - WordPress: 6.9.4 (core)
 - WooCommerce: 10.7.0
-- Pipe Pay plugin: **1.6.1** — same version on the dogfood gateway AND in the customer-facing zip wired into the WC products. The dogfood install has `PIPEPAY_DISABLE_LICENSING` set in `wp-config.php` (it hosts the license server itself; can't license against itself). Source zip: `/Users/wittscafidi/Desktop/Pipe Pay/pipe-pay-v1.6.1.zip`. License-server URL hardcoded to `https://pipepay.app/`. Staged on the server at `/var/www/pipepay/wp-content/uploads/woocommerce_uploads/pipe-pay-v1.6.1.zip` and wired into all four WC products via `_downloadable_files` + `_product_version=1.6.1`.
+- Pipe Pay plugin: **1.6.3** (updated 2026-05-07) — same version on the dogfood gateway AND in the customer-facing zip wired into the WC products. The dogfood install has `PIPEPAY_DISABLE_LICENSING` set in `wp-config.php` (it hosts the license server itself; can't license against itself). Source zip: `~/Desktop/Pipe Pay/pipe-pay-v1.6.3.zip`. License-server URL hardcoded to `https://pipepay.app/`. Staged on the server at `/var/www/pipepay/wp-content/uploads/woocommerce_uploads/pipe-pay-v1.6.3.zip` and wired into all four WC products via `_downloadable_files` + `_product_version=1.6.3`. Older zips (1.5.1 → 1.6.2) are still on disk in that uploads dir as rollback options but are not referenced by any product.
 - API Manager for WooCommerce (Kestrel): 3.7.6
 - WooCommerce.com Helper (`woo-update-manager`): 1.0.3 — the bridge that pulls API Manager from the WC.com subscription
 - License resolver mu-plugin: **1.0.0** — `wp-content/mu-plugins/pipepay-license-resolve.php`. Custom REST endpoint at `POST /wp-json/pipepay-license/v1/resolve` that maps a license key to its product ID. Loaded on top of API Manager so customers only enter their license key (no product ID). See "Kestrel API Manager licensing" below.
@@ -63,6 +63,22 @@ Two rules. **Order matters: later rule wins for cache eligibility** (Cloudflare'
 
 If the bypass rule is above the cache rule, cache wins for /cart/, /my-account/, etc., and Cloudflare WILL serve cached cart/account responses to other visitors — **session leak**. Don't reverse the order. After publishing site changes, Caching → Configuration → Purge Everything (or wait up to 2h for edge TTL).
 
+### Verifying changes immediately without a CF purge
+
+Cloudflare keys its cache by the full URL **including query string**, so adding any throwaway query param produces a cache MISS and forces a fresh origin fetch. Use this to verify a change yourself before deciding whether to purge for real visitors:
+
+```
+https://pipepay.app/pricing/?bust=1
+https://pipepay.app/changelog/?v=now
+https://pipepay.app/?check=42
+```
+
+WordPress ignores the unknown param, the page renders normally, and you see the latest HTML. Each unique value lands in CF's edge cache as its own entry for 2h, so don't spam — drop one or two `?bust=N` per change, then purge for everyone else if it looks right.
+
+**Only useful on URLs caught by the Cache Rule (Rule 1):** `/`, `/how-it-works/`, `/pricing/`, `/changelog/`, `/docs/` (+ docs sub-pages), `/contact/`, `/privacy/`, `/terms/`, `/refund-policy/`. Anything in the Rule 2 bypass list (`/checkout/*`, `/cart/*`, `/my-account/*`, `/wp-admin/*`, `/wp-login*`, `/wp-json/*`, `/wp-cron*`, plus the cookie/query-arg matchers) is already bypassed and `?bust=` does nothing. If a checkout/cart/account page looks stale, the cache layer is browser, PHP opcache, or WP transients — not CF.
+
+Pair `?bust=` with Cmd-Shift-R or a private window so you don't see a stale browser-cached copy. For static asset URLs (style.css, JS, fonts), WordPress already appends `?ver=filemtime()` so updated files auto-bust — manual `?bust=` not needed there.
+
 ## Backups
 - Daily DB dump at 03:00 UTC via root crontab → `/home/witt-scafidi/backups/pipepay-db-YYYY-MM-DD.sql.gz`
 - Script: `/usr/local/sbin/pipepay-backup.sh` (root, 700)
@@ -72,16 +88,16 @@ If the bypass rule is above the cache rule, cache wins for /cart/, /my-account/,
 - **Not yet set up:** off-server backup of `/var/www/pipepay/wp-content/uploads/` — recommend UpdraftPlus → S3/B2 once any content exists.
 
 ## Repository / version control
-- **Plugin repo (GitHub):** https://github.com/WittScafidi/pipe-pay (private). Contains `pipe-pay/` (source), `specs/` (internal docs including Pro V1 spec), `README.md`, `.gitignore`. Local clone at `~/Desktop/Pipe Pay/pipe-pay-extracted/`. Push directly with `git push origin main`. Tag releases as `v1.x.y` matching `PIPEPAY_VERSION`.
-- **Site repo (GitHub):** NOT YET CREATED. Recommended path: create `github.com/WittScafidi/pipe-pay-site` (private), import the contents of `~/Desktop/Pipe Pay/pipe-pay-site/` (theme + this CLAUDE.md + planning docs). Critical: `.gitignore` the `.secrets/` directory before any `git add .` (contains WP admin password and DB password as plaintext .txt files).
-- Server-side: WordPress core, content, uploads, and DB still live on the OptiPlex. The repo is a developer source-of-truth, not a deploy mechanism. Theme syncs are still done via the `tar czf`/`scp`/`tar xzf` cheatsheet command.
+- **Plugin repo:** https://github.com/WittScafidi/pipe-pay-plugin (private). Contains `pipe-pay/` (source), `specs/` (internal docs including Pro V1 spec), `README.md`, `.gitignore`. Local clone at `~/Desktop/Pipe Pay/pipe-pay-extracted/`. Latest tag: `v1.6.3`. Tag releases as `v1.x.y` matching `PIPEPAY_VERSION`. Push tags via `git push origin v1.x.y`.
+- **Site repo:** https://github.com/WittScafidi/pipe-pay-site (private). Contains `pipepay-child/`, `mu-plugins/`, `CLAUDE.md`, `homepage-copy.md`, `README.md`, `.gitignore`. Local clone is the working dir at `~/Desktop/Pipe Pay/pipe-pay-site/`. **Note:** `.secrets/` is at `~/Desktop/Pipe Pay/.secrets/` (sibling, OUTSIDE this repo) — it is NOT in scope for git but be careful never to move/copy it inside the site dir.
+- Server-side: WordPress core, content, uploads, and DB still live on the OptiPlex. The repo is a developer source-of-truth, not a deploy mechanism. Theme syncs are still done via the `tar czf`/`scp`/`tar xzf` cheatsheet command. Plugin updates ship via `wp plugin install <zip> --force` over SSH (or via WP Admin → Plugins → Add New → Upload).
 
 ## Sudo posture
 - During setup, NOPASSWD sudo was granted to `witt-scafidi` via `/etc/sudoers.d/99-witt-scafidi-nopasswd`. Consider removing once the site is stable: `sudo rm /etc/sudoers.d/99-witt-scafidi-nopasswd`.
 
 ## Plugins (active)
 - **WooCommerce** 10.7.0 — the commerce engine.
-- **Pipe Pay** 1.6.1 — the plugin we sell, installed here as the live payment gateway AND as the same build customers receive. License layer is bypassed via `PIPEPAY_DISABLE_LICENSING` in `wp-config.php` (see above). To upgrade the dogfood install: deactivate, drop a newer zip's contents into `/var/www/pipepay/wp-content/plugins/pipe-pay/`, fix ownership to `www-data:www-data`, reactivate via wp-cli. Same flow as customer in-line updates, just done by hand on this site.
+- **Pipe Pay** 1.6.3 — the plugin we sell, installed here as the live payment gateway AND as the same build customers receive. License layer is bypassed via `PIPEPAY_DISABLE_LICENSING` in `wp-config.php` (see above). To upgrade the dogfood install: deactivate, drop a newer zip's contents into `/var/www/pipepay/wp-content/plugins/pipe-pay/`, fix ownership to `www-data:www-data`, reactivate via wp-cli. Same flow as customer in-line updates, just done by hand on this site.
 - **mu-plugins/pipepay-license-resolve.php** 1.0.0 — must-use plugin (auto-loaded, not in the regular plugins list). Provides the license-key → product-ID resolver endpoint. See "Kestrel API Manager licensing" below.
 - **API Manager for WooCommerce** (Kestrel) 3.7.6 — license generation + auto-update server for the Pipe Pay plugin sold via this site. (See "Kestrel licensing" below.)
 - **Woo Update Manager** 1.0.3 — the WooCommerce.com Helper. Authenticates to `wittscafidi@gmail.com`'s WC.com account so the API Manager subscription pulls in updates automatically. Don't deactivate or API Manager stops getting updates.
@@ -152,7 +168,7 @@ API Manager meta on each product: `_is_api=yes`, `_api_resource_type=wp_plugin`,
 ## Pipe Pay (the gateway, configured on this site)
 - Registered as the only enabled WC payment gateway. Settings live in option `woocommerce_pipepay_settings`.
 - Title shown to customer: "Pipe Pay"
-- Description: "Pay with Venmo, Cash App, PayPal, or Zelle. After placing the order you will be shown payment instructions; upload a screenshot of the payment to complete checkout."
+- Description (configured-on-this-site value, set in WP Admin): "Pay with Venmo, Cash App, PayPal, or Zelle. After placing the order you will be shown payment instructions; upload a screenshot of the payment to complete checkout." Plugin's built-in default is the shorter "Send payment using your preferred app. You'll receive instructions on the next page."
 - Brand accent color: `#1336a8`
 - Reminder cadence: 5 / 20 / 45 minutes; auto-cancel at 60 min (matches the brief)
 - Proof retention: 90 days
@@ -223,9 +239,9 @@ A `woocommerce_add_cart_item_data` filter in `functions.php` empties the cart be
 - [ ] Place order. Status should be "Pending payment."
 - [ ] (Once you've replaced the P2P handles) confirm the post-checkout page shows your real handles + the customer's amount + order number in the upload-screenshot UI.
 - [ ] (Once a real test order exists) manually mark the order "Processing" or "Completed" in WC admin. API Manager should auto-issue a 1-year license.
-- [ ] **End-to-end license activation test for v1.6.1 (one-field flow + audit fixes).** All four WC products (34/35/36/38) point at `pipe-pay-v1.6.1.zip` with `_product_version=1.6.1` (done 2026-05-07). Existing 1.5.x customers will see "Update available" within ~12h of next WP cron. Smoke test before publicly recommending the upgrade:
+- [ ] **End-to-end license activation test for v1.6.3 (one-field flow + audit fixes).** All four WC products (34/35/36/38) point at `pipe-pay-v1.6.3.zip` with `_product_version=1.6.3` (done 2026-05-07). Existing 1.5.x customers will see "Update available" within ~12h of next WP cron. Smoke test before publicly recommending the upgrade:
   1. Buy a Pipe Pay tier (or manually create an order + mark it Processing) so API Manager issues a real license key.
-  2. On a separate test WC install, install `pipe-pay-v1.6.1.zip` (do NOT set `PIPEPAY_DISABLE_LICENSING` on the test site — that constant is for the dogfood install only; the test site needs the License page visible).
+  2. On a separate test WC install, install `pipe-pay-v1.6.3.zip` (do NOT set `PIPEPAY_DISABLE_LICENSING` on the test site — that constant is for the dogfood install only; the test site needs the License page visible).
   3. Go to *WP Admin → Pipe Pay → License*. Paste **only the license key** — no product ID field should appear.
   4. Click Activate. Confirm: notice says "License activated for [tier name]…", page now shows the activated card with masked key + tier title + Deactivate button.
   5. Verify the network: open DevTools → Network. The resolver call should be `POST /wp-json/pipepay-license/v1/resolve` with the api_key in the request body, NOT in the URL.
@@ -233,7 +249,7 @@ A `woocommerce_add_cart_item_data` filter in `functions.php` empties the cart be
   7. On the test site, go to *Plugins → Installed Plugins → Pipe Pay → "View details"*. Confirm the Plugin Info popup loads (means the SDK's plugins_api hook resolved against pipepay.app).
   8. Idempotency: click Deactivate, then immediately re-paste the same key and click Activate twice quickly. Server should record only ONE re-activation (check API Manager → Activations).
   9. Tier upgrade: click Deactivate. Buy/create an order on a different tier (e.g. unlimited, product 36). Paste the new key into the same License page. Confirm it resolves to product 36 and re-activates without any zip swap. Check the WP options table — the OLD product's `wc_am_client_<old_pid>` row should be gone.
-  10. Auto-update flow: bump `pipe-pay.php` version to 1.6.2 locally, rebuild `pipe-pay-v1.6.2.zip`, replace product files + bump `_product_version` to 1.6.2 on product 34 (or whichever tier you tested with). On the test site, *Dashboard → Updates* should show "Update available" within ~12h or after clicking "Check Again."
+  10. Auto-update flow: bump `pipe-pay.php` version to the next patch (e.g. 1.6.4) locally, rebuild the zip, replace product files + bump `_product_version` on product 34 (or whichever tier you tested with). On the test site, *Dashboard → Updates* should show "Update available" within ~12h or after clicking "Check Again."
 
 ### Operations
 - [ ] **Add `pipepay.app` to Google Search Console** — verify via DNS TXT record (Cloudflare DNS panel makes this easy), then submit `https://pipepay.app/wp-sitemap.xml`. Leave the existing `pipepay.money` property in place so the 301 traffic stays monitored as it migrates over.
@@ -265,6 +281,9 @@ A `woocommerce_add_cart_item_data` filter in `functions.php` empties the cart be
 - [x] Cart deduplication: only one Pipe Pay product can be in the cart at a time
 - [x] Trial vs paid checkout flow: `/checkout/?add-to-cart=38` for trial, `?add-to-cart=34/35/36` for paid tiers
 - [x] WC checkout hero is cart-aware (Trial vs Checkout copy)
+- [x] **Phase 4 of remediation plan — license-resolver hardening** (2026-05-07): mu-plugin bumped to v1.1.0. Closed the enumeration oracle: `key_not_found` / `key_inactive` / shape-validation-failure all collapse to one opaque 404 with `code=invalid_key` (was previously distinguishable by status + message — confirmed which keys were real-but-deactivated). Strict charset whitelist (`/^[A-Za-z0-9_-]{8,190}$/`) rejects malformed shapes BEFORE the rate-limit counter increments, so attackers spoofing bad keys can't burn a real customer's bucket on shared NAT. Rate-limit counter now race-safer via `wp_cache_add` + `wp_cache_incr` with transient backstop (was vulnerable to read-modify-write races under burst load). Explicit `is_ssl()` guard returns 400 `https_required` if anyone hits the endpoint on plaintext (defense in depth — nginx + Cloudflare are still primary). `$wpdb->last_error` checked after the DB call; on DB failure we 503 with `service_unavailable` instead of pretending the key was bad (keeps support volume low when Kestrel renames a column). Operational logging via `error_log` on every 4xx/5xx outcome — `[ip key_last4 status reason]` — with the real internal reason (`key_not_found` vs `key_inactive` etc.) preserved for ops even though the client sees the unified response. Probed live with three different malformed-key shapes — all return identical 404 + body.
+- [x] **Phase 2 of remediation plan — site a11y + SEO** (2026-05-07): skip-to-content link added to header.php and front-page.php (visually-hidden until focused, blue-on-white), `<main id="content">` everywhere. Mobile hamburger drawer now manages focus correctly: opens with focus moved to first nav link, closes with focus returned to the hamburger button (except on link click), ESC closes and returns focus, content/footer/release-bar marked `inert` while drawer is open. Hamburger bumped from 40x40 to 44x44 (WCAG 2.5.5). `:focus-visible` outlines added to drawer links + toggle. Per-page SEO meta now fires on every template (was home-only) — description + og:title + og:description + og:url + twitter:card on /how-it-works, /pricing, /docs, /docs/*, /changelog, /contact, /privacy, /terms, /refund-policy. Per-template descriptions; post-excerpt + generic fallback for anything unmapped. Canonical URL emitted only on home (WP's `rel_canonical` handles singular pages; would have duplicated). Logo SVG extracted to `partials/logo-svg.php` — single source of truth across header.php, footer.php, and the two copies in front-page.php (header + final-CTA inverse variant via `$pp_logo_variant = 'inverse'`). Hardcoded `https://pipepay.app/...` URLs in front-page.php replaced with `home_url()`. `page-contact.php` `mailto:` href subject now `esc_attr()`-wrapped (was a bare echo of url-encoded data). Twitter card uses `summary` (not `summary_large_image`) until we ship a 1200×630 og:image asset — Phase 6 polish item.
+- [x] **Phase 1 of remediation plan — doc truth-up** (2026-05-07): all 9 customer-facing doc articles audited against the v1.6.3 plugin source and corrected. Fixed 4 load-bearing fictions (`PIPEPAY_PROOF_STORAGE_PATH` constant name, fictional `PIPEPAY_AUTOCANCEL_MINUTES` constant, fictional `wc-on-hold-review` status, fictional `pipepay-reminders.php` file). Fixed rate-limit numbers (10/hr per IP-per-order, 50/hr brute-force, 5 lifetime per order — was 20/5/3 + per-customer that doesn't exist). Fixed default auto-approve cap ($200 → $500). Fixed default storage path. Fixed license-server URL (`/wp-json/wc-am-api/v1/` → `/?wc-api=wc-am-api`). Fixed license tier prices ($249/$499/$999 → $299/$599/$1,199). Fixed QR breakpoint (600px → 720px). Fixed cron cadence (6h → daily). Replaced false GD-fallback claim with the real "Imagick required for HEIC" message. Replaced inflated log-retention claim with the real "Order Notes + PHP error_log" path. CLAUDE.md version sweep 1.6.1 → 1.6.3 with v1.6.2 added to local-zips inventory. New `PIPEPAY_SITE_VERSION` constant in `functions.php` consumed by `footer.php` + `front-page.php` (release bar + ledger), so future bumps are one place. Plan: [`plans/2026-05-07-remediation-plan.md`](plans/2026-05-07-remediation-plan.md). Reviews: [`reviews/`](reviews/) and [`../pipe-pay-extracted/reviews/`](../pipe-pay-extracted/reviews/).
 - [x] **Domain migration `pipepay.money` → `pipepay.app`** (2026-05-06): new Cloudflare zone, tunnel public hostnames, nginx server block (with `pipepay.money` permanent 301 to `pipepay.app`), `WP_HOME`/`WP_SITEURL` flipped, full DB `wp search-replace` (93 replacements across 11 tables), theme files updated + synced, Pipe Pay plugin rebuilt as v1.5.1 with `pipepay.app` license-server URL, v1.5.1 zip wired into all 4 WC products via `_downloadable_files` + `_product_version`
 - [x] **Multi-page IA split** (2026-05-07): homepage trimmed from 16 sections → 8; new `/how-it-works` and `/pricing` pages absorb the deep sections (problem, story, features, AI deep-dive, security, onboarding, what-Pipe-Pay-isn't, FAQ). Header nav switched from in-page anchors to page links; "Start free trial" button now goes straight to `/checkout/?add-to-cart=38` instead of a `#pricing` anchor jump.
 - [x] **Persona triptych on home** (2026-05-07): replaces the original "What it is" section. Three cards in their own voice — high-risk vertical / validating an idea / tired of paying fees — each with a pull-quote and resolution paragraph.
@@ -276,7 +295,7 @@ A `woocommerce_add_cart_item_data` filter in `functions.php` empties the cart be
 - [x] **First-section padding tightened** (2026-05-07): the section right under any `pp-page-hero` now uses `pp-section--tight` (60px top) instead of the default 104px; applied across `/docs`, `/docs/*`, `/how-it-works`, `/pricing`, `/changelog`, `/contact`, `/privacy`, `/terms`, `/refund-policy`, `/checkout`, and the WC hero hook.
 - [x] **Pipe Pay v1.5.0 — Kestrel SDK integration** (2026-05-06): embedded the Kestrel WC API Manager PHP SDK (`includes/wc-am-client.php`), wired update hooks via `pre_set_site_transient_update_plugins` / `plugins_api`, added `PIPEPAY_DISABLE_LICENSING` escape hatch.
 - [x] **Pipe Pay v1.6.0 — one-field license activation** (2026-05-06): custom resolver mu-plugin on pipepay.app maps license key → product ID. Plugin's License page is a single field (no product ID). Tier upgrades work without zip swap. Migration path for existing 1.5.x customers is automatic — they just upgrade and re-paste their key.
-- [x] **Pipe Pay v1.6.1 — security/correctness audit hardening** (2026-05-07): fixes from a parallel three-agent code review of the Kestrel implementation. Resolver call moved to POST body (was URL query string — keys were landing in nginx access logs). Tier-upgrade cleanup of old SDK options. Deactivate only clears local state on server confirm. Idempotent re-activation (no double-burn). `manage_woocommerce` capability instead of `manage_options`. Stale-nonce friendly notice. `esc_html` on remote response messages. Resolver IP detection simplified to `REMOTE_ADDR` (nginx already does the trusted CF rewrite). uninstall.php sweeps license options + SDK option residue.
+- [x] **Pipe Pay v1.6.3 — security/correctness audit hardening** (2026-05-07): fixes from a parallel three-agent code review of the Kestrel implementation. Resolver call moved to POST body (was URL query string — keys were landing in nginx access logs). Tier-upgrade cleanup of old SDK options. Deactivate only clears local state on server confirm. Idempotent re-activation (no double-burn). `manage_woocommerce` capability instead of `manage_options`. Stale-nonce friendly notice. `esc_html` on remote response messages. Resolver IP detection simplified to `REMOTE_ADDR` (nginx already does the trusted CF rewrite). uninstall.php sweeps license options + SDK option residue.
 
 ## Common operations cheatsheet
 
@@ -318,7 +337,7 @@ cd "/Users/wittscafidi/Desktop/Pipe Pay/pipe-pay-site" && tar czf /tmp/pipepay-c
 scp "/Users/wittscafidi/Desktop/Pipe Pay/pipe-pay-site/mu-plugins/pipepay-license-resolve.php" witt-scafidi@100.102.251.125:/tmp/ && ssh witt-scafidi@100.102.251.125 'sudo install -o www-data -g www-data -m 644 /tmp/pipepay-license-resolve.php /var/www/pipepay/wp-content/mu-plugins/pipepay-license-resolve.php && rm /tmp/pipepay-license-resolve.php && sudo systemctl reload php8.3-fpm'
 
 # Replace the dogfood gateway with a new zip (deactivate, swap files, reactivate)
-ssh witt-scafidi@100.102.251.125 'sudo tar -czf /tmp/pipe-pay-backup-$(date +%Y%m%d-%H%M%S).tar.gz -C /var/www/pipepay/wp-content/plugins pipe-pay && sudo -u www-data wp --path=/var/www/pipepay plugin deactivate pipe-pay && sudo rm -rf /var/www/pipepay/wp-content/plugins/pipe-pay && sudo unzip -q /var/www/pipepay/wp-content/uploads/woocommerce_uploads/pipe-pay-v1.6.1.zip -d /var/www/pipepay/wp-content/plugins/ && sudo chown -R www-data:www-data /var/www/pipepay/wp-content/plugins/pipe-pay && sudo find /var/www/pipepay/wp-content/plugins/pipe-pay -type f -exec chmod 644 {} \; && sudo find /var/www/pipepay/wp-content/plugins/pipe-pay -type d -exec chmod 755 {} \; && sudo -u www-data wp --path=/var/www/pipepay plugin activate pipe-pay && sudo systemctl reload php8.3-fpm'
+ssh witt-scafidi@100.102.251.125 'sudo tar -czf /tmp/pipe-pay-backup-$(date +%Y%m%d-%H%M%S).tar.gz -C /var/www/pipepay/wp-content/plugins pipe-pay && sudo -u www-data wp --path=/var/www/pipepay plugin deactivate pipe-pay && sudo rm -rf /var/www/pipepay/wp-content/plugins/pipe-pay && sudo unzip -q /var/www/pipepay/wp-content/uploads/woocommerce_uploads/pipe-pay-v1.6.3.zip -d /var/www/pipepay/wp-content/plugins/ && sudo chown -R www-data:www-data /var/www/pipepay/wp-content/plugins/pipe-pay && sudo find /var/www/pipepay/wp-content/plugins/pipe-pay -type f -exec chmod 644 {} \; && sudo find /var/www/pipepay/wp-content/plugins/pipe-pay -type d -exec chmod 755 {} \; && sudo -u www-data wp --path=/var/www/pipepay plugin activate pipe-pay && sudo systemctl reload php8.3-fpm'
 
 # Smoke-test the resolver endpoint (with an invalid key — should 404)
 curl -s -X POST -d "api_key=test_invalid_key_xxxx" https://pipepay.app/wp-json/pipepay-license/v1/resolve
@@ -328,13 +347,96 @@ ssh witt-scafidi@100.102.251.125 'sudo -u www-data wp --path=/var/www/pipepay db
 ```
 
 ## Local zips
-- `/Users/wittscafidi/Desktop/Pipe Pay/pipe-pay-v1.6.1.zip` — **current customer-facing release AND what's installed on the dogfood gateway.** License-server URL hardcoded to `https://pipepay.app/`. Wired into all 4 WC products. Also staged on the server at `/var/www/pipepay/wp-content/uploads/woocommerce_uploads/`.
-- `/Users/wittscafidi/Desktop/Pipe Pay/pipe-pay-v1.6.0.zip` — first build with one-field activation. Superseded by 1.6.1's audit hardening; keep for rollback only.
+- `/Users/wittscafidi/Desktop/Pipe Pay/pipe-pay-v1.6.3.zip` — **current customer-facing release AND what's installed on the dogfood gateway.** License-server URL hardcoded to `https://pipepay.app/`. Wired into all 4 WC products. Also staged on the server at `/var/www/pipepay/wp-content/uploads/woocommerce_uploads/`.
+- `/Users/wittscafidi/Desktop/Pipe Pay/pipe-pay-v1.6.2.zip` — predecessor of 1.6.3; superseded but kept as rollback option.
+- `/Users/wittscafidi/Desktop/Pipe Pay/pipe-pay-v1.6.1.zip` — first build after the v1.6.0 → v1.6.1 audit hardening. Rollback option.
+- `/Users/wittscafidi/Desktop/Pipe Pay/pipe-pay-v1.6.0.zip` — first build with one-field activation. Superseded; keep for rollback only.
 - `/Users/wittscafidi/Desktop/Pipe Pay/pipe-pay-v1.5.1.zip` — last release before the one-field flow. Forced customers to enter both license key + product ID. Keep for rollback.
 - `/Users/wittscafidi/Desktop/Pipe Pay/pipe-pay-v1.5.0.zip` — initial Kestrel SDK integration; URL still on `pipepay.money`. Not safe to ship.
 - `/Users/wittscafidi/Desktop/Pipe Pay/pipe-pay-v1.4.2.zip`, `pipe-pay-v1.4.1.zip`, `pipe-pay-v1.4.0.zip` — pre-licensing builds. Functional gateway only, no auto-update. Rollback floor.
 - `/Users/wittscafidi/Desktop/Pipe Pay/woocommerce-api-manager.zip` — Kestrel API Manager 3.7.6, kept as a backup. Live install pulls updates via WC.com Helper, not from this zip.
 - `/Users/wittscafidi/Desktop/Pipe Pay/easy-digital-downloads-pro-3.6.7.zip` — abandoned commerce stack. Delete after EDD refund clears.
+
+---
+
+# Competitive defense
+
+> AI made it cheap to clone the code. It did NOT make it cheap to acquire 50 paying merchants in a tightly-networked high-risk vertical. That asymmetry is the moat.
+
+This section lives here so future-me doesn't redirect engineering effort into things that look like defense but aren't. Re-read before adding any "anti-piracy" feature.
+
+## What the code can't defend (don't waste time here)
+
+- **Code copying.** GPL by inheritance — WordPress core (GPL-2) + the embedded Kestrel SDK (GPL-3) make the whole derived work GPL. Any paying customer can legally redistribute or modify the code. DRM in the plugin breaks for legitimate customers, gets stripped by anyone determined, and creates a GPL-violation counterclaim risk if we ever try to enforce it.
+- **Functional cloning.** Custom WC order status + screenshot upload + AI verification + admin queue + reminders are well-known patterns. AI lowered the build cost from "weeks" to "weekend." Patents/copyrights don't apply to the workflow.
+- **AI prompts.** They live in `class-pipepay-vision-client.php` and run with the customer's own API key — already visible to anyone with a paid license. Treat as public.
+- **Determined pirates.** Patching out the activation check is trivial for a motivated developer. Fighting that is theater.
+
+## What actually defends the business
+
+These are business moats, not code moats. AI doesn't lower the cost of building any of them.
+
+1. **Trademark "Pipe Pay"** once the LLC is filed. Single biggest legal lever — a competitor can rebuild the workflow but can't call it "Pipe Pay" in SERP / marketplace listings / cold outreach.
+2. **Distribution lock-in.** WC.com Marketplace + CodeCanyon + high-risk host partnerships (SiteGround Cloud, Liquid Web). Each has weeks-long approval cycles a clone has to wait through while our reviews accumulate.
+3. **Shipping cadence.** Public changelog with regular updates IS a moat. A clone with no movement looks abandoned next to a plugin shipping monthly. Don't let the changelog go quiet.
+4. **Cross-merchant pHash fraud detection** (V1.5 in plugin roadmap). The only thing on the table that gets STRONGER as more merchants use it. New entrants start at zero coverage. Highest-leverage thing to ship for long-term defense.
+5. **Vertical relationships.** WWP dogfood + private high-risk-merchant channels. Being the name people recommend privately beats any code lock.
+6. **Customer count + public reviews.** AI doesn't write reviews. First-mover with 50 paying merchants and 30 public reviews is hard to displace.
+
+## Targeted near-term additions
+
+### Anti-abuse on free trial signup
+Today, nothing stops an AI agent (or a determined human) from scripting `/checkout/?add-to-cart=38` and farming unlimited trial license keys to keep an unlicensed install on auto-updates. Cheap fixes, high leverage:
+- **Cloudflare Turnstile** (free tier covers our volume) on the trial-tier checkout form
+- **Email verification before issue:** the trial license isn't generated by API Manager until the customer clicks a confirmation link. Standard double-opt-in pattern; one mu-plugin or a small WC hook
+- **One-trial-per-email guard** server-side: subsequent trial signups by the same email return "you've already used your trial" instead of minting a new key
+
+### Domain telemetry on the resolver endpoint
+The resolver mu-plugin already logs IP + key-prefix on every lookup. The plugin's activation call also sends `instance` + `object` (the site domain). Capture and store the activating domain. Free side benefits:
+- Dashboard of "where is Pipe Pay actually running" — useful for both abuse detection and outreach
+- Outreach list — sites that ran the trial but never converted
+- Abuse signal — same key activating across many domains past its tier's seat limit
+
+### Activation badge in gateway settings
+Visible "Activated • [Tier name]" pill in the gateway settings header. Doesn't gate anything. Makes the legitimate path feel premium and the unlicensed path feel stale. Two-line CSS + a small PHP tweak in `class-pipepay-gateway.php::admin_options()`.
+
+### Persistent inactive nag (no functional gate)
+For installs without an active license: keep the existing `pipepay_license_inactive_admin_notice` (already in `pipepay-licensing.php`). Don't escalate it past a banner. See "License model" below.
+
+## License model — keep the gateway working past expiry
+
+The gateway must NOT stop accepting orders when a license lapses. Why:
+
+- **In-flight orders die mid-checkout** — customer's customer at the moment of expiry sees a broken cart, bounces, blames Pipe Pay
+- **Network hiccups become outages** — fail-closed bricks customers when our infra burps; fail-open defeats the enforcement anyway
+- **Trust signal collapse** — Pipe Pay customers chose us *because* Stripe terminated them; bricking their store replicates that pain
+- **Support volume** — every expiry-related order failure becomes a ticket
+- **It's not the standard model** — Yoast Premium, WP Rocket, GravityForms, ACF Pro all gate updates+support on license, never runtime. Customers expect this model
+
+**What lapsed license SHOULD do:**
+- Hard-stop auto-updates immediately ✓ already in place
+- Hard-stop email/Discord support (operational, you control)
+- Persistent admin banner: "Your license expired on [date]. Renew to receive security updates."
+- 30-day grace period where the banner is informational only
+- After grace: banner intensifies (yellow → red), still informational, gateway still works
+- Email reminders at expiry-30 / -7 / 0 / +7 / +30
+
+If a future feature really demands a "stop accepting orders past expiry" lever, **make it merchant-opt-in**: a checkbox in gateway settings labeled "Stop accepting Pipe Pay orders if my license lapses." Off by default. Flips the bricking decision to the merchant — nobody gets bricked by surprise.
+
+## Anti-patterns — never do these
+
+- ❌ Code obfuscation / PHP minification (anti-GPL, breaks debugging, defeated in minutes)
+- ❌ Hardware or browser fingerprinting (invasive; CDN strips most of it anyway)
+- ❌ Phone-home-or-die on every page load (breaks customers behind firewalls; one bad incident wipes goodwill)
+- ❌ DMCA whack-a-mole on GPL-licensed code (we'd lose; it advertises a GPL violation)
+- ❌ Disabling the payment gateway when a license expires (see above)
+- ❌ Trying to detect "AI-generated competitors" specifically (you can't, and the right frame is "any competitor")
+
+## Mental model
+
+- The defensible thing isn't the code. It's the business — brand, customer count, marketplace listings, relationships, shipping cadence, and (eventually) the cross-merchant fraud network.
+- Every hour spent defending the CODE is an hour not spent building the BUSINESS moats above.
+- AI lowered the cost of building a clone. It did NOT lower the cost of acquiring 50 paying merchants in a tightly-networked high-risk vertical. That asymmetry is the moat.
 
 ---
 

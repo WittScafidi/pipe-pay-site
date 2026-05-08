@@ -6,6 +6,15 @@
 
 if ( ! defined( 'ABSPATH' ) ) { exit; }
 
+/**
+ * Single source of truth for the version displayed in the site footer + release bar.
+ * Bump this with each plugin release; templates read it via PIPEPAY_SITE_VERSION
+ * to avoid the previous pattern of hardcoded version strings drifting per file.
+ */
+if ( ! defined( 'PIPEPAY_SITE_VERSION' ) ) {
+    define( 'PIPEPAY_SITE_VERSION', '1.6.4' );
+}
+
 add_action( 'wp_enqueue_scripts', function() {
     // Parent theme stylesheet
     wp_enqueue_style(
@@ -21,10 +30,13 @@ add_action( 'wp_enqueue_scripts', function() {
         echo '<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>' . "\n";
     }, 0 );
 
-    // Manrope sans + Geist Mono (Google Fonts)
+    // Manrope sans from Google Fonts. Geist Mono is self-hosted via @font-face
+    // in style.css because the Google Fonts build of Geist strips the OpenType
+    // feature table, which we need for the "zero" 0 rule (round zeros instead
+    // of slashed). The variable-weight font file lives in pipepay-child/fonts/.
     wp_enqueue_style(
         'pipepay-fonts',
-        'https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500;600&display=swap',
+        'https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap',
         array(),
         null
     );
@@ -63,16 +75,56 @@ add_filter( 'pre_get_document_title', function( $title ) {
     return $title;
 } );
 
-// Inject a meta description on the homepage.
+// Per-page SEO meta. Fires on every template (was previously home-only). Each
+// page gets a description (template-specific where useful, post-excerpt fallback),
+// a canonical URL, OG tags, and a Twitter card. Add an og:image asset to enable
+// summary_large_image; until then we use the smaller summary card.
 add_action( 'wp_head', function() {
+    // Per-template descriptions for the templates we have. Slug-keyed.
+    // Front-page handled separately below.
+    $slug_descriptions = array(
+        'how-it-works'   => 'The full breakdown of what Pipe Pay does, why it exists, and the controls that keep it honest. Manual-reconciliation pain, founder story, traceable workflow, AI deep-dive, security primitives, onboarding shape.',
+        'pricing'        => 'Three license tiers ($299 / $599 / $1,199 per year), all with a 7-day free trial. Built for WooCommerce stores accepting P2P payments. Honest yes/no qualification before you buy.',
+        'docs'           => 'Customer documentation for Pipe Pay: installation, AI verification, admin guide, configuration, order lifecycle, refunds, security, license management, troubleshooting.',
+        'contact'        => 'Reach Pipe Pay support. Built and supported by one person. Expect a reply within one business day.',
+        'changelog'      => 'Every shipped release of Pipe Pay, newest first. What changed and what to know about each version.',
+        'refund-policy'  => 'Refund policy for Pipe Pay licenses. The 7-day free trial is the evaluation window; once your trial converts to a paid license, all sales are final.',
+        'privacy'        => 'Privacy policy for Pipe Pay. What data we collect, how we use it, how long we keep it, your rights.',
+        'terms'          => 'Terms of Service for Pipe Pay. The agreement governing your use of the plugin and pipepay.app.',
+    );
+
     if ( is_front_page() ) {
-        echo '<meta name="description" content="A WooCommerce plugin that captures customer P2P payment screenshots and verifies them with AI, so the only orders you touch are the ones the AI flagged.">' . "\n";
-        echo '<meta property="og:title" content="Pipe Pay - Accept Venmo, Cash App, PayPal, and Zelle in WooCommerce">' . "\n";
-        echo '<meta property="og:description" content="A workflow layer for WooCommerce stores that already accept P2P payments. AI-verified screenshots, configurable auto-approval, no manual reconciliation.">' . "\n";
-        echo '<meta property="og:type" content="website">' . "\n";
-        echo '<meta property="og:url" content="https://pipepay.app/">' . "\n";
-        echo '<meta name="twitter:card" content="summary_large_image">' . "\n";
+        $title       = 'Pipe Pay - Accept Venmo, Cash App, PayPal, and Zelle in WooCommerce';
+        $description = 'A WooCommerce plugin that captures customer P2P payment screenshots and verifies them with AI, so the only orders you touch are the ones the AI flagged.';
+        $canonical   = home_url( '/' );
+    } elseif ( is_singular() ) {
+        $slug        = get_post_field( 'post_name', get_the_ID() );
+        $title       = single_post_title( '', false ) . ' - Pipe Pay';
+        $description = $slug_descriptions[ $slug ] ?? '';
+        if ( ! $description && has_excerpt() ) {
+            $description = wp_strip_all_tags( get_the_excerpt() );
+        }
+        if ( ! $description ) {
+            $description = 'Pipe Pay - the WooCommerce checkout add-on for stores accepting Venmo, Cash App, PayPal, and Zelle.';
+        }
+        $canonical   = wp_get_canonical_url() ?: get_permalink();
+    } else {
+        return; // Archive / 404 / etc. Skip the meta block.
     }
+
+    // Canonical: only emit on the front page. WordPress's built-in rel_canonical()
+    // already handles singular pages; emitting our own would duplicate.
+    if ( is_front_page() ) {
+        echo '<link rel="canonical" href="' . esc_url( $canonical ) . '">' . "\n";
+    }
+    echo '<meta name="description" content="' . esc_attr( $description ) . '">' . "\n";
+    echo '<meta property="og:title" content="' . esc_attr( $title ) . '">' . "\n";
+    echo '<meta property="og:description" content="' . esc_attr( $description ) . '">' . "\n";
+    echo '<meta property="og:type" content="website">' . "\n";
+    echo '<meta property="og:url" content="' . esc_url( $canonical ) . '">' . "\n";
+    echo '<meta name="twitter:card" content="summary">' . "\n";
+    echo '<meta name="twitter:title" content="' . esc_attr( $title ) . '">' . "\n";
+    echo '<meta name="twitter:description" content="' . esc_attr( $description ) . '">' . "\n";
 }, 1 );
 
 // Override the default title separator (en dash) with a plain hyphen,
@@ -144,26 +196,50 @@ add_action( 'wp_footer', function() {
         var btn = document.querySelector('.pp-nav-toggle');
         var nav = document.getElementById('pp-primary-nav');
         if (!btn || !nav) return;
-        function close() {
+
+        // Elements made inert while the drawer is open. We avoid adding inert
+        // to the <header> itself because the close button lives inside it.
+        var inertTargets = [
+            document.getElementById('content'),
+            document.querySelector('.pp-footer'),
+            document.querySelector('.pp-release-bar')
+        ].filter(Boolean);
+
+        function setInert(on) {
+            inertTargets.forEach(function (el) {
+                if (on) { el.setAttribute('inert', ''); }
+                else    { el.removeAttribute('inert'); }
+            });
+        }
+
+        function closeMenu(returnFocus) {
             btn.classList.remove('is-open');
             nav.classList.remove('is-open');
             btn.setAttribute('aria-expanded', 'false');
             btn.setAttribute('aria-label', 'Open menu');
+            setInert(false);
+            if (returnFocus) { btn.focus(); }
         }
-        function open() {
+        function openMenu() {
             btn.classList.add('is-open');
             nav.classList.add('is-open');
             btn.setAttribute('aria-expanded', 'true');
             btn.setAttribute('aria-label', 'Close menu');
+            setInert(true);
+            // Move focus to the first focusable item inside the drawer.
+            var firstLink = nav.querySelector('a');
+            if (firstLink) { firstLink.focus(); }
         }
         btn.addEventListener('click', function () {
-            if (nav.classList.contains('is-open')) close(); else open();
+            // returnFocus=false on toggle-close because btn is already focused.
+            if (nav.classList.contains('is-open')) closeMenu(false); else openMenu();
         });
         document.addEventListener('keydown', function (e) {
-            if (e.key === 'Escape' && nav.classList.contains('is-open')) close();
+            if (e.key === 'Escape' && nav.classList.contains('is-open')) closeMenu(true);
         });
         nav.addEventListener('click', function (e) {
-            if (e.target.tagName === 'A') close();
+            // Link click = drawer dismisses + browser navigates. Don't return focus.
+            if (e.target.tagName === 'A') closeMenu(false);
         });
     })();
     </script>

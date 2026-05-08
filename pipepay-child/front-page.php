@@ -16,34 +16,14 @@ $tier_single_url = home_url( '/checkout/?add-to-cart=34' );
 $tier_five_url   = home_url( '/checkout/?add-to-cart=35' );
 $tier_unlim_url  = home_url( '/checkout/?add-to-cart=36' );
 
-$docs_url        = 'https://pipepay.app/docs';
-$contact_url     = 'https://pipepay.app/contact';
-$refund_url      = 'https://pipepay.app/refund-policy';
-$privacy_url     = 'https://pipepay.app/privacy';
-$terms_url       = 'https://pipepay.app/terms';
-$changelog_url   = 'https://pipepay.app/changelog';
+$docs_url        = home_url( '/docs' );
+$contact_url     = home_url( '/contact' );
+$refund_url      = home_url( '/refund-policy' );
+$privacy_url     = home_url( '/privacy' );
+$terms_url       = home_url( '/terms' );
+$changelog_url   = home_url( '/changelog' );
 
-// Inline SVG logo: pipe body + slim flange ridge on the inner end,
-// connected by a 6-line network around a central $ coin.
-$logo_svg = <<<'SVG'
-<svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-  <rect x="2"  y="26" width="8" height="12" fill="currentColor"/>
-  <rect x="9"  y="22" width="3" height="20" fill="currentColor"/>
-  <rect x="54" y="26" width="8" height="12" fill="currentColor"/>
-  <rect x="52" y="22" width="3" height="20" fill="currentColor"/>
-  <path d="M 12 32 L 32 14" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round"/>
-  <path d="M 12 32 L 22 32" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round"/>
-  <path d="M 12 32 L 32 50" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round"/>
-  <path d="M 52 32 L 32 14" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round"/>
-  <path d="M 52 32 L 42 32" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round"/>
-  <path d="M 52 32 L 32 50" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round"/>
-  <circle cx="12" cy="32" r="1.8" fill="currentColor"/>
-  <circle cx="52" cy="32" r="1.8" fill="currentColor"/>
-  <circle cx="32" cy="32" r="10.5" fill="currentColor"/>
-  <circle cx="32" cy="32" r="8.8"  fill="#fff"/>
-  <text x="32" y="38" text-anchor="middle" font-family="Manrope, Inter, sans-serif" font-size="17" font-weight="800" fill="currentColor">$</text>
-</svg>
-SVG;
+// Logo SVG lives in partials/logo-svg.php (single source of truth across header, footer, and final-CTA inverse variant).
 ?>
 <!DOCTYPE html>
 <html <?php language_attributes(); ?>>
@@ -55,13 +35,15 @@ SVG;
 <body <?php body_class( 'pipepay-home' ); ?>>
 <?php wp_body_open(); ?>
 
+<a class="pp-skip" href="#content">Skip to content</a>
+
 <div class="pp-scroll-progress" aria-hidden="true"></div>
 
 <div class="pp-release-bar" role="status" aria-label="Latest release">
     <div class="pp-container">
         <span class="pp-release-bar__pulse" aria-hidden="true"></span>
         <span class="pp-release-bar__label">Shipped</span>
-        <span class="pp-release-bar__version">v1.6.2</span>
+        <span class="pp-release-bar__version">v<?php echo esc_html( PIPEPAY_SITE_VERSION ); ?></span>
         <span class="pp-release-bar__msg">critical Block Checkout payment fix &middot; update strongly recommended</span>
         <a class="pp-release-bar__link" href="<?php echo esc_url( $changelog_url ); ?>">read the changelog &rarr;</a>
     </div>
@@ -70,7 +52,7 @@ SVG;
 <header class="pp-header">
     <div class="pp-header-inner">
         <a class="pp-logo" href="<?php echo esc_url( home_url( '/' ) ); ?>" aria-label="Pipe Pay home">
-            <?php echo $logo_svg; // phpcs:ignore WordPress.Security.EscapeOutput ?>
+            <?php include __DIR__ . '/partials/logo-svg.php'; ?>
             <span>Pipe Pay</span>
         </a>
         <button class="pp-nav-toggle" type="button" aria-expanded="false" aria-controls="pp-primary-nav" aria-label="Open menu">
@@ -88,7 +70,7 @@ SVG;
     </div>
 </header>
 
-<main>
+<main id="content">
 
 <!-- ============== 1. HERO ============== -->
 <section class="pp-hero" id="top">
@@ -428,6 +410,16 @@ SVG;
         <ul class="pp-shiplog__list">
             <li>
                 <span class="pp-shiplog__date">May 7, 2026</span>
+                <span class="pp-shiplog__ver">v1.6.4</span>
+                <span class="pp-shiplog__note"><strong>Security hardening.</strong> Cloudflare-only IP detection (closes a per-IP rate-limit spoofing bypass), server-side amount + recipient cross-checks on every AI verdict (prevents prompt-injection screenshots from auto-approving), forced TLS verification on license-server calls, per-billing-email upload cap, per-AI-provider key storage, PHP 8.0 minimum. Recommended update for everyone.</span>
+            </li>
+            <li>
+                <span class="pp-shiplog__date">May 7, 2026</span>
+                <span class="pp-shiplog__ver">v1.6.3</span>
+                <span class="pp-shiplog__note"><strong>Patch release.</strong> Follow-up reliability improvements across the Block Checkout payment flow and Kestrel licensing integration. Recommended update for anyone on v1.6.2 or earlier.</span>
+            </li>
+            <li>
+                <span class="pp-shiplog__date">May 7, 2026</span>
                 <span class="pp-shiplog__ver">v1.6.2</span>
                 <span class="pp-shiplog__note"><strong>Block Checkout payment fix (critical).</strong> Resolved an issue preventing some Block Checkout orders from advancing through payment, blocking customer screenshot uploads. Update strongly recommended for any store on Block Checkout.</span>
             </li>
@@ -454,23 +446,7 @@ SVG;
 <section class="pp-section pp-section--snug pp-section--blue pp-final-cta">
     <div class="pp-container">
         <div class="pp-final-cta__mark" aria-hidden="true">
-            <svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
-                <rect x="2"  y="26" width="8" height="12" fill="#fff"/>
-                <rect x="9"  y="22" width="3" height="20" fill="#fff"/>
-                <rect x="54" y="26" width="8" height="12" fill="#fff"/>
-                <rect x="52" y="22" width="3" height="20" fill="#fff"/>
-                <path d="M 12 32 L 32 14" stroke="#fff" stroke-width="1.6" fill="none" stroke-linecap="round"/>
-                <path d="M 12 32 L 22 32" stroke="#fff" stroke-width="1.6" fill="none" stroke-linecap="round"/>
-                <path d="M 12 32 L 32 50" stroke="#fff" stroke-width="1.6" fill="none" stroke-linecap="round"/>
-                <path d="M 52 32 L 32 14" stroke="#fff" stroke-width="1.6" fill="none" stroke-linecap="round"/>
-                <path d="M 52 32 L 42 32" stroke="#fff" stroke-width="1.6" fill="none" stroke-linecap="round"/>
-                <path d="M 52 32 L 32 50" stroke="#fff" stroke-width="1.6" fill="none" stroke-linecap="round"/>
-                <circle cx="12" cy="32" r="1.8" fill="#fff"/>
-                <circle cx="52" cy="32" r="1.8" fill="#fff"/>
-                <circle cx="32" cy="32" r="10.5" fill="#fff"/>
-                <circle cx="32" cy="32" r="8.8"  fill="#1336a8"/>
-                <text x="32" y="38" text-anchor="middle" font-family="Manrope, Inter, sans-serif" font-size="17" font-weight="800" fill="#fff">$</text>
-            </svg>
+            <?php $pp_logo_variant = 'inverse'; include __DIR__ . '/partials/logo-svg.php'; ?>
         </div>
         <h2>Ready to stop reconciling by hand?</h2>
         <p>Start your 7-day free trial. No card required.</p>
@@ -485,7 +461,7 @@ SVG;
     <div class="pp-container">
         <div class="pp-footer-row">
             <a class="pp-logo" href="<?php echo esc_url( home_url( '/' ) ); ?>">
-                <?php echo $logo_svg; // phpcs:ignore WordPress.Security.EscapeOutput ?>
+                <?php include __DIR__ . '/partials/logo-svg.php'; ?>
                 <span>Pipe Pay</span>
             </a>
             <nav class="pp-footer-links" aria-label="Footer">
@@ -508,7 +484,7 @@ SVG;
             <span class="pp-footer-ledger__sep">/</span>
             <span>Independent software</span>
             <span class="pp-footer-ledger__sep">/</span>
-            <span>v1.6.2</span>
+            <span>v<?php echo esc_html( PIPEPAY_SITE_VERSION ); ?></span>
         </div>
     </div>
 </footer>

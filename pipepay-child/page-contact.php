@@ -23,7 +23,7 @@ $mail_subject  = rawurlencode( 'Pipe Pay - ' );
     <div class="pp-container pp-container--narrow">
         <div class="pp-contact-card">
             <span class="pp-contact-card__label">Email</span>
-            <a class="pp-contact-card__email" href="mailto:<?php echo antispambot( $contact_email ); ?>?subject=<?php echo $mail_subject; // already URL-encoded ?>">
+            <a class="pp-contact-card__email" href="mailto:<?php echo antispambot( $contact_email ); ?>?subject=<?php echo esc_attr( $mail_subject ); ?>">
                 <?php echo esc_html( $contact_email ); ?>
             </a>
             <p class="pp-contact-card__hint">Click the address to open your mail client with the subject pre-filled. Or copy and paste it.</p>

@@ -72,7 +72,7 @@ HTML,
 <p>If you run staging and production on the same WordPress site (rare but possible), use a different key per environment so usage caps and rate limits do not blur.</p>
 
 <h2>Set the auto-approval cap</h2>
-<p>Below the provider field is the auto-approval cap, expressed in your store's currency. The default is $200. Any verified order at or under that dollar amount will move straight to <em>Processing</em> if the AI returns high confidence. Anything above lands in the Proofs queue regardless of how confident the AI is. We recommend setting the cap to roughly your average order value; review the small stuff at human speed and confirm the big stuff yourself.</p>
+<p>Below the provider field is the auto-approval cap, expressed in your store's currency. The default is $500. Any verified order at or under that dollar amount will move straight to <em>Processing</em> if the AI returns high confidence. Anything above lands in the Proofs queue regardless of how confident the AI is. We recommend setting the cap to roughly your average order value; review the small stuff at human speed and confirm the big stuff yourself.</p>
 
 <h2>Run without an AI provider (manual review mode)</h2>
 <p>If you leave the provider dropdown set to <em>None</em>, every uploaded screenshot lands in the Proofs queue and waits for you. The plugin works fine this way; you just lose the auto-approval lane. This is the right setup if you do under ten orders a day, or if you want to evaluate AI accuracy on your own data before turning it loose.</p>
@@ -183,7 +183,7 @@ HTML,
 <p>Use this when you are running a launch and one account is bumping against P2P throughput limits, or when you operate multiple LLCs and split incoming payments across them.</p>
 
 <h2>QR code upload</h2>
-<p>One PNG or SVG per method, uploaded into the field next to the handle. Render at 512x512 or larger; we downscale on the customer page. QR codes auto-hide on screens narrower than 600px since the customer is already on their phone.</p>
+<p>One PNG or SVG per method, uploaded into the field next to the handle. Render at 512x512 or larger; we downscale on the customer page. QR codes auto-hide on screens 720px wide or smaller since the customer is already on their phone.</p>
 <p>Generate the QR codes inside the P2P app's own profile screen, not third-party tools. Apps periodically rotate their QR formats and a third-party-generated QR can stop working overnight.</p>
 
 <h2>Customer payment page branding</h2>
@@ -213,12 +213,8 @@ HTML,
         'sub'    => 'How orders move through Pipe Pay\'s custom statuses, the reminder email cadence, and what auto-cancel does to stock.',
         'body'   => <<<'HTML'
 <h2>Status flow</h2>
-<p>Pipe Pay registers two custom WooCommerce order statuses:</p>
-<ul>
-    <li><code>wc-awaiting-proof</code> shown as <strong>Awaiting Proof</strong>. Assigned when the customer places the order. The order stays here until the customer uploads a screenshot, the auto-cancel timer fires, or you intervene manually.</li>
-    <li><code>wc-on-hold-review</code> shown as <strong>On Hold (review)</strong>. Assigned when the customer has uploaded a screenshot and the AI has graded it medium or low, or when the order amount is above the auto-approval cap.</li>
-</ul>
-<p>From there, orders move to standard WooCommerce statuses: <em>Processing</em> on approval, <em>Cancelled</em> on rejection or auto-cancel.</p>
+<p>Pipe Pay registers one custom WooCommerce order status: <code>wc-awaiting-proof</code>, shown as <strong>Awaiting Proof</strong>. It's assigned when the customer places the order, and the order stays in it until the customer uploads a screenshot, the auto-cancel timer fires, or you intervene manually.</p>
+<p>When the customer uploads a screenshot and the AI grades it medium or low confidence (or the order amount is above the auto-approval cap), the order moves to standard WooCommerce <strong>On Hold</strong> for your manual review in the Proofs queue. From there, orders move to standard WooCommerce statuses: <em>Processing</em> on approval, <em>Cancelled</em> on rejection or auto-cancel.</p>
 
 <h2>Reminder email cadence</h2>
 <p>If a customer places an order in <em>Awaiting Proof</em> and then bounces away from the payment page without uploading, Pipe Pay schedules three escalating reminder emails:</p>
@@ -241,10 +237,9 @@ HTML,
 <h2>Customer-facing cancellation email</h2>
 <p>The cancellation email is intentionally non-judgmental. It says the order timed out, the items are back in stock if they want to try again, and links them to the store. There is no scolding or "your account has been flagged" language. Most customers who timed out either got distracted or had a P2P-app issue and will reattempt.</p>
 
-<h2>Adjusting the auto-cancel window</h2>
-<p>The default is 60 minutes. You can change it via a constant in <code>wp-config.php</code>:</p>
-<pre><code>define( 'PIPEPAY_AUTOCANCEL_MINUTES', 120 );</code></pre>
-<p>The reminder cadence (5/20/45) is also configurable, in <code>wp-content/plugins/pipe-pay/includes/pipepay-reminders.php</code> for now; a settings UI for it is on the roadmap. We do not recommend setting auto-cancel below 30 minutes; customers occasionally take 20+ minutes to find their phone and screenshot a payment, and you do not want to cancel an order that was about to be paid.</p>
+<h2>Adjusting the auto-cancel window and reminder cadence</h2>
+<p>Both are configurable from the same screen: <code>WooCommerce -> Settings -> Payments -> Pipe Pay -> Manage</code>, under the <em>Reminders &amp; Expiry</em> section. The auto-cancel window defaults to 60 minutes; the three reminder times default to 5, 20, and 45 minutes after order placement.</p>
+<p>We do not recommend setting auto-cancel below 30 minutes; customers occasionally take 20+ minutes to find their phone and screenshot a payment, and you do not want to cancel an order that was about to be paid.</p>
 HTML,
         'topics' => array(
             'Awaiting Proof status: when WooCommerce assigns it, what triggers the transition out.',
@@ -295,7 +290,7 @@ HTML,
         'sub'    => 'Payment proofs live outside the web-accessible directory. Viewing routes through an authenticated proxy gated by manage_woocommerce.',
         'body'   => <<<'HTML'
 <h2>Storage location</h2>
-<p>By default, payment proofs are stored at <code>wp-content/uploads/pipepay-proofs/</code> with the directory and all subdirectories blocked from public access via three layered files:</p>
+<p>By default, payment proofs are stored at <code>wp-content/private-pipepay-proofs/</code>. If that path is not writable, Pipe Pay falls back to <code>wp-content/uploads/pipepay-proofs-private/</code>. Either way, the directory and all subdirectories are blocked from public access via three layered files:</p>
 <ul>
     <li><code>.htaccess</code> with <code>Deny from all</code> for Apache hosts.</li>
     <li><code>web.config</code> with <code>&lt;deny users="*" /&gt;</code> for IIS.</li>
@@ -305,7 +300,7 @@ HTML,
 
 <h2>Custom storage volume</h2>
 <p>To move proofs off the webroot disk entirely, define a constant in <code>wp-config.php</code>:</p>
-<pre><code>define( 'PIPEPAY_PROOF_STORAGE_PATH', '/mnt/private/pipepay-proofs' );</code></pre>
+<pre><code>define( 'PIPEPAY_PROOFS_PATH', '/mnt/private/pipepay-proofs' );</code></pre>
 <p>The path must be writable by the PHP process owner (<code>www-data</code> on most stacks). Pipe Pay creates the directory if it does not exist and writes the same triple denial-file layer in case anything ever exposes the path.</p>
 
 <h2>Random filenames</h2>
@@ -316,16 +311,15 @@ HTML,
 
 <h2>Auto-expiration</h2>
 <p>Proofs are deleted on a schedule. Default retention is 90 days from upload, configurable from 0 (delete immediately after AI verification) to 10 years. Set via the dropdown in plugin settings.</p>
-<p>The deletion job runs every six hours via WordPress cron. It removes both the file from disk and the database row that referenced it. Order metadata (amount, customer, AI confidence, AI reasoning) is retained on the order itself; only the screenshot file goes away.</p>
+<p>The deletion job runs daily via Action Scheduler. It removes both the file from disk and the database row that referenced it. Order metadata (amount, customer, AI confidence, AI reasoning) is retained on the order itself; only the screenshot file goes away.</p>
 
 <h2>Rate limits</h2>
-<p>Three independent rate-limit layers are on by default:</p>
+<p>Three rate-limit layers are on by default:</p>
 <ul>
-    <li><strong>Per IP.</strong> Default 20 uploads per hour per source IP. Stops a single attacker spamming uploads from a botnet node.</li>
-    <li><strong>Per customer.</strong> Default 5 successful upload-verification cycles per customer per day. Stops a single account from being used to launder approvals.</li>
-    <li><strong>Per order.</strong> Default 3 lifetime upload attempts per order. After 3 failures the order is auto-cancelled and the customer is shown a contact-support message.</li>
+    <li><strong>Per IP, per order.</strong> 10 valid uploads per hour, scoped to a single (IP, order) pair. Stops a single attacker spamming uploads against one order.</li>
+    <li><strong>Per IP brute-force.</strong> 50 attempts per hour against unknown / invalid order keys before the IP is blocked at the endpoint. Stops enumeration of order keys.</li>
+    <li><strong>Per order lifetime.</strong> 5 upload attempts per order. After the cap, the order can no longer accept uploads and the customer is asked to contact you.</li>
 </ul>
-<p>All three are tunable via constants in <code>wp-config.php</code> if your traffic profile justifies different numbers.</p>
 HTML,
         'topics' => array(
             'Storage location: default path, why it is outside webroot.',
@@ -334,7 +328,7 @@ HTML,
             'Custom storage volume via wp-config constant.',
             'Triple denial-file layer on every storage root.',
             'Auto-expiration: configuring retention from 0 to 10 years.',
-            'Per-IP, per-customer, and per-order rate limits.',
+            'Per-IP per-order, per-IP brute-force, and per-order lifetime rate limits.',
         ),
     ),
 
@@ -344,13 +338,13 @@ HTML,
         'sub'    => 'How license activation, deactivation, and renewal work, and what happens when a license lapses.',
         'body'   => <<<'HTML'
 <h2>First-time activation</h2>
-<p>Paste the license key into the first field of <code>WooCommerce -> Settings -> Payments -> Pipe Pay -> Manage</code> and save. The plugin calls back to <code>https://pipepay.app/wp-json/wc-am-api/v1/</code>, which validates the key, registers your site URL against the activation count, and returns an <em>Active</em> status. If you do not see the active state within a few seconds, your firewall may be blocking outbound HTTPS to <code>pipepay.app</code>.</p>
+<p>Paste the license key into the first field of <code>WooCommerce -> Settings -> Payments -> Pipe Pay -> Manage</code> and save. The plugin calls back to <code>https://pipepay.app/?wc-api=wc-am-api</code>, which validates the key, registers your site URL against the activation count, and returns an <em>Active</em> status. If you do not see the active state within a few seconds, your firewall may be blocking outbound HTTPS to <code>pipepay.app</code>.</p>
 
 <h2>Site limits per tier</h2>
 <ul>
-    <li><strong>Single Site</strong> ($249/year): 1 activation. One site URL at a time.</li>
-    <li><strong>5 Sites</strong> ($499/year): up to 5 activations, any combination of staging and production sites.</li>
-    <li><strong>Unlimited Sites</strong> ($999/year): no activation cap. Run it on as many sites as you want.</li>
+    <li><strong>Single Site</strong> ($299/year): 1 activation. One site URL at a time.</li>
+    <li><strong>5 Sites</strong> ($599/year): up to 5 activations, any combination of staging and production sites.</li>
+    <li><strong>Unlimited Sites</strong> ($1,199/year): no activation cap. Run it on as many sites as you want.</li>
 </ul>
 <p>The activation count is enforced server-side at <code>pipepay.app</code>. Trying to activate beyond your tier returns a clear error rather than silently allowing it.</p>
 
@@ -362,10 +356,10 @@ HTML,
 </ul>
 
 <h2>Renewal</h2>
-<p>You will receive a renewal notice 30 days before your license expires, another at 7 days, and a final at 24 hours. Each email includes a one-click renewal link that takes you straight to checkout with the same tier preselected. Renewal is the same price as the original purchase; we do not auto-bill.</p>
+<p>You will receive renewal notices from <code>pipepay.app</code> as your annual term approaches expiration. Each email includes a one-click renewal link that takes you straight to checkout with the same tier preselected. Renewal is the same price as the original purchase; we do not auto-bill.</p>
 
 <h2>If the license expires</h2>
-<p>The plugin keeps running for the next license check (every 12 hours). Once that check fails, Pipe Pay stops processing <em>new</em> incoming payments. Existing data, settings, and historical orders all stay intact. The customer-facing payment page shows a "temporarily unavailable" message and the gateway is hidden from new checkouts.</p>
+<p>The plugin's license-check piggybacks on WordPress's standard plugin update check (typically every ~12 hours). On the next check after expiration, Pipe Pay stops processing <em>new</em> incoming payments. Existing data, settings, and historical orders all stay intact. The customer-facing payment page shows a "temporarily unavailable" message and the gateway is hidden from new checkouts.</p>
 <p>Renewing reactivates immediately. There is no data migration or reinstall step; the plugin notices the license is valid again on the next check and resumes processing.</p>
 
 <h2>Reactivating after a long lapse</h2>
@@ -375,7 +369,7 @@ HTML,
             'First-time activation: where to paste the key.',
             'Site limits per tier (1 / 5 / unlimited) and how the count is enforced.',
             'Deactivating a license to free up a site slot.',
-            'Renewal: 30-day notice email, what the renewal email includes.',
+            'Renewal: notice email cadence, what the renewal email includes.',
             'License expiration: the plugin stops processing new payments at the next license check; existing data is intact.',
             'Reactivating after a lapsed renewal.',
         ),
@@ -393,7 +387,7 @@ HTML,
     <li><strong>nginx:</strong> <code>client_max_body_size 32m;</code> in your server block.</li>
     <li><strong>Cloudflare:</strong> the free tier caps uploads at 100MB; you should not hit this with screenshots.</li>
 </ul>
-<p>If HEIC screenshots specifically fail, you are missing the Imagick PHP extension. Pipe Pay falls back to GD when Imagick is unavailable, but GD does not support HEIC. <code>sudo apt install php-imagick</code> on Ubuntu and restart PHP-FPM.</p>
+<p>If HEIC screenshots specifically fail, the Imagick PHP extension (with the HEIC delegate) is missing on your host. Pipe Pay rejects HEIC uploads with an inline error pointing the customer at common workarounds (re-saving as JPG/PNG on the phone, or switching the iPhone Camera setting from HEIC to JPG). <code>sudo apt install php-imagick</code> on Ubuntu and restart PHP-FPM &mdash; many shared hosts will need a support ticket to enable Imagick or its HEIC delegate.</p>
 
 <h2>AI verification stalls</h2>
 <p>Symptom: customer uploads screenshot, but the order sits in <em>Awaiting Proof</em> for minutes. Causes, in order of likelihood:</p>
@@ -415,9 +409,10 @@ HTML,
 <h2>Where the logs live</h2>
 <p>Pipe Pay logs to two places:</p>
 <ul>
-    <li><strong>WooCommerce -> Status -> Logs.</strong> Look for files prefixed <code>pipepay-</code>. Verifications, AI calls, license-server callbacks, and reminder-cron events all log here. One file per day, retained 30 days.</li>
-    <li><strong>WooCommerce -> Orders -> [order] -> Order notes.</strong> Per-order events: status changes, AI confidence, manual approve/reject, refund actions. Useful for support correspondence about a specific order.</li>
+    <li><strong>WooCommerce -> Orders -> [order] -> Order notes.</strong> The primary log surface. Per-order events: status changes, AI confidence and reasoning, manual approve/reject, refund actions. Use this for support correspondence about a specific order.</li>
+    <li><strong>PHP <code>error_log</code>.</strong> Unexpected failures (Imagick crashes, AI provider HTTP errors, license-server connectivity issues) land here. Path varies by host: typically <code>/var/log/php-fpm/error.log</code> or <code>wp-content/debug.log</code> if <code>WP_DEBUG_LOG</code> is enabled.</li>
 </ul>
+<p>The Kestrel licensing SDK additionally writes to <em>WooCommerce -> Status -> Logs</em> on failed license-server calls; those follow WooCommerce's default 30-day rotation.</p>
 
 <h2>Telling whether an issue is in Pipe Pay, WooCommerce, or your AI provider</h2>
 <ul>
@@ -428,7 +423,7 @@ HTML,
 </ul>
 
 <h2>What to send if you contact support</h2>
-<p>Email <a href="mailto:support@pipepay.app">support@pipepay.app</a> with: WordPress version, WooCommerce version, Pipe Pay version, AI provider name, the relevant <code>pipepay-YYYY-MM-DD.log</code> from <em>WooCommerce -> Status -> Logs</em>, and the order ID(s) involved. With those four pieces of info we can usually diagnose without further round-trips.</p>
+<p>Email <a href="mailto:support@pipepay.app">support@pipepay.app</a> with: WordPress version, WooCommerce version, Pipe Pay version, AI provider name, the affected order ID(s), and copy of the relevant Order Notes from those orders. With those pieces of info we can usually diagnose without further round-trips.</p>
 HTML,
         'topics' => array(
             'Upload failures: file-size limits, HEIC/Imagick missing, server permissions.',

@@ -47,6 +47,37 @@ Text Domain: pipepay-child
 * { box-sizing: border-box; }
 html { scroll-behavior: smooth; }
 
+/* Self-hosted Geist Mono (variable weight). The Google Fonts build of Geist
+ * strips the OpenType feature table, so font-feature-settings rules (like
+ * disabling slashed zero) don't work against the Google-served file. We host
+ * the full variable-weight file (~70KB, weights 100-900) from the official
+ * vercel/geist-font release and load Manrope alone from Google Fonts. */
+@font-face {
+    font-family: 'Geist Mono';
+    src: url('fonts/GeistMono-Variable.woff2') format('woff2-variations'),
+         url('fonts/GeistMono-Variable.woff2') format('woff2');
+    font-weight: 100 900;
+    font-style: normal;
+    font-display: swap;
+}
+
+/* Geist Mono ships with the slashed zero as the DEFAULT glyph. The variable
+ * font has no `zero` OpenType feature - it uses stylistic-set `ss09` to swap
+ * `zero` -> `zero.ss09` (the round form). The feature is misleadingly named
+ * "Slashed zero" in the font's metadata, but enabling it gives round zeros.
+ * Verified by inspecting the GSUB table directly with fontTools.
+ * Form controls don't always inherit feature-settings cleanly, so we apply
+ * it to inputs / textareas / selects / buttons too. Existing
+ * `font-variant-numeric: tabular-nums` rules are independent and keep working. */
+html,
+body,
+input,
+textarea,
+select,
+button {
+    font-feature-settings: "ss09" 1;
+}
+
 body.pipepay-home {
     font-family: var(--pp-font-sans);
     color: var(--pp-text);
@@ -373,6 +404,27 @@ body.pipepay-home .pp-section--blue h4 { color: #fff; }
     pointer-events: none;
 }
 
+/* Skip-to-content link — visually hidden until focused (WCAG 2.4.1) */
+.pp-skip {
+    position: absolute;
+    top: -100px;
+    left: 16px;
+    z-index: 1000;
+    background: var(--pp-blue);
+    color: #fff !important;
+    padding: 12px 18px;
+    border-radius: 0 0 8px 8px;
+    font-weight: 600;
+    font-size: 14px;
+    text-decoration: none !important;
+    transition: top 0.15s ease;
+}
+.pp-skip:focus {
+    top: 0;
+    outline: 3px solid #fff;
+    outline-offset: -6px;
+}
+
 /* ============== Header ============== */
 .pp-header {
     background: rgba(255, 255, 255, 0.86);
@@ -414,14 +466,14 @@ body.pipepay-home .pp-section--blue h4 { color: #fff; }
 .pp-nav a:not(.pp-btn):hover { color: var(--pp-blue); text-decoration: none; }
 .pp-nav .pp-btn { padding: 8px 16px; font-size: 13px; }
 
-/* Mobile hamburger toggle — hidden on desktop */
+/* Mobile hamburger toggle — hidden on desktop. 44x44 per WCAG 2.5.5 + Apple HIG. */
 .pp-nav-toggle {
     display: none;
     background: var(--pp-blue);
     border: 0;
     border-radius: 8px;
-    width: 40px;
-    height: 40px;
+    width: 44px;
+    height: 44px;
     cursor: pointer;
     color: #fff;
     padding: 0;
@@ -2858,14 +2910,36 @@ body.pipepay-home a.pp-doc-back { color: var(--pp-text-muted); }
         font-size: 14px;
         text-align: center;
     }
+    .pp-nav a:focus-visible,
+    .pp-nav-toggle:focus-visible {
+        outline: 2px solid var(--pp-blue);
+        outline-offset: 2px;
+        border-radius: 4px;
+    }
 }
 
 /* Footer ledger / row stacking on mobile (applies to footer.php and front-page.php footer) */
 @media (max-width: 720px) {
     .pp-footer-row { flex-direction: column; align-items: flex-start; gap: 18px; }
-    .pp-footer-links { gap: 4px 0; }
-    .pp-footer-links a { padding: 0 10px; font-size: 13px; }
+
+    /* Footer links on mobile: 2-column grid, left-aligned, no per-link
+     * borders or padding. The desktop layout (inline links with vertical
+     * separators) wraps badly across 7 items at narrow widths - second-row
+     * links start indented and leftover :not(:last-child) borders dangle off
+     * mid-row items. A grid keeps every link flush at the same x-coordinate. */
+    .pp-footer-links {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 14px 16px;
+        width: 100%;
+        font-size: 14px;
+    }
+    .pp-footer-links a {
+        padding: 0;
+        border-right: 0;
+    }
     .pp-footer-links a:first-child { padding-left: 0; }
+
     .pp-footer-signup { width: 100%; flex-wrap: wrap; gap: 8px; }
     .pp-footer-signup label { width: 100%; }
     .pp-footer-signup input[type="email"] { flex: 1; min-width: 0; width: auto; }
@@ -2913,6 +2987,13 @@ body.woocommerce-page main .pp-prose--legal {
 }
 body.woocommerce-page main .pp-section { padding: 56px 0; }
 body.woocommerce-page main .pp-container { max-width: 1140px; }
+
+/* Tighten the hero -> checkout form gap. The default hero has clamp(40-64)
+ * bottom padding, and the first section under it has 56px top padding, so
+ * the gap was 96-120px - too much breathing room above a transactional form.
+ * This compresses it to ~32px while keeping the hero's top padding generous. */
+body.woocommerce-checkout .pp-page-hero { padding-bottom: clamp(20px, 2vw, 32px); }
+body.woocommerce-checkout main .pp-checkout-page { padding-top: 16px; }
 
 /* WooCommerce buttons — match Pipe Pay button system */
 .woocommerce a.button,
@@ -3519,11 +3600,11 @@ a.wc-block-components-button.outlined {
 .wc-block-components-order-summary-item__description,
 .wc-block-components-order-summary-item__quantity { padding-left: 0; }
 
-/* Block checkout order summary container */
-.wp-block-woocommerce-checkout .wc-block-components-totals-wrapper,
-.wp-block-woocommerce-cart .wc-block-components-totals-wrapper {
-    border-top: 1px solid var(--pp-border);
-}
+/* Block checkout order summary container.
+ * We used to add `border-top` on .wc-block-components-totals-wrapper, but
+ * WC's own CSS renders a separator beneath the Subtotal row, so the two
+ * stacked together looked like a doubled line. WC's default separators are
+ * fine on their own; we only restyle text within the totals below. */
 .wc-block-components-totals-item__label { font-weight: 500; color: var(--pp-text-muted); }
 .wc-block-components-totals-item__value,
 .wc-block-formatted-money-amount {
@@ -3532,7 +3613,15 @@ a.wc-block-components-button.outlined {
     color: var(--pp-text);
 }
 
-/* Block checkout form fields */
+/* Block checkout form fields. The container .wc-block-components-text-input
+ * uses a floating-label pattern: the <label> sits absolutely-positioned
+ * INSIDE the input and animates upward when the field is focused or filled.
+ * That pattern relies on the input having extra top padding for the label
+ * to slide into. Overriding padding here used to leave the label and the
+ * typed value stacked on top of each other - hence the "words overlap with
+ * labels" bug. Now we only restyle border / color / font; vertical sizing
+ * is left to WC's default (~52px tall, top-heavy padding for the label).
+ */
 .wc-block-components-text-input input.wc-block-components-text-input,
 .wc-block-components-text-input input[type="text"],
 .wc-block-components-text-input input[type="email"],
@@ -3540,9 +3629,13 @@ a.wc-block-components-button.outlined {
     border: 1px solid var(--pp-border) !important;
     border-radius: var(--pp-radius) !important;
     font-family: var(--pp-font-sans) !important;
-    font-size: 14px !important;
+    /* 16px floor: iOS Safari auto-zooms in on focus when font-size < 16px.
+     * Smaller looks tidier on desktop but the zoom-jolt on mobile is worse
+     * than slightly larger inputs - 16px is the universal safe choice. */
+    font-size: 16px !important;
     color: var(--pp-text) !important;
-    padding: 11px 14px !important;
+    min-height: 52px;
+    box-shadow: none !important;
 }
 .wc-block-components-text-input input:focus {
     border-color: var(--pp-blue) !important;
@@ -3550,6 +3643,25 @@ a.wc-block-components-button.outlined {
 }
 .wc-block-components-text-input label {
     color: var(--pp-text-muted) !important;
+    font-family: var(--pp-font-sans) !important;
+    font-size: 16px !important;
+}
+/* When the label is in its "floated up" state (field focused or has a
+ * value), shrink it so it sits cleanly above the typed value instead
+ * of crowding it. WC adds either of these classes depending on state. */
+.wc-block-components-text-input.is-active label,
+.wc-block-components-text-input--filled label {
+    font-size: 12px !important;
+    color: var(--pp-text-muted) !important;
+}
+/* Field rows: WC stacks address fields full-width by default, but city /
+ * state / postcode look tidier in a row on wider screens. */
+@media (min-width: 720px) {
+    .wc-block-components-address-form,
+    .wc-block-components-address-form__address_2 {
+        column-gap: 12px;
+        row-gap: 12px;
+    }
 }
 
 /* Block checkout payment options */
@@ -3606,6 +3718,28 @@ h2.wc-block-components-title {
         grid-template-columns: 1fr;
     }
     .woocommerce ul.order_details li { border-right: 0; border-bottom: 1px solid var(--pp-border); padding: 0 0 12px; }
+}
+
+/* iOS Safari zooms the page in when a text input is focused if that input's
+ * font-size is under 16px. Defensive global floor: any text-input field on
+ * the site renders at 16px minimum so the focus-jolt never happens.
+ * Specific components can still override upward (e.g. the WC Block Checkout
+ * rules above), but they can't go below 16px without re-introducing the bug. */
+input[type="text"],
+input[type="email"],
+input[type="tel"],
+input[type="number"],
+input[type="password"],
+input[type="search"],
+input[type="url"],
+input[type="date"],
+input[type="datetime-local"],
+input[type="time"],
+input[type="month"],
+input[type="week"],
+textarea,
+select {
+    font-size: 16px;
 }
 
 /* Hide GeneratePress chrome — only on the homepage where front-page.php
