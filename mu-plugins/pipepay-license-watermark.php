@@ -20,10 +20,20 @@
  *   this is enough.
  *
  * Marker location:
- *   `pipe-pay/.pipepay-build` inside the zip (dotfile so it doesn't show
- *   up in casual file listings; no behavior - the plugin never reads
- *   it; survives unzip + WP upgrade flow because the upgrade extracts
- *   into a fresh plugins/pipe-pay/ directory).
+ *   `pipe-pay/.pipepay-build` inside the zip (dotfile so it doesn't
+ *   show up in casual file listings; no behavior - the plugin never
+ *   reads it). The marker survives the customer's local install of a
+ *   manually-downloaded /my-account zip - the unzipper places the
+ *   dotfile alongside the rest of `plugins/pipe-pay/`. It does NOT
+ *   currently get carried into auto-update flows: WP's auto-updater
+ *   fetches the package URL Kestrel returns from
+ *   pre_set_site_transient_update_plugins, and that flow reads the
+ *   raw source zip without going through `woocommerce_file_download_path`.
+ *   So Phase B traces a leak when the LEAKER personally manually
+ *   downloaded the zip from /my-account - which is the dominant
+ *   customer-zip-leak vector. Auto-update zips on customer sites are
+ *   not yet watermarked; extending B to that path is on the v1.9.x
+ *   roadmap if the leak class proves to need it.
  *
  * Marker format (JSON, base64-decoded from the file contents):
  *   {
@@ -71,15 +81,37 @@ const PIPEPAY_WATERMARK_FILENAME_REGEX = '/^pipe-pay-v\d+\.\d+\.\d+\.zip$/';
 add_filter( 'woocommerce_file_download_path', 'pipepay_watermark_intercept_download', 10, 3 );
 
 /**
+ * Track the most recent /tmp file we minted in THIS request, so the
+ * `shutdown` hook below can clean it up promptly without waiting for
+ * the hourly cron sweeper. Returned by `pipepay_watermark_last_tmp()`
+ * - the closure-captured static is request-scoped (resets per PHP
+ * request) and survives multiple writes (unlike the v1.8.2 - v1.8.3
+ * `define()` which was write-once and stranded the second tmp file
+ * if WC's filter chain re-resolved a download in the same request).
+ */
+function pipepay_watermark_last_tmp( ?string $set = null ): string {
+    static $tmp = '';
+    if ( null !== $set ) {
+        $tmp = $set;
+    }
+    return $tmp;
+}
+
+/**
  * Intercept a Woo file-download path. If the file is a Pipe Pay zip and
  * we have enough request context to identify the customer, build a
  * per-customer watermarked copy in /tmp and return that path instead.
- * Otherwise return the original path unchanged.
+ * If the file IS a Pipe Pay zip but we can't resolve the customer
+ * context, refuse the download (return a non-existent path so WC 404s
+ * the response) - this closes the "strip ?order= from the URL to get
+ * an unwatermarked zip" bypass that v1.8.2 - v1.8.3 left open.
  *
  * @param string     $file_path   the resolved on-disk path WC was about to serve
  * @param WC_Product $product     the WC product carrying the download
  * @param string     $download_id the download key inside the product's _downloadable_files
- * @return string watermarked /tmp path, or the original path on any miss
+ * @return string watermarked /tmp path, original path on non-Pipe-Pay file,
+ *                or a sentinel non-existent path that triggers a WC 404
+ *                when context resolution fails on a Pipe Pay zip.
  */
 function pipepay_watermark_intercept_download( $file_path, $product, $download_id ) {
     if ( ! is_string( $file_path ) || '' === $file_path || ! file_exists( $file_path ) ) {
@@ -87,8 +119,15 @@ function pipepay_watermark_intercept_download( $file_path, $product, $download_i
     }
     $basename = basename( $file_path );
     if ( ! preg_match( PIPEPAY_WATERMARK_FILENAME_REGEX, $basename ) ) {
+        // Not a Pipe Pay zip we know how to watermark. Pass through.
         return $file_path;
     }
+
+    // Sentinel returned when we refuse to serve. WC's download handler
+    // will fail to read this path and 404 the response. The customer's
+    // legit /my-account download URL always includes a valid &order=,
+    // so this only fires on attempted bypass or on a corrupted URL.
+    $refused_path = $file_path . '.pipepay-refused-no-order-context';
 
     // Pull customer + order context from the secure download URL params.
     // WC's download URL is always shaped like
@@ -96,15 +135,18 @@ function pipepay_watermark_intercept_download( $file_path, $product, $download_i
     // so $_GET['order'] gives us the order_key, which we then resolve.
     $order_key = isset( $_GET['order'] ) ? sanitize_text_field( wp_unslash( $_GET['order'] ) ) : '';
     if ( '' === $order_key ) {
-        return $file_path;
+        error_log( '[pipepay-license-watermark] refusing download: no order context in URL (suspected bypass attempt)' );
+        return $refused_path;
     }
     $order_id = wc_get_order_id_by_order_key( $order_key );
     if ( ! $order_id ) {
-        return $file_path;
+        error_log( '[pipepay-license-watermark] refusing download: order_key did not resolve to an order' );
+        return $refused_path;
     }
     $order = wc_get_order( $order_id );
     if ( ! $order ) {
-        return $file_path;
+        error_log( '[pipepay-license-watermark] refusing download: wc_get_order returned null for resolved order id' );
+        return $refused_path;
     }
     $customer_id = (int) $order->get_customer_id();
 
@@ -189,13 +231,17 @@ function pipepay_watermark_build_zip( string $source_path, string $marker_json, 
         return null;
     }
 
-    // Unique tmp filename. Includes customer_id for log-correlation but
-    // also a random suffix so concurrent downloads from the same
-    // customer don't race on the same file.
+    // Unique tmp filename. Random-only - we deliberately do NOT include
+    // customer_id in the filename. On multi-tenant hosts /tmp is often
+    // world-readable, and a stable filename pattern would leak the Woo
+    // customer ID of every download to anyone with shell access. The
+    // signed marker INSIDE the zip carries the cid for forensic decode;
+    // the FILENAME does not need to.
     $rand = function_exists( 'wp_generate_password' )
         ? wp_generate_password( 16, false, false )
         : bin2hex( random_bytes( 8 ) );
-    $tmp_path = sys_get_temp_dir() . '/' . PIPEPAY_WATERMARK_TMP_PREFIX . $customer_id . '-' . $rand . '.zip';
+    unset( $customer_id ); // intentionally drop
+    $tmp_path = sys_get_temp_dir() . '/' . PIPEPAY_WATERMARK_TMP_PREFIX . $rand . '.zip';
 
     if ( ! @copy( $source_path, $tmp_path ) ) {
         error_log( '[pipepay-license-watermark] failed to copy source zip to ' . $tmp_path );
@@ -257,30 +303,30 @@ function pipepay_watermark_sweep_tmp_handler(): void {
     }
 }
 
-// Also try to clean up THIS download's tmp file right after WC finishes
-// streaming. This hits the common case fast; the cron sweeper is the
-// safety net for interrupted streams.
-add_action( 'shutdown', function () {
-    if ( ! defined( 'PIPEPAY_WATERMARK_LAST_TMP' ) ) {
-        return;
+// Track the most recent tmp-file path we returned so the shutdown hook
+// can clean it up. Hooks AFTER the watermark filter at priority 10 so
+// we observe its output. v1.8.4 uses a closure-captured static via
+// pipepay_watermark_last_tmp() instead of a write-once define() - the
+// prior define() pattern stranded the second tmp file if WC's filter
+// chain re-resolved the same download in one request.
+add_filter( 'woocommerce_file_download_path', function ( $path ) {
+    if ( is_string( $path ) && '' !== $path
+        && strpos( basename( $path ), PIPEPAY_WATERMARK_TMP_PREFIX ) === 0 ) {
+        pipepay_watermark_last_tmp( $path );
     }
-    $path = PIPEPAY_WATERMARK_LAST_TMP;
-    if ( is_string( $path ) && '' !== $path && file_exists( $path )
+    return $path;
+}, 11, 1 );
+
+// Clean up THIS download's tmp file right after WC finishes streaming.
+// Hits the common case fast; the hourly cron sweeper is the safety
+// net for interrupted streams.
+add_action( 'shutdown', function () {
+    $path = pipepay_watermark_last_tmp();
+    if ( '' !== $path && file_exists( $path )
         && strpos( basename( $path ), PIPEPAY_WATERMARK_TMP_PREFIX ) === 0 ) {
         @unlink( $path );
     }
 } );
-
-// Track the most recent tmp-file path we returned so the shutdown hook
-// can clean it up. Single-request scope; downloads are one-per-request.
-add_filter( 'woocommerce_file_download_path', function ( $path ) {
-    if ( is_string( $path ) && '' !== $path
-        && strpos( basename( $path ), PIPEPAY_WATERMARK_TMP_PREFIX ) === 0
-        && ! defined( 'PIPEPAY_WATERMARK_LAST_TMP' ) ) {
-        define( 'PIPEPAY_WATERMARK_LAST_TMP', $path );
-    }
-    return $path;
-}, 11, 1 ); // priority 11 so we run AFTER the watermark filter at 10
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Forensic decoder: admin page + helper
