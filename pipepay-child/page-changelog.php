@@ -8,6 +8,15 @@ get_header();
 
 $releases = array(
     array(
+        'date'    => 'May 9, 2026',
+        'version' => 'v1.8.1',
+        'title'   => 'License integrity (continued)',
+        'notes'   => array(
+            'Continued license-integrity work. No customer-visible behavior change for active or expired licenses; recommended update.',
+            'Active and expired-license installs continue to process orders exactly as before. Pipe Pay&rsquo;s policy of never bricking the gateway runtime when a license expires is unchanged - a lapsed renewal still gets a banner, not an outage.',
+        ),
+    ),
+    array(
         'date'    => 'May 8, 2026',
         'version' => 'v1.7.4',
         'title'   => 'Handle-only payment mode',
