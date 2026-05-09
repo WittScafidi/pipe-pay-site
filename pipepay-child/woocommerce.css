@@ -439,9 +439,54 @@ body.woocommerce-checkout main .pp-checkout-page { padding-top: 16px; }
     color: #fff;
 }
 
-/* My Account dashboard nav */
-.woocommerce-account .woocommerce-MyAccount-navigation {
-    flex: 0 0 240px;
+/* My Account dashboard layout - grid-based (sidebar + content side-by-side).
+   The parent .woocommerce div is the grid container; the nav and content
+   are columns; notice wrappers, privacy text, and lost-password forms span
+   both columns so they stack above. WC core ships float-based rules with
+   higher specificity (body.woocommerce-account .woocommerce-MyAccount-*) -
+   we explicitly neutralize them with float: none + width: auto. */
+/* My Account dashboard layout - sidebar + content side-by-side using
+ * explicit named grid areas. We tried `grid-template-columns: 240px 1fr`
+ * with auto-placement first, but the auto-flow algorithm produced a
+ * diagonal layout (nav in col 2 row 1, content in col 1 row 2) - likely
+ * because the nav's intrinsic min-content width exceeded the 240px track
+ * and the grid solver shuffled both items. Named areas pin each child
+ * to a specific cell with zero auto-flow ambiguity.
+ *
+ * Only the logged-in dashboard view has a sidebar nav - login/register/
+ * lost-password render no nav at all and should flow as normal block
+ * content. The :has() guard keeps the grid scoped to the one state
+ * where the sidebar exists. */
+body.woocommerce-account .woocommerce:has(> .woocommerce-MyAccount-navigation) {
+    display: grid;
+    grid-template-columns: 240px minmax(0, 1fr);
+    grid-template-areas:
+        "notices notices"
+        "nav     content"
+        "privacy privacy";
+    column-gap: 32px;
+    align-items: start;
+}
+body.woocommerce-account .woocommerce > .woocommerce-MyAccount-navigation {
+    grid-area: nav;
+    float: none;
+    width: auto;
+    margin-left: 0;
+}
+body.woocommerce-account .woocommerce > .woocommerce-MyAccount-content {
+    grid-area: content;
+    float: none;
+    width: auto;
+    margin-left: 0;
+    min-width: 0; /* prevent grid blowout from long table cells / license keys */
+}
+body.woocommerce-account .woocommerce > .woocommerce-notices-wrapper {
+    grid-area: notices;
+}
+body.woocommerce-account .woocommerce > .woocommerce-privacy-policy-text,
+body.woocommerce-account .woocommerce > form.lost_reset_password,
+body.woocommerce-account .woocommerce > .u-columns {
+    grid-area: privacy;
 }
 .woocommerce-account .woocommerce-MyAccount-navigation ul {
     list-style: none;
@@ -471,10 +516,6 @@ body.woocommerce-checkout main .pp-checkout-page { padding-top: 16px; }
     background: #fff;
     color: var(--pp-blue);
 }
-.woocommerce-account .woocommerce-MyAccount-content {
-    flex: 1;
-    margin-left: 32px;
-}
 .woocommerce-account .woocommerce-MyAccount-content h2,
 .woocommerce-account .woocommerce-MyAccount-content h3 {
     margin-top: 0;
@@ -482,7 +523,15 @@ body.woocommerce-checkout main .pp-checkout-page { padding-top: 16px; }
     color: var(--pp-text);
 }
 @media (max-width: 800px) {
-    .woocommerce-account .woocommerce-MyAccount-content { margin-left: 0; margin-top: 24px; }
+    body.woocommerce-account .woocommerce:has(> .woocommerce-MyAccount-navigation) {
+        grid-template-columns: 1fr;
+        grid-template-areas:
+            "notices"
+            "nav"
+            "content"
+            "privacy";
+        row-gap: 24px;
+    }
 }
 
 /* ============================================================

@@ -12,7 +12,14 @@ if ( ! defined( 'ABSPATH' ) ) { exit; }
  * to avoid the previous pattern of hardcoded version strings drifting per file.
  */
 if ( ! defined( 'PIPEPAY_SITE_VERSION' ) ) {
-    define( 'PIPEPAY_SITE_VERSION', '1.7.1' );
+    // Public-facing version. Reflects the most recent version with a published
+    // changelog entry, NOT the actual plugin version on dogfood (which may be
+    // running unpublicized patch releases per the changelog's own disclaimer:
+    // "Bug fix releases between numbered versions are not separately documented
+    // unless they introduce a behavior change worth noting"). Customers
+    // auto-updating past this number get the patches without a public release
+    // narrative for each one.
+    define( 'PIPEPAY_SITE_VERSION', '1.7.4' );
 }
 
 add_action( 'wp_enqueue_scripts', function() {

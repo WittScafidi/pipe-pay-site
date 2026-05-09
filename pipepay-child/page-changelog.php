@@ -8,13 +8,43 @@ get_header();
 
 $releases = array(
     array(
+        'date'    => 'May 8, 2026',
+        'version' => 'v1.7.4',
+        'title'   => 'Handle-only payment mode',
+        'notes'   => array(
+            'Methods can now be configured with just a payment handle, no QR code upload required. The customer payment page renders a clean &ldquo;Open Venmo&rdquo; / &ldquo;Open Cash App&rdquo; / &ldquo;Open PayPal&rdquo; deep-link callout for these methods so customers on mobile can tap straight into the right app.',
+            'Zelle handle-only mode shows a tailored callout pointing customers at their bank&rsquo;s Zelle feature, since Zelle doesn&rsquo;t expose a universal deep-link.',
+            'Yellow admin notice on the gateway settings page suggests adding a QR for any enabled method that doesn&rsquo;t have one, with a one-click &ldquo;hide for 30 days&rdquo; option for merchants who prefer handle-only operation.',
+        ),
+    ),
+    array(
+        'date'    => 'May 8, 2026',
+        'version' => 'v1.7.0',
+        'title'   => 'License integrity',
+        'notes'   => array(
+            'Stronger verification of license-server responses. No customer-visible behavior change; recommended update.',
+            'New &ldquo;Awaiting Approval&rdquo; order status for manual-review orders, so the orders list immediately tells you which orders need your decision (was previously generic &ldquo;On Hold&rdquo;).',
+            'Dedicated review-pending customer email replaces the reused on-hold template, with copy that matches the actual state.',
+        ),
+    ),
+    array(
+        'date'    => 'May 7, 2026',
+        'version' => 'v1.6.5',
+        'title'   => 'Reliability and hardening',
+        'notes'   => array(
+            'Continued security and reliability improvements throughout the upload, license activation, and image-handling flows.',
+            'PHP 8.0 is now the minimum supported version. Stores on PHP 7.4 see an admin notice and the plugin remains inactive until PHP is upgraded.',
+            'Recommended update for everyone.',
+        ),
+    ),
+    array(
         'date'    => 'May 7, 2026',
         'version' => 'v1.6.2',
-        'title'   => 'Block Checkout payment fix (critical)',
+        'title'   => 'Block Checkout payment fix',
         'notes'   => array(
             'Resolved an issue affecting stores on WooCommerce&rsquo;s Block Checkout (the default since WC 8.0). In some configurations, orders weren&rsquo;t advancing past the payment step, leaving customers unable to upload their payment screenshot. The handoff has been corrected so every Block Checkout order now flows through cleanly.',
             'Stores running the Classic shortcode checkout were not affected.',
-            '<strong>Update strongly recommended for any store using Block Checkout.</strong>',
+            'Update recommended for any store using Block Checkout.',
         ),
     ),
     array(

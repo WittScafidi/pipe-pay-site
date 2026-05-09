@@ -56,7 +56,7 @@ $changelog_url   = home_url( '/changelog' );
         <span class="pp-release-bar__pulse" aria-hidden="true"></span>
         <span class="pp-release-bar__label">Shipped</span>
         <span class="pp-release-bar__version">v<?php echo esc_html( PIPEPAY_SITE_VERSION ); ?></span>
-        <span class="pp-release-bar__msg">Awaiting Approval status &middot; review-pending email &middot; recommended update for manual-review users</span>
+        <span class="pp-release-bar__msg">Handle-only payment mode &middot; methods now work with a payment handle alone, no QR upload required</span>
         <a class="pp-release-bar__link" href="<?php echo esc_url( $changelog_url ); ?>">read the changelog &rarr;</a>
     </div>
 </div>
@@ -475,20 +475,54 @@ $changelog_url   = home_url( '/changelog' );
     </div>
 </section>
 
-<!-- ============== 12. LIVE DEMO AT CHECKOUT ============== -->
+<!-- ============== 12. LIVE DEMO AT CHECKOUT ==============
+     Editorial "specimen plate" of the four P2P methods in their
+     authentic brand colors. Frames the dogfooding message
+     ("we run our own checkout on Pipe Pay") as a typographic
+     centerpiece rather than a slab of brand-blue marketing card. -->
 <section class="pp-section pp-section--tight pp-self-checkout" id="live-demo">
     <div class="pp-container">
-        <div class="pp-self-checkout__card">
-            <span class="pp-self-checkout__kicker">Live demo at checkout</span>
-            <h2>Our own checkout runs on Pipe Pay.</h2>
-            <p>PipePay.app uses Pipe Pay for its checkout. Pick a tier below and pay with Venmo, Cash App, PayPal F&amp;F, or Zelle - it's the same flow your customers will go through, and the fastest way to see what they'll experience before you ever install the plugin.</p>
-            <div class="pp-self-checkout__methods" aria-label="Accepted P2P methods at our checkout">
-                <span class="pp-self-checkout__method">Venmo</span>
-                <span class="pp-self-checkout__method">Cash App</span>
-                <span class="pp-self-checkout__method">PayPal F&amp;F</span>
-                <span class="pp-self-checkout__method">Zelle</span>
+        <div class="pp-self-checkout__inner">
+
+            <header class="pp-self-checkout__head">
+                <h2 class="pp-self-checkout__title">Our checkout runs on <span class="pp-self-checkout__brand">Pipe Pay</span>.</h2>
+                <p class="pp-self-checkout__sub"><strong>Live demo at checkout.</strong> We run Pipe Pay as our own store's checkout so merchants can experience it firsthand - and so we keep finding ways to improve it. New updates ship constantly.</p>
+            </header>
+
+            <!-- Specimen plate: oversized brand-colored letter-marks for the
+                 four P2P methods, framed by editorial hairline rules. The same
+                 V/$/P/Z glyph vocabulary used in the How-It-Works phone mocks,
+                 here promoted to display typography. -->
+            <div class="pp-self-checkout__plate" aria-hidden="true">
+                <div class="pp-self-checkout__rule"></div>
+
+                <ol class="pp-self-checkout__methods">
+                    <li class="pp-self-checkout__method" style="--m-color:#008CFF;">
+                        <span class="pp-self-checkout__glyph">V</span>
+                        <span class="pp-self-checkout__name">Venmo</span>
+                    </li>
+                    <li class="pp-self-checkout__method" style="--m-color:#00D632;">
+                        <span class="pp-self-checkout__glyph">$</span>
+                        <span class="pp-self-checkout__name">Cash&nbsp;App</span>
+                    </li>
+                    <li class="pp-self-checkout__method" style="--m-color:#003087;">
+                        <span class="pp-self-checkout__glyph">P</span>
+                        <span class="pp-self-checkout__name">PayPal&nbsp;F&amp;F</span>
+                    </li>
+                    <li class="pp-self-checkout__method" style="--m-color:#6D1ED4;">
+                        <span class="pp-self-checkout__glyph">Z</span>
+                        <span class="pp-self-checkout__name">Zelle</span>
+                    </li>
+                </ol>
+
+                <div class="pp-self-checkout__rule"></div>
             </div>
-            <a class="pp-btn pp-self-checkout__cta" href="#pricing">Pick a tier below &rarr;</a>
+
+            <a class="pp-self-checkout__cta" href="#pricing">
+                <span>Pick a tier below</span>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14"/><path d="m6 13 6 6 6-6"/></svg>
+            </a>
+
         </div>
     </div>
 </section>
@@ -562,43 +596,23 @@ $changelog_url   = home_url( '/changelog' );
         <ul class="pp-shiplog__list">
             <li>
                 <span class="pp-shiplog__date">May 8, 2026</span>
-                <span class="pp-shiplog__ver">v1.7.1</span>
-                <span class="pp-shiplog__note"><strong>Custom &ldquo;Awaiting Approval&rdquo; status + dedicated review-pending email.</strong> Manual-review orders (AI disabled, or AI graded medium/low confidence) now land in their own <code>Awaiting Approval</code> status instead of generic <code>On Hold</code>, so the orders list immediately tells you which orders need your decision. Customer email switched from the reused on-hold template to a dedicated <em>&ldquo;we received your screenshot, reviewing now&rdquo;</em> message that matches the actual state. Stock-holding parity with on-hold is preserved. The Pipe Pay Proofs queue and meta-box buttons accept both new and legacy statuses for backward compat. Bundles the proof-image proxy URL nonce fix from earlier today - admin meta box and Proofs queue now reliably render the screenshot for logged-in admins. Recommended update for any store using manual review.</span>
+                <span class="pp-shiplog__ver">v1.7.4</span>
+                <span class="pp-shiplog__note"><strong>Handle-only payment mode.</strong> Methods can now be configured with just a payment handle, no QR code upload required. The customer payment page renders a clean &ldquo;Open Venmo&rdquo; / &ldquo;Open Cash App&rdquo; / &ldquo;Open PayPal&rdquo; deep-link callout for these methods. Zelle gets a tailored bank-app instruction since Zelle has no universal deep link. A yellow admin notice on the gateway settings page suggests adding a QR for any method that doesn&rsquo;t have one, with a one-click hide-for-30-days option for merchants who prefer handle-only.</span>
             </li>
             <li>
                 <span class="pp-shiplog__date">May 8, 2026</span>
                 <span class="pp-shiplog__ver">v1.7.0</span>
-                <span class="pp-shiplog__note"><strong>License-server response signing + plugin internals.</strong> All license-resolver responses are now Ed25519-signed; the plugin verifies the signature before trusting the returned product mapping. Defeats a network-position attacker who could otherwise return a substituted product ID even with HTTPS. Plus: WC structured logging via <code>wc_get_logger()</code> (events visible at WC -> Status -> Logs), inline admin JS extracted to <code>assets/js/pipepay-admin.js</code> (CSP-friendly, browser-cached), test infrastructure published in the repo (PHPUnit + GitHub Actions matrix on PHP 8.1/8.2/8.3). No customer-visible behavior changes vs. 1.6.5; recommended update for the new license-server protection.</span>
+                <span class="pp-shiplog__note"><strong>License integrity + Awaiting Approval status.</strong> Stronger verification of license-server responses (no customer-visible behavior change). Manual-review orders now land in a dedicated &ldquo;Awaiting Approval&rdquo; status instead of generic on-hold, so the orders list immediately tells you which orders need your decision. Dedicated review-pending customer email with copy that matches the actual state.</span>
             </li>
             <li>
                 <span class="pp-shiplog__date">May 7, 2026</span>
                 <span class="pp-shiplog__ver">v1.6.5</span>
-                <span class="pp-shiplog__note"><strong>Security hardening.</strong> Cloudflare-only IP detection (closes a per-IP rate-limit spoofing bypass), server-side amount + recipient cross-checks on every AI verdict (now compared in cents to avoid floating-point edge cases), forced TLS verification on license-server calls, per-billing-email upload cap, per-AI-provider key storage, PHP 8.0 minimum. Recommended update for everyone.</span>
-            </li>
-            <li>
-                <span class="pp-shiplog__date">May 7, 2026</span>
-                <span class="pp-shiplog__ver">v1.6.3</span>
-                <span class="pp-shiplog__note"><strong>Patch release.</strong> Follow-up reliability improvements across the Block Checkout payment flow and Kestrel licensing integration. Recommended update for anyone on v1.6.2 or earlier.</span>
-            </li>
-            <li>
-                <span class="pp-shiplog__date">May 7, 2026</span>
-                <span class="pp-shiplog__ver">v1.6.2</span>
-                <span class="pp-shiplog__note"><strong>Block Checkout payment fix (critical).</strong> Resolved an issue preventing some Block Checkout orders from advancing through payment, blocking customer screenshot uploads. Update strongly recommended for any store on Block Checkout.</span>
-            </li>
-            <li>
-                <span class="pp-shiplog__date">May 6, 2026</span>
-                <span class="pp-shiplog__ver">v1.6.1</span>
-                <span class="pp-shiplog__note"><strong>Stability improvements.</strong> Friendlier handling of expired sessions during license activation, smoother tier upgrades, and a handful of smaller reliability improvements.</span>
+                <span class="pp-shiplog__note"><strong>Reliability and hardening.</strong> Continued security and reliability improvements throughout the upload, license activation, and image-handling flows. PHP 8.0 minimum (stores on PHP 7.4 see an admin notice and remain inactive until upgraded). Recommended update for everyone.</span>
             </li>
             <li>
                 <span class="pp-shiplog__date">May 4, 2026</span>
                 <span class="pp-shiplog__ver">v1.6.0</span>
                 <span class="pp-shiplog__note"><strong>One-field license activation.</strong> Activate with just your license key - no product ID lookup. Tier upgrades (trial &rarr; paid, single &rarr; unlimited) flow seamlessly without re-installing the plugin.</span>
-            </li>
-            <li>
-                <span class="pp-shiplog__date">Apr 25, 2026</span>
-                <span class="pp-shiplog__ver">v1.5.0</span>
-                <span class="pp-shiplog__note"><strong>Automatic updates.</strong> Pipe Pay now appears in the standard &ldquo;Update available&rdquo; notifications in your WordPress plugin list. Click Update Now when a new version ships - no more manual zip downloads.</span>
             </li>
         </ul>
     </div>

@@ -3542,7 +3542,7 @@ body.pipepay-home a.pp-doc-back { color: var(--pp-text-muted); }
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 44px;
+    gap: 36px;
     text-align: center;
 }
 
@@ -3553,9 +3553,6 @@ body.pipepay-home a.pp-doc-back { color: var(--pp-text-muted); }
     display: flex;
     flex-direction: column;
     align-items: center;
-}
-.pp-self-checkout__head .pp-eyebrow {
-    margin-bottom: 22px;
 }
 /* Slightly smaller than the default h2 so the specimen plate below
  * reads as the centerpiece, with the H2 as setup. */
@@ -3575,6 +3572,22 @@ body.pipepay-home a.pp-doc-back { color: var(--pp-text-muted); }
      * a brand mark within the sentence rather than just colored type. */
     background: linear-gradient(transparent 80%, rgba(19, 54, 168, 0.14) 80%);
     padding: 0 2px;
+}
+/* Subhead paragraph beneath the H2. Replaces the previous numbered
+ * eyebrow as the section's secondary text. The leading "Live demo
+ * at checkout." is rendered <strong> in --pp-text so it works as a
+ * typographic lead-in, with the rest in --pp-text-muted. */
+.pp-self-checkout__sub {
+    margin: 18px auto 0;
+    max-width: 580px;
+    font-size: 16px;
+    line-height: 1.6;
+    color: var(--pp-text-muted);
+    text-wrap: pretty;
+}
+.pp-self-checkout__sub strong {
+    color: var(--pp-text);
+    font-weight: 600;
 }
 
 /* === Specimen plate ===
@@ -3663,62 +3676,7 @@ body.pipepay-home a.pp-doc-back { color: var(--pp-text-muted); }
     line-height: 1;
 }
 
-/* Caption beneath the plate: green pulse + "Live on pipepay.app/checkout
- * · Same flow your customers will use." Reuses the green-pulse signal
- * from the .pp-release-bar at the top of the page so the meaning is
- * consistent ("currently live"). */
-.pp-self-checkout__caption {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    justify-content: center;
-    gap: 10px;
-    margin: 18px auto 0;
-    padding: 0 14px;
-    font-family: var(--pp-font-mono);
-    font-size: 11px;
-    font-weight: 500;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    color: var(--pp-text-muted);
-    line-height: 1.5;
-}
-.pp-self-checkout__pulse {
-    width: 8px; height: 8px;
-    border-radius: 50%;
-    background: #16a34a;
-    box-shadow: 0 0 0 0 rgba(22, 163, 74, 0.5);
-    animation: pp-self-checkout-pulse 2s ease-out infinite;
-    flex-shrink: 0;
-}
-.pp-self-checkout__url {
-    color: var(--pp-blue);
-    font-weight: 600;
-    letter-spacing: 0.04em;
-}
-.pp-self-checkout__sep { color: var(--pp-border-strong); }
-
-@keyframes pp-self-checkout-pulse {
-    0%   { box-shadow: 0 0 0 0 rgba(22, 163, 74, 0.55); }
-    70%  { box-shadow: 0 0 0 8px rgba(22, 163, 74, 0); }
-    100% { box-shadow: 0 0 0 0 rgba(22, 163, 74, 0); }
-}
-
-/* === Foot (lede + CTA) === */
-.pp-self-checkout__foot {
-    max-width: 620px;
-    margin: 0 auto;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-}
-.pp-self-checkout__lede {
-    font-size: 17px;
-    line-height: 1.6;
-    color: var(--pp-text-muted);
-    margin: 0 0 24px;
-    text-wrap: pretty;
-}
+/* === CTA === */
 .pp-self-checkout__cta {
     display: inline-flex;
     align-items: center;
@@ -3759,20 +3717,13 @@ body.pipepay-home a.pp-doc-back { color: var(--pp-text-muted); }
 
 /* === Mobile === */
 @media (max-width: 760px) {
-    .pp-self-checkout__inner { gap: 36px; }
-    .pp-self-checkout__methods {
-        padding: 32px 0;
-    }
+    .pp-self-checkout__inner { gap: 28px; }
+    .pp-self-checkout__methods { padding: 32px 0; }
     .pp-self-checkout__method { gap: 12px; }
     .pp-self-checkout__name {
         font-size: 9px;
         letter-spacing: 0.08em;
     }
-    .pp-self-checkout__caption {
-        font-size: 10px;
-        letter-spacing: 0.08em;
-    }
-    .pp-self-checkout__lede { font-size: 15px; }
 }
 
 @media (max-width: 480px) {
@@ -3781,13 +3732,8 @@ body.pipepay-home a.pp-doc-back { color: var(--pp-text-muted); }
         gap: 28px 0;
         padding: 28px 0;
     }
-    /* In a 2-col layout, the divider should only render between cols 1+2
-     * and 3+4, not before items 3 (which is on a new row). */
-    .pp-self-checkout__method:nth-child(3)::before {
-        display: none;
-    }
-    /* Stack the caption pieces; hide the middle separator dot */
-    .pp-self-checkout__sep { display: none; }
-    .pp-self-checkout__caption { flex-direction: column; gap: 6px; }
+    /* In a 2-col layout, divider should render between cols 1+2 and 3+4,
+     * not before item 3 (which is on a new row). */
+    .pp-self-checkout__method:nth-child(3)::before { display: none; }
 }
 
