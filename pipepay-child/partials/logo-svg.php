@@ -1,6 +1,6 @@
 <?php
 /**
- * Pipe Pay logo SVG. Single source of truth — included from header.php,
+ * Pipe Pay logo SVG. Single source of truth - included from header.php,
  * footer.php, and front-page.php (header + final-CTA inverse variant).
  *
  * Variant: pass `$pp_logo_variant = 'inverse'` before include to get the

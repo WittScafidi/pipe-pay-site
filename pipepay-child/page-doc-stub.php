@@ -359,7 +359,7 @@ HTML,
 <p>You will receive renewal notices from <code>pipepay.app</code> as your annual term approaches expiration. Each email includes a one-click renewal link that takes you straight to checkout with the same tier preselected. Renewal is the same price as the original purchase; we do not auto-bill.</p>
 
 <h2>If the license expires</h2>
-<p>Your license unlocks 1 year of plugin updates and support, and we strongly recommend renewing before your term ends so the transition is seamless. Without an active license you stop receiving WooCommerce-compatibility patches, security updates, and access to support &mdash; over time, as WordPress and WooCommerce release new versions, your install will fall behind and eventually need an update you can no longer get.</p>
+<p>Your license unlocks 1 year of plugin updates and support, and we strongly recommend renewing before your term ends so the transition is seamless. Without an active license you stop receiving WooCommerce-compatibility patches, security updates, and access to support - over time, as WordPress and WooCommerce release new versions, your install will fall behind and eventually need an update you can no longer get.</p>
 <p>The plugin's license-check piggybacks on WordPress's standard plugin update check (typically every ~12 hours). Existing data, settings, and historical orders all stay intact during a lapse. Renewing at any time restores updates and support on the next check; there is no data migration or reinstall step.</p>
 
 <h2>Reactivating after a long lapse</h2>
@@ -387,7 +387,7 @@ HTML,
     <li><strong>nginx:</strong> <code>client_max_body_size 32m;</code> in your server block.</li>
     <li><strong>Cloudflare:</strong> the free tier caps uploads at 100MB; you should not hit this with screenshots.</li>
 </ul>
-<p>If HEIC screenshots specifically fail, the Imagick PHP extension (with the HEIC delegate) is missing on your host. Pipe Pay rejects HEIC uploads with an inline error pointing the customer at common workarounds (re-saving as JPG/PNG on the phone, or switching the iPhone Camera setting from HEIC to JPG). <code>sudo apt install php-imagick</code> on Ubuntu and restart PHP-FPM &mdash; many shared hosts will need a support ticket to enable Imagick or its HEIC delegate.</p>
+<p>If HEIC screenshots specifically fail, the Imagick PHP extension (with the HEIC delegate) is missing on your host. Pipe Pay rejects HEIC uploads with an inline error pointing the customer at common workarounds (re-saving as JPG/PNG on the phone, or switching the iPhone Camera setting from HEIC to JPG). <code>sudo apt install php-imagick</code> on Ubuntu and restart PHP-FPM - many shared hosts will need a support ticket to enable Imagick or its HEIC delegate.</p>
 
 <h2>AI verification stalls</h2>
 <p>Symptom: customer uploads screenshot, but the order sits in <em>Awaiting Proof</em> for minutes. Causes, in order of likelihood:</p>

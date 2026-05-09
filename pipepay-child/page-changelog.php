@@ -50,7 +50,7 @@ $releases = array(
         'version' => 'v1.5.0',
         'title'   => 'Automatic updates',
         'notes'   => array(
-            'Pipe Pay now appears in the standard &ldquo;Update available&rdquo; notifications in your WordPress plugin list. Click Update Now when a new version ships &mdash; no more manual zip downloads or reinstalls.',
+            'Pipe Pay now appears in the standard &ldquo;Update available&rdquo; notifications in your WordPress plugin list. Click Update Now when a new version ships - no more manual zip downloads or reinstalls.',
             'Activation takes a single field and about thirty seconds. After that, every future release flows in through the same WordPress update mechanism you already use for everything else.',
             'The payment gateway itself works whether or not a license is activated, so a lapsed license never blocks an in-flight customer order.',
         ),
@@ -74,7 +74,7 @@ $releases = array(
         'title'   => 'Customer upload reliability',
         'notes'   => array(
             'Resolved an issue where customers behind shared networks (hotel WiFi, mobile carrier proxies, certain CDNs) could occasionally see false &ldquo;rate limit&rdquo; errors when uploading their payment screenshot.',
-            'iPhone HEIC screenshots now appear in the file picker by default &mdash; no need to toggle &ldquo;all files.&rdquo;',
+            'iPhone HEIC screenshots now appear in the file picker by default - no need to toggle &ldquo;all files.&rdquo;',
             'Improved resilience when a third-party AI provider responds slowly. The screenshot still saves and the order still moves forward; the verification verdict updates as soon as the provider responds.',
         ),
     ),

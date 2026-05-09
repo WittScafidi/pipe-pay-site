@@ -1,6 +1,6 @@
 <?php
 /**
- * Default page template — used by simple prose pages whose content
+ * Default page template - used by simple prose pages whose content
  * comes from the WordPress post_content field (privacy, terms, refund-policy).
  */
 if ( ! defined( 'ABSPATH' ) ) { exit; }

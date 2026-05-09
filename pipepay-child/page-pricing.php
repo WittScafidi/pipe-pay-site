@@ -11,11 +11,11 @@ $checkout_url    = home_url( '/checkout/?add-to-cart=38' );
 // Trial CTAs from a tier card carry an `intent` param so the customer's tier
 // preference is captured at signup and surfaces again at trial conversion.
 // `intent` is validated to {34, 35, 36} by the woocommerce_add_cart_item_data
-// filter in functions.php — mismatched values are dropped silently.
+// filter in functions.php - mismatched values are dropped silently.
 $trial_intent_single = home_url( '/checkout/?add-to-cart=38&intent=34' );
 $trial_intent_five   = home_url( '/checkout/?add-to-cart=38&intent=35' );
 $trial_intent_unlim  = home_url( '/checkout/?add-to-cart=38&intent=36' );
-// Direct-purchase URLs — skip the trial and add the paid tier straight to the
+// Direct-purchase URLs - skip the trial and add the paid tier straight to the
 // cart. page-checkout.php is cart-aware and renders the "Complete your
 // purchase" hero when these products are present.
 $buy_single      = home_url( '/checkout/?add-to-cart=34' );
@@ -49,7 +49,7 @@ $refund_url      = home_url( '/refund-policy' );
                     <li>7-day free trial, no card required</li>
                 </ul>
                 <a class="pp-btn pp-btn--secondary" href="<?php echo esc_url( $trial_intent_single ); ?>">Start 7-day trial</a>
-                <a class="pp-btn pp-btn--ghost" href="<?php echo esc_url( $buy_single ); ?>">Buy now &mdash; skip the trial</a>
+                <a class="pp-btn pp-btn--ghost" href="<?php echo esc_url( $buy_single ); ?>">Buy now - skip the trial</a>
             </div>
             <div class="pp-pricing-card pp-pricing-card--featured">
                 <span class="pp-pricing-ribbon">Most Popular</span>
@@ -65,7 +65,7 @@ $refund_url      = home_url( '/refund-policy' );
                     <li>7-day free trial, no card required</li>
                 </ul>
                 <a class="pp-btn pp-btn--primary" href="<?php echo esc_url( $trial_intent_five ); ?>">Start 7-day trial</a>
-                <a class="pp-btn pp-btn--ghost" href="<?php echo esc_url( $buy_five ); ?>">Buy now &mdash; skip the trial</a>
+                <a class="pp-btn pp-btn--ghost" href="<?php echo esc_url( $buy_five ); ?>">Buy now - skip the trial</a>
             </div>
             <div class="pp-pricing-card">
                 <svg class="pp-tier-illustration" viewBox="0 0 120 80" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false"><path d="M22 40 C22 22, 48 22, 60 40 C72 58, 98 58, 98 40 C98 22, 72 22, 60 40 C48 58, 22 58, 22 40 Z" fill="none" stroke="#1336a8" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/><rect x="29" y="35" width="12" height="10" rx="2" fill="#1336a8"/><rect x="79" y="35" width="12" height="10" rx="2" fill="#1336a8"/></svg>
@@ -80,10 +80,10 @@ $refund_url      = home_url( '/refund-policy' );
                     <li>7-day free trial, no card required</li>
                 </ul>
                 <a class="pp-btn pp-btn--secondary" href="<?php echo esc_url( $trial_intent_unlim ); ?>">Start 7-day trial</a>
-                <a class="pp-btn pp-btn--ghost" href="<?php echo esc_url( $buy_unlim ); ?>">Buy now &mdash; skip the trial</a>
+                <a class="pp-btn pp-btn--ghost" href="<?php echo esc_url( $buy_unlim ); ?>">Buy now - skip the trial</a>
             </div>
         </div>
-        <p class="pp-pricing-fineprint">Each license includes 1 year of plugin updates and support. Renew annually to keep receiving WooCommerce-compatibility patches, security updates, and support &mdash; without renewal, your install falls behind each WP and WC release and eventually needs an update you can no longer get. Cancel anytime before the trial ends and you won't be charged. Once your trial converts to a paid license, all sales are final, no refunds. The 7-day trial is your evaluation window.</p>
+        <p class="pp-pricing-fineprint">Each license includes 1 year of plugin updates and support. Renew annually to keep receiving WooCommerce-compatibility patches, security updates, and support - without renewal, your install falls behind each WP and WC release and eventually needs an update you can no longer get. Cancel anytime before the trial ends and you won't be charged. Once your trial converts to a paid license, all sales are final, no refunds. The 7-day trial is your evaluation window.</p>
     </div>
 </section>
 
@@ -98,7 +98,7 @@ $refund_url      = home_url( '/refund-policy' );
             <div class="pp-fit-col pp-fit-col--yes">
                 <h3 class="pp-fit-title pp-fit-title--yes">Yes, if any of these are you</h3>
                 <ul class="pp-fit-list">
-                    <li><svg class="pp-fit-icon pp-fit-icon--yes" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="11" fill="currentColor"/><polyline points="7 12.5 11 16.5 17 9" stroke="#fff" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Your processor doesn't fit your business &mdash; or you've outgrown what they'll cover.</span></li>
+                    <li><svg class="pp-fit-icon pp-fit-icon--yes" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="11" fill="currentColor"/><polyline points="7 12.5 11 16.5 17 9" stroke="#fff" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Your processor doesn't fit your business - or you've outgrown what they'll cover.</span></li>
                     <li><svg class="pp-fit-icon pp-fit-icon--yes" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="11" fill="currentColor"/><polyline points="7 12.5 11 16.5 17 9" stroke="#fff" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg><span>You've had funds held longer than your cash flow can absorb, or the alternatives want a personal guarantee that you're not comfortable signing.</span></li>
                     <li><svg class="pp-fit-icon pp-fit-icon--yes" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="11" fill="currentColor"/><polyline points="7 12.5 11 16.5 17 9" stroke="#fff" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg><span>You're testing a new product idea and don't want to file an LLC, get an EIN, and hand your SSN to a processor before you know if it works.</span></li>
                     <li><svg class="pp-fit-icon pp-fit-icon--yes" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="11" fill="currentColor"/><polyline points="7 12.5 11 16.5 17 9" stroke="#fff" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg><span>You're paying meaningful Stripe or Square fees ($5K+ per year) and want them back.</span></li>
@@ -165,7 +165,7 @@ $refund_url      = home_url( '/refund-policy' );
                 ),
                 array(
                     'q' => 'How does the chargeback risk compare to card processing?',
-                    'a' => 'Materially lower than card processing &mdash; for many merchants this is a feature, not a downside. Card networks let customers dispute charges for months after the sale, with a built-in chargeback infrastructure that often lands on the merchant by default. P2P payments don\'t carry that machinery. Zelle payments are effectively irreversible once received. Venmo and Cash App personal payments can only be reversed via unauthorized-account claims (the customer claiming their account was hacked). PayPal Friends &amp; Family has no built-in dispute pathway, though it can be reversed via unauthorized-access claims through PayPal, or, if the F&amp;F payment was funded by a credit card, a chargeback through the customer\'s card issuer. So the reversal risk is non-zero, but materially smaller than card processing.',
+                    'a' => 'Materially lower than card processing - for many merchants this is a feature, not a downside. Card networks let customers dispute charges for months after the sale, with a built-in chargeback infrastructure that often lands on the merchant by default. P2P payments don\'t carry that machinery. Zelle payments are effectively irreversible once received. Venmo and Cash App personal payments can only be reversed via unauthorized-account claims (the customer claiming their account was hacked). PayPal Friends &amp; Family has no built-in dispute pathway, though it can be reversed via unauthorized-access claims through PayPal, or, if the F&amp;F payment was funded by a credit card, a chargeback through the customer\'s card issuer. So the reversal risk is non-zero, but materially smaller than card processing.',
                 ),
                 array(
                     'q' => 'How do I issue refunds to customers?',
@@ -181,7 +181,7 @@ $refund_url      = home_url( '/refund-policy' );
                 ),
                 array(
                     'q' => 'What happens if my license expires?',
-                    'a' => 'Your license unlocks 1 year of plugin updates and support; renew annually to keep both flowing. Without an active license, you stop receiving WooCommerce-compatibility patches, security updates, and access to support &mdash; over time, as WP and WC release new versions, your install will fall behind and eventually need an update you can no longer get. Existing orders, settings, and historical data stay intact, and renewing at any time restores updates and support immediately. We recommend renewing before your term ends so the transition is seamless.',
+                    'a' => 'Your license unlocks 1 year of plugin updates and support; renew annually to keep both flowing. Without an active license, you stop receiving WooCommerce-compatibility patches, security updates, and access to support - over time, as WP and WC release new versions, your install will fall behind and eventually need an update you can no longer get. Existing orders, settings, and historical data stay intact, and renewing at any time restores updates and support immediately. We recommend renewing before your term ends so the transition is seamless.',
                 ),
                 array(
                     'q' => 'Does it work with WooCommerce Subscriptions?',
@@ -232,7 +232,7 @@ $refund_url      = home_url( '/refund-policy' );
         <h2>Ready to stop chasing payments by hand?</h2>
         <p>Start your 7-day free trial. No card required.</p>
         <a class="pp-btn pp-btn--inverse pp-btn--lg" href="<?php echo esc_url( $checkout_url ); ?>">Start 7-day free trial &rarr;</a>
-        <p class="pp-cta-skip pp-cta-skip--inverse"><a href="#tiers">or skip the trial &mdash; pick a tier and buy now &uarr;</a></p>
+        <p class="pp-cta-skip pp-cta-skip--inverse"><a href="#tiers">or skip the trial - pick a tier and buy now &uarr;</a></p>
     </div>
 </section>
 

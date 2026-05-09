@@ -1,6 +1,6 @@
 <?php
 /**
- * Pipe Pay child theme — bootstrap.
+ * Pipe Pay child theme - bootstrap.
  * Enqueues parent + child styles, loads Inter from Google Fonts, registers basic theme support.
  */
 
@@ -42,13 +42,13 @@ add_action( 'wp_enqueue_scripts', function() {
     );
 
     // Child stylesheet is auto-enqueued by GeneratePress (handle "generate-child",
-    // cache-busted via filemtime) — see generatepress/inc/general.php. Don't
+    // cache-busted via filemtime) - see generatepress/inc/general.php. Don't
     // double-enqueue here or stale CDN-cached copies of an old ?ver= can win.
 
     // WC overrides live in their own file and load ONLY on WC pages. Saves
     // ~30KB on every marketing page (was previously appended to style.css
     // and shipped to every visitor). The WC bundle itself is also dequeued
-    // on non-WC pages by the priority-99 hook below — this stylesheet is
+    // on non-WC pages by the priority-99 hook below - this stylesheet is
     // OUR brand-match overrides, not WC's own CSS.
     if ( function_exists( 'is_woocommerce' ) && ( is_woocommerce() || is_cart() || is_checkout() || is_account_page() ) ) {
         $rel = '/woocommerce.css';
@@ -283,7 +283,7 @@ add_filter( 'woocommerce_add_cart_item_data', function( $cart_item_data, $produc
 // ?intent=34|35|36 alongside the trial product (38). We persist that as a
 // cart-item meta so the trial order can pre-fill the customer's preferred
 // paid tier at conversion time. Header / hero / final-CTA trial buttons
-// don't carry intent — those customers pick their tier at conversion.
+// don't carry intent - those customers pick their tier at conversion.
 //
 // Strict allow-list: only {34, 35, 36} are accepted. Any other value is
 // silently dropped, and the order goes through with no intent stored.

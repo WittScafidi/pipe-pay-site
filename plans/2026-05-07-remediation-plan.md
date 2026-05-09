@@ -1,4 +1,4 @@
-# Pipe Pay Remediation Plan — 2026-05-07
+# Pipe Pay Remediation Plan - 2026-05-07
 
 > Drafted from the five-agent code review on 2026-05-07. Reports live in `pipe-pay-site/reviews/` and `pipe-pay-extracted/reviews/`. This plan organizes those findings into executable phases with effort estimates, success criteria, and ship sequencing.
 
@@ -10,16 +10,16 @@ Six phases, ordered by **risk-adjusted leverage** (do high-impact zero-risk work
 Phase 1: Doc truth-up               (site repo, no risk, ~2h)
 Phase 2: Site a11y + SEO            (site repo, low risk, ~half day)
 Phase 4: License-resolver hardening (site repo, low risk, ~half day, ships with site deploy)
-Phase 3: Plugin v1.6.4 — security + bugs (plugin release, careful, ~2-3 days)
+Phase 3: Plugin v1.6.4 - security + bugs (plugin release, careful, ~2-3 days)
 Phase 5: Plugin code quality        (rolling, multi-release, ~2 weeks total)
 Phase 6: Site theme polish          (rolling, ~half day)
 ```
 
-**Why this order:** Phase 1+2+4 ship today and remove the most embarrassing findings (false claims in customer docs, broken accessibility, public-endpoint enumeration oracle) at zero risk to the live gateway. Phase 3 is a plugin release — bigger blast radius because the v1.6.4 zip will hit every customer's "Update Available" notification — so do it after the easier wins build confidence. Phase 5+6 are continuous improvement, not blockers.
+**Why this order:** Phase 1+2+4 ship today and remove the most embarrassing findings (false claims in customer docs, broken accessibility, public-endpoint enumeration oracle) at zero risk to the live gateway. Phase 3 is a plugin release - bigger blast radius because the v1.6.4 zip will hit every customer's "Update Available" notification - so do it after the easier wins build confidence. Phase 5+6 are continuous improvement, not blockers.
 
 ---
 
-## Phase 1 — Doc truth-up (~2 hours, site repo only, no risk)
+## Phase 1 - Doc truth-up (~2 hours, site repo only, no risk)
 
 **Goal:** every factual claim in customer-facing docs and CLAUDE.md matches the code.
 
@@ -35,21 +35,21 @@ Phase 6: Site theme polish          (rolling, ~half day)
 - [ ] Change "20 uploads per hour per source IP" to "10 valid uploads per order per IP per hour."
 - [ ] Remove the per-customer-per-day claim (it doesn't exist in code).
 - [ ] Change per-order lifetime from "3" to "5."
-- [ ] Remove the "tunable via constants in wp-config.php" claim — none of the rate limits are wp-config tunable.
+- [ ] Remove the "tunable via constants in wp-config.php" claim - none of the rate limits are wp-config tunable.
 - [ ] Add the brute-force counter: "Failed-key uploads are capped at 50/hour per IP to prevent enumeration."
 
 #### 1.3 Fix the AI verification article
 - [ ] Auto-approve cap default: change `$200` → `$500` (~line 75).
 
 #### 1.4 Fix the troubleshooting article
-- [ ] Remove "falls back to GD when Imagick is unavailable" (~line 396) — there is no GD fallback. Replace with: "HEIC requires Imagick + the HEIC delegate; without it, HEIC uploads are rejected with an inline error pointing the customer at common workarounds."
+- [ ] Remove "falls back to GD when Imagick is unavailable" (~line 396) - there is no GD fallback. Replace with: "HEIC requires Imagick + the HEIC delegate; without it, HEIC uploads are rejected with an inline error pointing the customer at common workarounds."
 - [ ] Change "deletion job runs every six hours" → "daily" (~line 319).
 - [ ] Soften the log-retention claim: "Day-to-day Pipe Pay events are written to per-order Order Notes; unexpected failures land in PHP's `error_log`. The Kestrel SDK uses WC's logger for license-server errors; those follow WC's default 30-day retention."
 
 #### 1.5 Fix the license-management article
 - [ ] Site-tier prices: $249/$499/$999 → $299/$599/$1,199 (~lines 351-353).
 - [ ] License-server URL: replace `https://pipepay.app/wp-json/wc-am-api/v1/` with `https://pipepay.app/?wc-api=wc-am-api` (~line 347).
-- [ ] Renewal cadence: soften to "the SDK piggy-backs on WordPress's standard plugin update check (typically every ~12 hours)" — remove the 30/7/1 day notice claim, those are scheduled by Kestrel server-side and not user-tunable from the plugin.
+- [ ] Renewal cadence: soften to "the SDK piggy-backs on WordPress's standard plugin update check (typically every ~12 hours)" - remove the 30/7/1 day notice claim, those are scheduled by Kestrel server-side and not user-tunable from the plugin.
 
 #### 1.6 Fix the configuration article
 - [ ] QR auto-hide breakpoint: 600px → 720px (~line 186).
@@ -58,7 +58,7 @@ Phase 6: Site theme polish          (rolling, ~half day)
 - [ ] Default storage path: replace `wp-content/uploads/pipepay-proofs/` with `wp-content/private-pipepay-proofs/` (primary) and mention `wp-content/uploads/pipepay-proofs-private/` as the fallback when the primary isn't writable (~line 298).
 
 #### 1.8 Fix CLAUDE.md version drift
-- [ ] Global s/1.6.1/1.6.3/ — currently mixes the two. Special attention to:
+- [ ] Global s/1.6.1/1.6.3/ - currently mixes the two. Special attention to:
   - Line 84 (Plugins active section)
   - Lines 226-237 (smoke-test instructions)
   - Line 321 ("current customer-facing release")
@@ -82,7 +82,7 @@ Phase 6: Site theme polish          (rolling, ~half day)
 
 ---
 
-## Phase 2 — Site accessibility + SEO (~half day, site repo only, low risk)
+## Phase 2 - Site accessibility + SEO (~half day, site repo only, low risk)
 
 **Goal:** WCAG 2.4.1 + 2.5.5 compliance on the marketing site; full SEO meta on every template.
 
@@ -98,7 +98,7 @@ Phase 6: Site theme polish          (rolling, ~half day)
 
 #### 2.2 Mobile drawer focus management (`functions.php:140-171`)
 - [ ] On open: store the previously-focused element, move focus into the drawer (first link).
-- [ ] On close (any path — ESC, link click, button toggle): return focus to `.pp-nav-toggle`.
+- [ ] On close (any path - ESC, link click, button toggle): return focus to `.pp-nav-toggle`.
 - [ ] Add `inert` attribute (or focus-trap with JS) on hidden header content + main while the drawer is open. Modern Safari + Chrome support `inert` natively.
 - [ ] Add visible focus styles to nav links inside the drawer (currently inheriting browser default ring on white).
 
@@ -122,7 +122,7 @@ Phase 6: Site theme polish          (rolling, ~half day)
 - [ ] Replace the 4 copies in `front-page.php` (header + final-CTA inverse), `header.php`, `footer.php` with `include` calls.
 - [ ] Remove the `phpcs:ignore` annotations from those echo lines.
 
-#### 2.7 `page-contact.php:26` — fix unescaped `href` echo
+#### 2.7 `page-contact.php:26` - fix unescaped `href` echo
 - [ ] Change `echo $mail_subject` to `echo esc_attr( $mail_subject )`. Even though `$mail_subject` is currently safe, the pattern is wrong and a future change becomes an attribute-injection vector.
 
 ### Success criteria
@@ -137,7 +137,7 @@ Phase 6: Site theme polish          (rolling, ~half day)
 
 ---
 
-## Phase 4 — License-resolver hardening (~half day, site repo, low risk)
+## Phase 4 - License-resolver hardening (~half day, site repo, low risk)
 
 **Goal:** kill the enumeration oracle and add the operational visibility we currently have zero of.
 
@@ -150,7 +150,7 @@ Phase 6: Site theme polish          (rolling, ~half day)
 - [ ] Move the regex/length validation BEFORE the `pipepay_license_resolve_check_rate_limit()` call. Bad-shape keys should not consume a real customer's per-IP bucket.
 
 #### 4.3 Rate-limit transient race (H1)
-- [ ] Replace `get_transient` + `set_transient` with `wp_cache_add` on first hit and `wp_cache_incr` thereafter. Atomic. Falls back to transient TTL if object-cache backend doesn't support `incr` (e.g. plain database transient cache — degrades gracefully).
+- [ ] Replace `get_transient` + `set_transient` with `wp_cache_add` on first hit and `wp_cache_incr` thereafter. Atomic. Falls back to transient TTL if object-cache backend doesn't support `incr` (e.g. plain database transient cache - degrades gracefully).
 
 #### 4.4 Explicit HTTPS guard (M1)
 - [ ] Add at top of handler:
@@ -178,11 +178,11 @@ Phase 6: Site theme polish          (rolling, ~half day)
 
 ### Deploy
 - Theme sync (mu-plugins ships with the theme repo) + Cloudflare purge.
-- **Test before purge:** new license activations must still work end-to-end. Regression risk is real — license activation is on the critical path for every customer install.
+- **Test before purge:** new license activations must still work end-to-end. Regression risk is real - license activation is on the critical path for every customer install.
 
 ---
 
-## Phase 3 — Plugin v1.6.4 release: security + critical bugs (~2-3 days, plugin release)
+## Phase 3 - Plugin v1.6.4 release: security + critical bugs (~2-3 days, plugin release)
 
 **Goal:** ship a hardened plugin release that customers can update to via the standard WP plugin update notification.
 
@@ -199,7 +199,7 @@ Phase 6: Site theme polish          (rolling, ~half day)
 - [ ] In `class-pipepay-vision-client.php`, after parsing the AI response:
   - Numerically compare `extracted_amount` to `expected_amount` with a $0.01 tolerance. If mismatch, force `confidence = 'low'` regardless of what the model said.
   - Substring-compare `extracted_recipient` to the configured handle for the rail (case-insensitive, ignoring `@` / `$` / spacing differences). If mismatch, force `confidence = 'low'`.
-- [ ] Add a flag in the AI reasoning text so the admin reviewing the proof can see "amount cross-check FAILED — model claimed $87.50 but order total is $97.50."
+- [ ] Add a flag in the AI reasoning text so the admin reviewing the proof can see "amount cross-check FAILED - model claimed $87.50 but order total is $97.50."
 - [ ] Write tests for the cross-check function (numerically equal, off-by-cent, off-by-dollar, recipient substring match w/ casing variations, etc.).
 
 #### 3.3 Force `sslverify=true` for license calls (H-1)
@@ -212,7 +212,7 @@ Phase 6: Site theme polish          (rolling, ~half day)
 
 #### 3.5 Fix per-customer rate-limit gap (C-1)
 - [ ] **Decision required:** either (a) add a real per-billing-email counter (`pipepay_proof_email_<sha256(email)>` checked over 24h), OR (b) remove the false claim from SECURITY.md and the customer doc.
-- [ ] Recommended: do (a) — it's a real fraud-mitigation gap. Track per-email + per-rail-handle (not per-customer-account, since checkout is guest-friendly).
+- [ ] Recommended: do (a) - it's a real fraud-mitigation gap. Track per-email + per-rail-handle (not per-customer-account, since checkout is guest-friendly).
 
 #### 3.6 Tighten uninstall path containment (C-2)
 - [ ] In `uninstall.php:140-149`, `pipepay_uninstall_safe_path()`:
@@ -237,7 +237,7 @@ Phase 6: Site theme polish          (rolling, ~half day)
 - [ ] Test that the defensive `set_status() + save()` workaround in `class-pipepay-gateway.php:725-728` is no longer needed (leave it in but add a comment that it's belt-and-braces).
 
 #### 3.9 Cap badge counter query (Q-3, Q-4)
-- [ ] `class-pipepay-admin.php:53` — `get_pending_proof_count()` runs `wc_get_orders([... 'limit' => -1 ])` on every admin page load. Replace with a count query (use `wc_get_orders([... 'return' => 'ids', 'limit' => 200 ])` and `count()` the result; show "200+" in the badge if at the cap).
+- [ ] `class-pipepay-admin.php:53` - `get_pending_proof_count()` runs `wc_get_orders([... 'limit' => -1 ])` on every admin page load. Replace with a count query (use `wc_get_orders([... 'return' => 'ids', 'limit' => 200 ])` and `count()` the result; show "200+" in the badge if at the cap).
 
 #### 3.10 Per-provider AI key storage (L-5)
 - [ ] In gateway settings, store API keys per-provider (`ai_api_key_openai`, `ai_api_key_anthropic`, etc.) instead of a single shared `ai_api_key`. Migrate the existing setting on update.
@@ -252,11 +252,11 @@ Phase 6: Site theme polish          (rolling, ~half day)
 
 ### Testing checklist before release
 - [ ] PHPUnit covers `PipePay_Storage::resolve_proof_path` containment edge cases (Phase 5 gives us the harness, but ship at minimum the new cross-check tests for H-3 and the uninstall path test for C-2).
-- [ ] Manual: place test order through the dogfood flow, verify it still completes end-to-end with the IP-detection change (since the dogfood site IS behind Cloudflare, the path that runs is the new "honor CF-Connecting-IP because REMOTE_ADDR is in CF range" branch — make sure that path actually fires).
+- [ ] Manual: place test order through the dogfood flow, verify it still completes end-to-end with the IP-detection change (since the dogfood site IS behind Cloudflare, the path that runs is the new "honor CF-Connecting-IP because REMOTE_ADDR is in CF range" branch - make sure that path actually fires).
 - [ ] Manual: place test order with a screenshot whose extracted_amount mismatches the order total. Verify confidence is forced to `low` and the order lands in the manual queue (instead of auto-approving).
 - [ ] Manual: place test order with a screenshot whose recipient handle is wrong. Verify confidence is forced to `low`.
 - [ ] Manual: license activation on a fresh test site against `pipepay.app` succeeds (sslverify=true didn't break anything).
-- [ ] Manual: visit a `wc-awaiting-proof` order URL while logged out — should not appear in WP search or feed.
+- [ ] Manual: visit a `wc-awaiting-proof` order URL while logged out - should not appear in WP search or feed.
 - [ ] Manual: PHP version notice fires on a PHP 7.4 install (use a Docker container or staging site).
 - [ ] Manual: badge counter shows correct number (≤200) and doesn't slow down admin page loads.
 - [ ] Verify `pipe-pay.php` version bumped to `1.6.4`, `PIPEPAY_VERSION` constant updated.
@@ -277,30 +277,30 @@ Phase 6: Site theme polish          (rolling, ~half day)
 
 ---
 
-## Phase 5 — Plugin code quality (rolling, ~2 weeks total, multiple releases)
+## Phase 5 - Plugin code quality (rolling, ~2 weeks total, multiple releases)
 
 **Goal:** structural improvements that don't block today but limit how far the plugin can scale.
 
 ### 5a. Test infrastructure (highest priority of this phase)
 - [ ] Add `tests/` directory with `phpunit.xml.dist` and a WC test bootstrap (`wp-phpunit/wp-phpunit` + `woocommerce/woocommerce-rest-api-tests` fixtures).
 - [ ] Initial tests:
-  - `PipePay_Storage::resolve_proof_path` — containment, traversal attempts, missing dir, custom path.
-  - `PipePay_Vision_Client::parse_response` — well-formed JSON, malformed JSON, missing fields, unexpected confidence values, the new amount/recipient cross-check.
+  - `PipePay_Storage::resolve_proof_path` - containment, traversal attempts, missing dir, custom path.
+  - `PipePay_Vision_Client::parse_response` - well-formed JSON, malformed JSON, missing fields, unexpected confidence values, the new amount/recipient cross-check.
   - Account rotation logic (LRU and round-robin both).
   - Rate-limit counter atomicity.
 - [ ] Wire up GitHub Actions (`.github/workflows/test.yml`) to run on PR + push.
 
 ### 5b. Refactor god-files
 - [ ] Split `class-pipepay-gateway.php` (1899 lines) into:
-  - `class-pipepay-gateway.php` — core `WC_Payment_Gateway` subclass (process_payment, validation, status transitions)
-  - `class-pipepay-settings.php` — `init_form_fields()` and per-section configuration
-  - `class-pipepay-account-rotation.php` — multi-account assignment + rotation algorithm
-  - `class-pipepay-admin-scripts.php` — admin-side script/style enqueueing
+  - `class-pipepay-gateway.php` - core `WC_Payment_Gateway` subclass (process_payment, validation, status transitions)
+  - `class-pipepay-settings.php` - `init_form_fields()` and per-section configuration
+  - `class-pipepay-account-rotation.php` - multi-account assignment + rotation algorithm
+  - `class-pipepay-admin-scripts.php` - admin-side script/style enqueueing
 - [ ] Split `pipepay-hooks.php` (1222 lines) into:
-  - `class-pipepay-rest-controller.php` — REST endpoint registration + handlers
-  - `class-pipepay-admin-meta-box.php` — order-edit screen meta box
-  - `class-pipepay-reminder-scheduler.php` — Action Scheduler integration for reminders + auto-cancel
-  - `class-pipepay-helpers.php` — small utilities (IP detection, log helper)
+  - `class-pipepay-rest-controller.php` - REST endpoint registration + handlers
+  - `class-pipepay-admin-meta-box.php` - order-edit screen meta box
+  - `class-pipepay-reminder-scheduler.php` - Action Scheduler integration for reminders + auto-cancel
+  - `class-pipepay-helpers.php` - small utilities (IP detection, log helper)
 - [ ] Each split = its own commit; release as v1.7.0 once all done.
 
 ### 5c. i18n pass
@@ -336,7 +336,7 @@ Phase 6: Site theme polish          (rolling, ~half day)
 
 ---
 
-## Phase 6 — Site theme polish (~half day, rolling)
+## Phase 6 - Site theme polish (~half day, rolling)
 
 ### Tasks
 
@@ -371,7 +371,7 @@ Phase 6: Site theme polish          (rolling, ~half day)
 | Risk | Phase | Mitigation |
 |---|---|---|
 | Plugin v1.6.4 breaks license activation for new customers | 3 | Test license activation on a fresh test site BEFORE bumping the WC product `_product_version`. Existing customers can't break (none in the wild yet) but the live store would. |
-| IP-range-restricted CF detection breaks the dogfood gateway | 3 | The dogfood site sits behind Cloudflare — `REMOTE_ADDR` will be a CF range, so the new code path is exactly what fires. Sanity test on dogfood for 24h before promoting. |
+| IP-range-restricted CF detection breaks the dogfood gateway | 3 | The dogfood site sits behind Cloudflare - `REMOTE_ADDR` will be a CF range, so the new code path is exactly what fires. Sanity test on dogfood for 24h before promoting. |
 | Server-side amount cross-check causes false rejections on legit orders | 3 | Test with the screenshots that previously auto-approved (in dogfood test orders). Build a small set of "should approve" + "should not approve" reference screenshots before shipping. |
 | License-resolver hardening breaks existing license calls | 4 | Test the resolver flow with a real (test) license activation on a separate site BEFORE deploying. Both old and new responses should be acceptable to the SDK. |
 | Phase 1 doc edits accidentally remove correct claims | 1 | Re-grep verification: each fixed claim should be re-confirmed against the source code by file:line. The doc-vs-reality review report is the authoritative checklist. |
@@ -381,20 +381,20 @@ Phase 6: Site theme polish          (rolling, ~half day)
 
 These are flagged in the reviews but deferred:
 - **Multisite super-admin handling** in plugin admin (low risk, no demand).
-- **WooCommerce Subscriptions migration tooling** for Pro tier customers — separate spec at `pipe-pay-extracted/specs/pipe-pay-pro-v1.md`, V2 work.
+- **WooCommerce Subscriptions migration tooling** for Pro tier customers - separate spec at `pipe-pay-extracted/specs/pipe-pay-pro-v1.md`, V2 work.
 - **Public webhook events / API** for third-party integrations (Pipe Pay Pro V2).
-- **Third-party Kestrel SDK security** beyond the staging-host MITM fix — full SDK audit would be a separate engagement.
+- **Third-party Kestrel SDK security** beyond the staging-host MITM fix - full SDK audit would be a separate engagement.
 - **Marketing-site analytics** (no GA / Plausible / etc. installed; intentional for now).
 
 ## Estimated total effort
 
 | Phase | Effort | Cadence |
 |---|---|---|
-| 1 — Doc truth-up | ~2h | One sitting |
-| 2 — Site a11y + SEO | ~half day | One sitting |
-| 4 — Resolver hardening | ~half day | One sitting |
-| 3 — Plugin v1.6.4 | ~2-3 days | Spread across 1 week with testing |
-| 5 — Plugin quality | ~2 weeks | Multiple releases over a month |
-| 6 — Site polish | ~half day | One sitting |
+| 1 - Doc truth-up | ~2h | One sitting |
+| 2 - Site a11y + SEO | ~half day | One sitting |
+| 4 - Resolver hardening | ~half day | One sitting |
+| 3 - Plugin v1.6.4 | ~2-3 days | Spread across 1 week with testing |
+| 5 - Plugin quality | ~2 weeks | Multiple releases over a month |
+| 6 - Site polish | ~half day | One sitting |
 
 **Aggregate from start to "everything in this plan shipped": ~5-6 weeks** at part-time pace, or ~2 weeks of focused full-time work. The first 1.5 days (Phases 1+2+4) materially improve the public-facing posture without any plugin-release risk.

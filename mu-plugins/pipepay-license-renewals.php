@@ -11,7 +11,7 @@
  *
  * The HMAC signs (license_key, access_expires, secret). Replay-resistant: once
  * a license is renewed, access_expires changes, and the old token stops
- * verifying. The signed tuple is the auth — no logged-in customer required.
+ * verifying. The signed tuple is the auth - no logged-in customer required.
  *
  * Behavior matrix:
  *
@@ -26,7 +26,7 @@
  *      -> empty cart, add the same tier, attach _pipepay_renewal_for_license
  *         cart-item meta (used by a future order-completion hook to extend
  *         the existing license's access_expires by 365 days instead of
- *         minting a new license — see CLAUDE.md renewal-cadence to-do)
+ *         minting a new license - see CLAUDE.md renewal-cadence to-do)
  *
  *   any tier override (?tier=NN, allow-listed) wins over the default routing.
  *   The HMAC still secures the (key, expires) tuple; tier choice is open
@@ -52,7 +52,7 @@ const PIPEPAY_RENEWAL_PAGE_SLUG        = 'renew';
 /**
  * Sign a (license_key, access_expires) tuple.
  *
- * Returns empty string if the secret isn't configured — caller must check
+ * Returns empty string if the secret isn't configured - caller must check
  * defined( 'PIPEPAY_RENEWAL_HMAC_SECRET' ) before relying on a token. This
  * is intentional: an empty token never verifies, so misconfiguration
  * can't accidentally produce valid links.
@@ -66,7 +66,7 @@ function pipepay_renewal_hmac_sign( string $license_key, int $access_expires ): 
 
 /**
  * Constant-time compare an incoming token against the expected one.
- * Replay-resistant by binding to access_expires — a renewed license has a new
+ * Replay-resistant by binding to access_expires - a renewed license has a new
  * expires, and the old token no longer matches.
  */
 function pipepay_renewal_hmac_verify( string $license_key, int $access_expires, string $token ): bool {
@@ -133,7 +133,7 @@ function pipepay_renewal_get_intended_tier( int $order_id ): ?int {
 
 // ── Route handler ────────────────────────────────────────────────────────────
 // Hooks at template_redirect on the /renew/ WP page (slug: renew).
-// Page must exist — see post-deploy step in the README block at the bottom.
+// Page must exist - see post-deploy step in the README block at the bottom.
 
 add_action( 'template_redirect', 'pipepay_renewal_route_handler' );
 
@@ -176,7 +176,7 @@ function pipepay_renewal_route_handler(): void {
 
     $license = pipepay_renewal_lookup_license( $key );
     if ( ! $license ) {
-        // Same opaque error as a bad HMAC — no enumeration oracle.
+        // Same opaque error as a bad HMAC - no enumeration oracle.
         pipepay_renewal_render_error(
             'Renewal link invalid',
             'This renewal link is no longer valid. It may have been used already, or the license details have changed since the link was issued. Please request a fresh link from your <a href="' . esc_url( home_url( '/my-account' ) ) . '">account page</a> or <a href="' . esc_url( home_url( '/contact' ) ) . '">contact support</a>.',
@@ -209,7 +209,7 @@ function pipepay_renewal_route_handler(): void {
     // Tier override (?tier=NN). Used by the Stage 4 picker for trial signups
     // without intent. Allow-list ensures only valid paid tiers can be selected.
     if ( $tier_override_raw && in_array( $tier_override_raw, PIPEPAY_RENEWAL_TIER_PRODUCT_IDS, true ) ) {
-        // Pass renewal-for-license only when this is a paid-tier renewal —
+        // Pass renewal-for-license only when this is a paid-tier renewal -
         // trial->paid is a NEW license, not an extension of the trial.
         pipepay_renewal_redirect_to_checkout( $tier_override_raw, $is_trial ? '' : $key );
         return;
@@ -237,7 +237,7 @@ function pipepay_renewal_route_handler(): void {
         return;
     }
 
-    // Unknown product on the resource record — shouldn't happen with our
+    // Unknown product on the resource record - shouldn't happen with our
     // 4 products, but log and bail safely.
     if ( function_exists( 'error_log' ) ) {
         error_log( 'Pipe Pay renewal: unrecognized product_id ' . $license_product_id . ' on license ' . substr( $key, 0, 6 ) . '...' );
@@ -255,14 +255,14 @@ function pipepay_renewal_route_handler(): void {
  * Empty the cart, add the target tier, and redirect to checkout.
  *
  * @param int    $tier_product_id     Paid tier product ID (34, 35, 36).
- * @param string $renewal_for_license Optional license key — present on paid
+ * @param string $renewal_for_license Optional license key - present on paid
  *                                    renewals so a future order-completion
  *                                    hook can extend the existing license.
  *                                    Empty for trial -> paid conversions.
  */
 function pipepay_renewal_redirect_to_checkout( int $tier_product_id, string $renewal_for_license = '' ): void {
     if ( ! function_exists( 'WC' ) ) {
-        // WC not loaded — shouldn't happen on the renew page (it's a WP page,
+        // WC not loaded - shouldn't happen on the renew page (it's a WP page,
         // WC is fully booted by template_redirect), but defensive.
         wp_safe_redirect( home_url( '/' ) );
         exit;

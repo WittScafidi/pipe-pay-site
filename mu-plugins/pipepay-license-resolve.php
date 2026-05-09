@@ -214,7 +214,7 @@ function pipepay_license_resolve_handler( WP_REST_Request $request ): WP_REST_Re
                 $response->header( 'X-Pipepay-Signature-IssuedAt', (string) $issued_at );
                 $response->header( 'X-Pipepay-Signature-Version',  'v1' );
             } catch ( \Throwable $e ) {
-                // Don't fail the response if signing breaks — the plugin
+                // Don't fail the response if signing breaks - the plugin
                 // will warn and accept it for backward-compat. Log the
                 // breakage so ops sees it.
                 error_log( '[pipepay-license-resolve] signing failed: ' . $e->getMessage() );

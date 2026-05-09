@@ -1,5 +1,5 @@
 /* ============================================================
-   Pipe Pay child theme — WooCommerce overrides
+   Pipe Pay child theme - WooCommerce overrides
    ============================================================
    Brand-match the WC shop / cart / checkout / my-account pages.
    Loaded ONLY on WC pages via functions.php (saves ~30KB on every
@@ -51,7 +51,7 @@ body.woocommerce-page main .pp-container { max-width: 1140px; }
 body.woocommerce-checkout .pp-page-hero { padding-bottom: clamp(20px, 2vw, 32px); }
 body.woocommerce-checkout main .pp-checkout-page { padding-top: 16px; }
 
-/* WooCommerce buttons — match Pipe Pay button system */
+/* WooCommerce buttons - match Pipe Pay button system */
 .woocommerce a.button,
 .woocommerce-page a.button,
 .woocommerce button.button,
@@ -93,7 +93,7 @@ body.woocommerce-checkout main .pp-checkout-page { padding-top: 16px; }
     color: var(--pp-blue);
 }
 
-/* Primary buttons — Add to Cart, Place Order, Update Cart, Proceed to Checkout */
+/* Primary buttons - Add to Cart, Place Order, Update Cart, Proceed to Checkout */
 .woocommerce a.button.alt,
 .woocommerce-page a.button.alt,
 .woocommerce button.button.alt,
@@ -214,7 +214,7 @@ body.woocommerce-checkout main .pp-checkout-page { padding-top: 16px; }
     display: none; /* hide the default little arrow */
 }
 
-/* Tables — cart, checkout summary, my-account orders */
+/* Tables - cart, checkout summary, my-account orders */
 .woocommerce table.shop_table,
 .woocommerce-page table.shop_table {
     background: #fff;
@@ -486,7 +486,7 @@ body.woocommerce-checkout main .pp-checkout-page { padding-top: 16px; }
 }
 
 /* ============================================================
-   /my-account — login, register, dashboard, tables, notices
+   /my-account - login, register, dashboard, tables, notices
    Augments the .woocommerce-MyAccount-* rules above with styling
    for elements WC defaults left to its own UI. Brand-matches the
    classic-shortcode forms (account uses classic; checkout uses Block).
@@ -506,7 +506,7 @@ body.woocommerce-checkout main .pp-checkout-page { padding-top: 16px; }
 .woocommerce-account h2 + .woocommerce-form-login,
 .woocommerce-account h2 + .woocommerce-form-register { margin-top: 12px; }
 
-/* Form inputs — match the brand pattern used elsewhere. The 16px floor
+/* Form inputs - match the brand pattern used elsewhere. The 16px floor
  * is already enforced site-wide (iOS zoom defense), this just adds the
  * border / radius / focus state. */
 .woocommerce-account .woocommerce-Input,
@@ -617,7 +617,7 @@ body.woocommerce-checkout main .pp-checkout-page { padding-top: 16px; }
     text-decoration: underline;
 }
 
-/* Tables — orders, downloads, API keys, API downloads, addresses. Shared
+/* Tables - orders, downloads, API keys, API downloads, addresses. Shared
  * shop_table treatment + per-table tweaks below. */
 .woocommerce-account .shop_table,
 .woocommerce-account .woocommerce-orders-table,
@@ -1052,7 +1052,7 @@ select {
     font-size: 16px;
 }
 
-/* Hide GeneratePress chrome — only on the homepage where front-page.php
+/* Hide GeneratePress chrome - only on the homepage where front-page.php
    inlines its own header/footer. Sub-pages use header.php/footer.php
    which don't include GP's wrappers, so this rule has no effect there. */
 body.is-front-page > .site,

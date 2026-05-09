@@ -82,7 +82,7 @@ Built by someone who needed it.
 
 **Body (first person, ~180 words):**
 
-I run businesses that don't fit cleanly into the major processors' approval boxes — different reasons each time, but the result was the same: a processor that wouldn't take me, a processor that took me and changed its mind, or one that held funds long enough to make planning impossible.
+I run businesses that don't fit cleanly into the major processors' approval boxes - different reasons each time, but the result was the same: a processor that wouldn't take me, a processor that took me and changed its mind, or one that held funds long enough to make planning impossible.
 
 I shifted to accepting Venmo, Cash App, PayPal, and Zelle directly. That solved the access problem and immediately created a new one: matching 50+ payments a day by hand to the right WooCommerce orders. I tried other plugins. None of them did the workflow correctly, and most of them assumed you were a textbook Stripe-compatible store who'd just landed on the wrong page.
 

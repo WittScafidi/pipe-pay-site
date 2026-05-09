@@ -15,7 +15,7 @@ $checkout_url    = home_url( '/checkout/?add-to-cart=38' );
 // Trial CTAs from a tier card carry an `intent` param so the customer's tier
 // preference is captured at signup and surfaces again at trial conversion.
 // `intent` is validated to {34, 35, 36} by the woocommerce_add_cart_item_data
-// filter in functions.php — mismatched values are dropped silently.
+// filter in functions.php - mismatched values are dropped silently.
 $trial_intent_single = home_url( '/checkout/?add-to-cart=38&intent=34' );
 $trial_intent_five   = home_url( '/checkout/?add-to-cart=38&intent=35' );
 $trial_intent_unlim  = home_url( '/checkout/?add-to-cart=38&intent=36' );
@@ -99,7 +99,7 @@ $changelog_url   = home_url( '/changelog' );
                 <a class="pp-btn pp-btn--inverse pp-btn--lg" href="<?php echo esc_url( $checkout_url ); ?>">Start 7-day free trial &rarr;</a>
                 <a class="pp-btn pp-btn--ghost-light pp-btn--lg" href="#how">How it works &darr;</a>
             </div>
-            <p class="pp-cta-skip pp-cta-skip--inverse"><a href="<?php echo esc_url( $pricing_url ); ?>">or skip the trial &mdash; buy a license now &rarr;</a></p>
+            <p class="pp-cta-skip pp-cta-skip--inverse"><a href="<?php echo esc_url( $pricing_url ); ?>">or skip the trial - buy a license now &rarr;</a></p>
         </div>
 
         <div class="pp-hero-mock">
@@ -203,8 +203,8 @@ $changelog_url   = home_url( '/changelog' );
             <article class="pp-persona">
                 <span class="pp-persona__icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/><path d="M12 8v4"/><path d="M12 16h.01"/></svg></span>
                 <span class="pp-persona__tag">Underserved by major processors</span>
-                <p class="pp-persona__quote">"My processor doesn't fit my business &mdash; and the alternatives that do want four to eight percent plus a personal guarantee."</p>
-                <p class="pp-persona__body">Your customers pay you directly through Venmo, Cash App, PayPal, or Zelle &mdash; the apps they already use. The plugin handles the workflow that comes after: capturing the payment screenshot, verifying the amount and recipient, and moving the order through your existing WooCommerce admin. Use multiple P2P apps so a single account's weekly receive limit doesn't cap your daily volume.</p>
+                <p class="pp-persona__quote">"My processor doesn't fit my business - and the alternatives that do want four to eight percent plus a personal guarantee."</p>
+                <p class="pp-persona__body">Your customers pay you directly through Venmo, Cash App, PayPal, or Zelle - the apps they already use. The plugin handles the workflow that comes after: capturing the payment screenshot, verifying the amount and recipient, and moving the order through your existing WooCommerce admin. Use multiple P2P apps so a single account's weekly receive limit doesn't cap your daily volume.</p>
             </article>
 
             <article class="pp-persona">
@@ -218,7 +218,7 @@ $changelog_url   = home_url( '/changelog' );
                 <span class="pp-persona__icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"/><path d="M3 5v14a2 2 0 0 0 2 2h16v-5"/><path d="M18 12a2 2 0 0 0 0 4h4v-4z"/></svg></span>
                 <span class="pp-persona__tag">Tired of paying fees</span>
                 <p class="pp-persona__quote">"I'm bleeding fourteen and a half thousand a year in Stripe fees on $500K of orders. For what, a dashboard?"</p>
-                <p class="pp-persona__body">$299 a year, flat. Zero per-transaction fees on the plugin side. Personal Venmo, Cash App, and PayPal Friends &amp; Family take 0%. Business profiles take 1.9% to 2.75% &mdash; still under Stripe. Pipe Pay pays for itself the moment you cross about $10,300 in annual card volume. Every dollar saved on fees from there forward is yours.</p>
+                <p class="pp-persona__body">$299 a year, flat. Zero per-transaction fees on the plugin side. Personal Venmo, Cash App, and PayPal Friends &amp; Family take 0%. Business profiles take 1.9% to 2.75% - still under Stripe. Pipe Pay pays for itself the moment you cross about $10,300 in annual card volume. Every dollar saved on fees from there forward is yours.</p>
             </article>
         </div>
     </div>
@@ -350,14 +350,14 @@ $changelog_url   = home_url( '/changelog' );
                 </li>
 
                 <!-- Step 3: same payment-page layout as step 2, but the upload
-                     zone at the top is now in its submitting state — filename
+                     zone at the top is now in its submitting state - filename
                      visible, spinner active. Customer paid, came back, picked
                      their screenshot, and hit submit; payment context stays
                      visible below since they haven't left the page. -->
                 <li class="pp-flow__step">
                     <div class="pp-flow__phone">
                         <div class="pp-flow__screen pp-flow__screen--pay">
-                            <!-- Upload zone in submitting state — square box,
+                            <!-- Upload zone in submitting state - square box,
                                  spinner on top, filename underneath. -->
                             <div class="pp-flow__upload-zone pp-flow__upload-zone--submitting">
                                 <span class="pp-flow__spinner" aria-hidden="true"></span>
@@ -392,7 +392,7 @@ $changelog_url   = home_url( '/changelog' );
                                 <li>Screenshot the receipt</li>
                             </ol>
 
-                            <!-- Open Venmo CTA — same as step 2; the customer
+                            <!-- Open Venmo CTA - same as step 2; the customer
                                  can re-open the app any time if they need to
                                  re-pay or check the transaction. -->
                             <a class="pp-flow__open-btn" style="background:#008CFF;" aria-hidden="true">
@@ -408,7 +408,7 @@ $changelog_url   = home_url( '/changelog' );
                      success-state template (templates/pipe-pay-page.php): heading
                      "Screenshot received" + sub "We have your payment screenshot and
                      will process your order shortly." Deliberately makes NO mention
-                     of AI verification — customers shouldn't learn the verification
+                     of AI verification - customers shouldn't learn the verification
                      internals. The merchant-facing caption below the phone retains
                      the AI marketing hook because the homepage audience is merchants. -->
                 <li class="pp-flow__step">
@@ -481,7 +481,7 @@ $changelog_url   = home_url( '/changelog' );
         <div class="pp-self-checkout__card">
             <span class="pp-self-checkout__kicker">Live demo at checkout</span>
             <h2>Our own checkout runs on Pipe Pay.</h2>
-            <p>PipePay.app uses Pipe Pay for its checkout. Pick a tier below and pay with Venmo, Cash App, PayPal F&amp;F, or Zelle &mdash; it's the same flow your customers will go through, and the fastest way to see what they'll experience before you ever install the plugin.</p>
+            <p>PipePay.app uses Pipe Pay for its checkout. Pick a tier below and pay with Venmo, Cash App, PayPal F&amp;F, or Zelle - it's the same flow your customers will go through, and the fastest way to see what they'll experience before you ever install the plugin.</p>
             <div class="pp-self-checkout__methods" aria-label="Accepted P2P methods at our checkout">
                 <span class="pp-self-checkout__method">Venmo</span>
                 <span class="pp-self-checkout__method">Cash App</span>
@@ -514,7 +514,7 @@ $changelog_url   = home_url( '/changelog' );
                     <li>7-day free trial, no card required</li>
                 </ul>
                 <a class="pp-btn pp-btn--secondary" href="<?php echo esc_url( $trial_intent_single ); ?>">Start 7-day trial</a>
-                <a class="pp-btn pp-btn--ghost" href="<?php echo esc_url( $buy_single ); ?>">Buy now &mdash; skip the trial</a>
+                <a class="pp-btn pp-btn--ghost" href="<?php echo esc_url( $buy_single ); ?>">Buy now - skip the trial</a>
             </div>
             <div class="pp-pricing-card pp-pricing-card--featured">
                 <span class="pp-pricing-ribbon">Most Popular</span>
@@ -530,7 +530,7 @@ $changelog_url   = home_url( '/changelog' );
                     <li>7-day free trial, no card required</li>
                 </ul>
                 <a class="pp-btn pp-btn--primary" href="<?php echo esc_url( $trial_intent_five ); ?>">Start 7-day trial</a>
-                <a class="pp-btn pp-btn--ghost" href="<?php echo esc_url( $buy_five ); ?>">Buy now &mdash; skip the trial</a>
+                <a class="pp-btn pp-btn--ghost" href="<?php echo esc_url( $buy_five ); ?>">Buy now - skip the trial</a>
             </div>
             <div class="pp-pricing-card">
                 <svg class="pp-tier-illustration" viewBox="0 0 120 80" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false"><path d="M22 40 C22 22, 48 22, 60 40 C72 58, 98 58, 98 40 C98 22, 72 22, 60 40 C48 58, 22 58, 22 40 Z" fill="none" stroke="#1336a8" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/><rect x="29" y="35" width="12" height="10" rx="2" fill="#1336a8"/><rect x="79" y="35" width="12" height="10" rx="2" fill="#1336a8"/></svg>
@@ -545,10 +545,10 @@ $changelog_url   = home_url( '/changelog' );
                     <li>7-day free trial, no card required</li>
                 </ul>
                 <a class="pp-btn pp-btn--secondary" href="<?php echo esc_url( $trial_intent_unlim ); ?>">Start 7-day trial</a>
-                <a class="pp-btn pp-btn--ghost" href="<?php echo esc_url( $buy_unlim ); ?>">Buy now &mdash; skip the trial</a>
+                <a class="pp-btn pp-btn--ghost" href="<?php echo esc_url( $buy_unlim ); ?>">Buy now - skip the trial</a>
             </div>
         </div>
-        <p class="pp-pricing-fineprint">Each license includes 1 year of plugin updates and support. Renew annually to keep receiving WooCommerce-compatibility patches, security updates, and support &mdash; without renewal, your install falls behind each WP and WC release and eventually needs an update you can no longer get. Cancel anytime before the trial ends and you won't be charged. Once your trial converts to a paid license, all sales are final, no refunds. The 7-day trial is your evaluation window.</p>
+        <p class="pp-pricing-fineprint">Each license includes 1 year of plugin updates and support. Renew annually to keep receiving WooCommerce-compatibility patches, security updates, and support - without renewal, your install falls behind each WP and WC release and eventually needs an update you can no longer get. Cancel anytime before the trial ends and you won't be charged. Once your trial converts to a paid license, all sales are final, no refunds. The 7-day trial is your evaluation window.</p>
     </div>
 </section>
 
@@ -563,7 +563,7 @@ $changelog_url   = home_url( '/changelog' );
             <li>
                 <span class="pp-shiplog__date">May 8, 2026</span>
                 <span class="pp-shiplog__ver">v1.7.1</span>
-                <span class="pp-shiplog__note"><strong>Custom &ldquo;Awaiting Approval&rdquo; status + dedicated review-pending email.</strong> Manual-review orders (AI disabled, or AI graded medium/low confidence) now land in their own <code>Awaiting Approval</code> status instead of generic <code>On Hold</code>, so the orders list immediately tells you which orders need your decision. Customer email switched from the reused on-hold template to a dedicated <em>&ldquo;we received your screenshot, reviewing now&rdquo;</em> message that matches the actual state. Stock-holding parity with on-hold is preserved. The Pipe Pay Proofs queue and meta-box buttons accept both new and legacy statuses for backward compat. Bundles the proof-image proxy URL nonce fix from earlier today &mdash; admin meta box and Proofs queue now reliably render the screenshot for logged-in admins. Recommended update for any store using manual review.</span>
+                <span class="pp-shiplog__note"><strong>Custom &ldquo;Awaiting Approval&rdquo; status + dedicated review-pending email.</strong> Manual-review orders (AI disabled, or AI graded medium/low confidence) now land in their own <code>Awaiting Approval</code> status instead of generic <code>On Hold</code>, so the orders list immediately tells you which orders need your decision. Customer email switched from the reused on-hold template to a dedicated <em>&ldquo;we received your screenshot, reviewing now&rdquo;</em> message that matches the actual state. Stock-holding parity with on-hold is preserved. The Pipe Pay Proofs queue and meta-box buttons accept both new and legacy statuses for backward compat. Bundles the proof-image proxy URL nonce fix from earlier today - admin meta box and Proofs queue now reliably render the screenshot for logged-in admins. Recommended update for any store using manual review.</span>
             </li>
             <li>
                 <span class="pp-shiplog__date">May 8, 2026</span>
@@ -593,12 +593,12 @@ $changelog_url   = home_url( '/changelog' );
             <li>
                 <span class="pp-shiplog__date">May 4, 2026</span>
                 <span class="pp-shiplog__ver">v1.6.0</span>
-                <span class="pp-shiplog__note"><strong>One-field license activation.</strong> Activate with just your license key &mdash; no product ID lookup. Tier upgrades (trial &rarr; paid, single &rarr; unlimited) flow seamlessly without re-installing the plugin.</span>
+                <span class="pp-shiplog__note"><strong>One-field license activation.</strong> Activate with just your license key - no product ID lookup. Tier upgrades (trial &rarr; paid, single &rarr; unlimited) flow seamlessly without re-installing the plugin.</span>
             </li>
             <li>
                 <span class="pp-shiplog__date">Apr 25, 2026</span>
                 <span class="pp-shiplog__ver">v1.5.0</span>
-                <span class="pp-shiplog__note"><strong>Automatic updates.</strong> Pipe Pay now appears in the standard &ldquo;Update available&rdquo; notifications in your WordPress plugin list. Click Update Now when a new version ships &mdash; no more manual zip downloads.</span>
+                <span class="pp-shiplog__note"><strong>Automatic updates.</strong> Pipe Pay now appears in the standard &ldquo;Update available&rdquo; notifications in your WordPress plugin list. Click Update Now when a new version ships - no more manual zip downloads.</span>
             </li>
         </ul>
     </div>
@@ -613,7 +613,7 @@ $changelog_url   = home_url( '/changelog' );
         <h2>Ready to stop chasing payments by hand?</h2>
         <p>Start your 7-day free trial. No card required.</p>
         <a class="pp-btn pp-btn--inverse pp-btn--lg" href="<?php echo esc_url( $checkout_url ); ?>">Start 7-day free trial &rarr;</a>
-        <p class="pp-cta-skip pp-cta-skip--inverse"><a href="<?php echo esc_url( $pricing_url ); ?>">or skip the trial &mdash; buy a license now &rarr;</a></p>
+        <p class="pp-cta-skip pp-cta-skip--inverse"><a href="<?php echo esc_url( $pricing_url ); ?>">or skip the trial - buy a license now &rarr;</a></p>
     </div>
 </section>
 

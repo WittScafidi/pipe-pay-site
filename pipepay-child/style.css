@@ -92,7 +92,7 @@ body.pipepay-home {
 /* Sticky footer: on subpages (header.php + footer.php with a <main class="pp-main">
  * wrapper), pin the footer to the viewport bottom even when content is short
  * (lost-password confirmation, empty cart, "coming soon" docs, etc.). Scoped via
- * :has(.pp-main) so the homepage (front-page.php — no .pp-main) is untouched. */
+ * :has(.pp-main) so the homepage (front-page.php - no .pp-main) is untouched. */
 body.pipepay-home:has(.pp-main) {
     min-height: 100vh;
     display: flex;
@@ -187,7 +187,7 @@ body.pipepay-home .pp-section--blue h4 { color: #fff; }
     .pp-section--wide { padding: 80px 0; }
 }
 
-/* Corner index marker — bracketed mono "[ 01 · 13 ]" top-right of each section.
+/* Corner index marker - bracketed mono "[ 01 · 13 ]" top-right of each section.
    Editorial signature. Subtle. */
 .pp-corner {
     position: absolute;
@@ -336,7 +336,7 @@ body.pipepay-home .pp-section--blue h4 { color: #fff; }
     border-color: rgba(255, 255, 255, 0.6);
 }
 .pp-btn--lg { padding: 18px 32px; font-size: 16px; }
-/* Low-emphasis variant — used as the "Buy now" CTA below the trial button on pricing cards. Reads as a button (same padding) but visually quieter than --secondary so the trial CTA stays primary. */
+/* Low-emphasis variant - used as the "Buy now" CTA below the trial button on pricing cards. Reads as a button (same padding) but visually quieter than --secondary so the trial CTA stays primary. */
 .pp-btn--ghost {
     background: transparent;
     color: var(--pp-blue);
@@ -454,7 +454,7 @@ body.pipepay-home .pp-section--blue h4 { color: #fff; }
     pointer-events: none;
 }
 
-/* Skip-to-content link — visually hidden until focused (WCAG 2.4.1) */
+/* Skip-to-content link - visually hidden until focused (WCAG 2.4.1) */
 .pp-skip {
     position: absolute;
     top: -100px;
@@ -516,7 +516,7 @@ body.pipepay-home .pp-section--blue h4 { color: #fff; }
 .pp-nav a:not(.pp-btn):hover { color: var(--pp-blue); text-decoration: none; }
 .pp-nav .pp-btn { padding: 8px 16px; font-size: 13px; }
 
-/* Mobile hamburger toggle — hidden on desktop. 44x44 per WCAG 2.5.5 + Apple HIG. */
+/* Mobile hamburger toggle - hidden on desktop. 44x44 per WCAG 2.5.5 + Apple HIG. */
 .pp-nav-toggle {
     display: none;
     background: var(--pp-blue);
@@ -579,7 +579,7 @@ body.pipepay-home .pp-section--blue h4 { color: #fff; }
 }
 .pp-hero .pp-container { position: relative; z-index: 1; }
 
-/* Hero issue line — small editorial credit above headline */
+/* Hero issue line - small editorial credit above headline */
 .pp-hero-issue {
     display: flex;
     align-items: center;
@@ -663,7 +663,7 @@ body.pipepay-home .pp-hero-h1 {
     .pp-hero-sub, .pp-hero-ctas { opacity: 1; animation: none; }
 }
 
-/* Spec block — editorial trade-journal data row */
+/* Spec block - editorial trade-journal data row */
 .pp-specs {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
@@ -734,7 +734,7 @@ body.pipepay-home .pp-hero-h1 {
 
 /* ============== Hero two-column layout (desktop, ≥ 900px) ============
  * Text on the left, mock on the right. Below 900px the .pp-container
- * children fall back to natural block flow — text stacks above mock —
+ * children fall back to natural block flow - text stacks above mock -
  * which preserves the previous mobile rendering. .pp-hero-text exists
  * only as the grid placement target; it adds no styling on mobile. */
 @media (min-width: 900px) {
@@ -1135,7 +1135,7 @@ body.pipepay-home .pp-hero-h1 {
     font-family: var(--pp-font-mono);
 }
 
-/* Step 1 — full checkout layout (Pipe Pay as only method).
+/* Step 1 - full checkout layout (Pipe Pay as only method).
  * Tighter gap than the default screen so order summary + contact + payment
  * method + button all fit in the phone aspect 9/16. */
 .pp-flow__screen--checkout {
@@ -1171,7 +1171,7 @@ body.pipepay-home .pp-hero-h1 {
     background: #fff;
 }
 
-/* Step 2 — P2P method tabs across the top of the payment page.
+/* Step 2 - P2P method tabs across the top of the payment page.
  * Stretches against the screen's center alignment via align-self. */
 .pp-flow__tabs {
     align-self: stretch;
@@ -1201,7 +1201,7 @@ body.pipepay-home .pp-hero-h1 {
     box-shadow: 0 1px 2px rgba(15, 23, 42, 0.08);
 }
 
-/* Step 4 — order number line below the success copy.
+/* Step 4 - order number line below the success copy.
  * Subtle mono so it reads as a reference, not a primary message. */
 .pp-flow__order-no {
     margin-top: 8px;
@@ -1211,7 +1211,7 @@ body.pipepay-home .pp-hero-h1 {
     letter-spacing: 0.02em;
 }
 
-/* ============== Step 2 — payment-page mock (real-product layout) ==============
+/* ============== Step 2 - payment-page mock (real-product layout) ==============
  * QR at top → method buttons (4 brand-colored pills under the QR) → handle row
  * → big colored Open button → upload-section hint at the bottom. Layout mirrors
  * templates/pipe-pay-page.php so the marketing mock matches what customers
@@ -1234,7 +1234,7 @@ body.pipepay-home .pp-hero-h1 {
     margin: 0 auto;
 }
 
-/* Screenshot upload zone — 120×52 rectangular pill at the top of step 2 (idle)
+/* Screenshot upload zone - 120×52 rectangular pill at the top of step 2 (idle)
  * and step 3 (submitting). Icon/spinner sits inline with the label/filename
  * (wider-than-tall reads as a "drop a file here" affordance). */
 .pp-flow__upload-zone {
@@ -1269,7 +1269,7 @@ body.pipepay-home .pp-hero-h1 {
     min-width: 0;
 }
 
-/* Submitting variant — solid blue border + tinted bg, spinner inline with
+/* Submitting variant - solid blue border + tinted bg, spinner inline with
  * filename. Filename truncates with ellipsis if it exceeds the inline width. */
 .pp-flow__upload-zone--submitting {
     border-style: solid;
@@ -1298,7 +1298,7 @@ body.pipepay-home .pp-hero-h1 {
     flex-shrink: 0;
 }
 
-/* Order line at the top — amount due + order number, side by side. */
+/* Order line at the top - amount due + order number, side by side. */
 .pp-flow__order-line {
     display: flex;
     align-items: baseline;
@@ -1366,7 +1366,7 @@ body.pipepay-home .pp-hero-h1 {
     font-weight: 500;
 }
 
-/* Method buttons row — colored circle icons (V/$/P/Z) inspired by the real
+/* Method buttons row - colored circle icons (V/$/P/Z) inspired by the real
  * plugin's .wwp-dp-method-icon. Active method gets a colored ring + white
  * background panel matching the wwp-dp-method-tab.is-active treatment. */
 .pp-flow__methods {
@@ -1403,7 +1403,7 @@ body.pipepay-home .pp-hero-h1 {
     line-height: 1;
 }
 
-/* Handle row — small label + monospace handle, on a soft card. */
+/* Handle row - small label + monospace handle, on a soft card. */
 .pp-flow__handle-row {
     display: flex;
     align-items: center;
@@ -1430,13 +1430,13 @@ body.pipepay-home .pp-hero-h1 {
     text-align: right;
 }
 
-/* Open Venmo CTA — full-width brand-colored, white text, with external-link
+/* Open Venmo CTA - full-width brand-colored, white text, with external-link
  * arrow. Mirrors the real .wwp-dp-open-btn. Inline `style` attribute on the
  * element supplies the brand color so we don't have to hard-code per method.
  *
  * !important on color: the homepage has a global rule
  *   body.pipepay-home a:not(.pp-btn):not(.pp-logo):not(.button) { color: var(--pp-blue) }
- * (specificity 0,4,2) that would otherwise paint this button's text blue —
+ * (specificity 0,4,2) that would otherwise paint this button's text blue -
  * invisible against the blue Venmo background. !important wins over that
  * cascade without needing to add .pp-btn class (which would inherit a bunch
  * of conflicting padding/font rules). */
@@ -1485,7 +1485,7 @@ body.pipepay-home .pp-hero-h1 {
     color: var(--pp-blue);
 }
 
-/* ============== Step 3 — uploading-with-spinner state ==============
+/* ============== Step 3 - uploading-with-spinner state ==============
  * Customer has chosen a screenshot and clicked submit; the real plugin's
  * submit button switches to "Submitting..." with a spinning icon. The mock
  * pairs that button with a thumbnail placeholder + filename above. */
@@ -1734,7 +1734,7 @@ body.pipepay-home .pp-hero-h1 {
 .pp-ai-prose p { font-size: 17px; line-height: 1.7; margin-bottom: 1.1em; color: var(--pp-text); }
 .pp-ai-prose strong { color: var(--pp-blue); font-weight: 600; }
 
-/* Live indicator pulse — animated dot + label */
+/* Live indicator pulse - animated dot + label */
 .pp-pulse {
     display: inline-flex;
     align-items: center;
@@ -2462,7 +2462,7 @@ body.pipepay-home .pp-pricing-fineprint {
     color: var(--pp-blue);
 }
 
-/* Footer ledger line — editorial credit row */
+/* Footer ledger line - editorial credit row */
 .pp-footer-ledger {
     margin-top: 32px;
     padding-top: 24px;
@@ -2669,7 +2669,7 @@ body.pipepay-home .pp-pricing-fineprint {
 
 .pp-main { display: block; }
 
-/* Page hero — small banner on every sub-page */
+/* Page hero - small banner on every sub-page */
 .pp-page-hero {
     background: var(--pp-bg-alt);
     border-bottom: 1px solid var(--pp-border);
@@ -2765,7 +2765,7 @@ body.woocommerce-account main .pp-section--tight { padding-top: 16px; }
     font-style: normal;
     color: var(--pp-text-muted);
 }
-/* Docs article styling — same base as legal but with code blocks */
+/* Docs article styling - same base as legal but with code blocks */
 .pp-prose--doc { font-size: 16px; line-height: 1.7; color: var(--pp-text); }
 .pp-prose--doc h2 {
     font-size: 22px;
@@ -3379,7 +3379,7 @@ body.pipepay-home a.pp-doc-back { color: var(--pp-text-muted); }
     .pp-checkout-tier__price { justify-self: start; font-size: 16px; }
 }
 
-/* Mobile nav drawer — hamburger toggles a panel below the header */
+/* Mobile nav drawer - hamburger toggles a panel below the header */
 @media (max-width: 760px) {
     .pp-header-inner { position: relative; padding: 12px 20px; }
     .pp-nav-toggle { display: inline-flex; }
@@ -3451,7 +3451,7 @@ body.pipepay-home a.pp-doc-back { color: var(--pp-text-muted); }
    stroke-only Lucide-style monoline, currentColor in brand blue.
    ============================================================ */
 
-/* Homepage 4-step "How it works" — icon above the "Step N" label */
+/* Homepage 4-step "How it works" - icon above the "Step N" label */
 .pp-step-icon {
     display: inline-flex;
     align-items: center;
@@ -3463,7 +3463,7 @@ body.pipepay-home a.pp-doc-back { color: var(--pp-text-muted); }
 }
 .pp-step-icon svg { width: 28px; height: 28px; display: block; }
 
-/* Homepage persona triptych — icon above the kicker tag */
+/* Homepage persona triptych - icon above the kicker tag */
 .pp-persona__icon {
     display: inline-flex;
     align-items: center;
@@ -3476,7 +3476,7 @@ body.pipepay-home a.pp-doc-back { color: var(--pp-text-muted); }
 }
 .pp-persona__icon svg { width: 22px; height: 22px; display: block; }
 
-/* /pricing "Is Pipe Pay for you?" yes/no badges — replaces the prior ::before text glyphs */
+/* /pricing "Is Pipe Pay for you?" yes/no badges - replaces the prior ::before text glyphs */
 .pp-fit-list li::before { content: none; }
 .pp-fit-list li {
     padding: 10px 0 10px 0;
@@ -3494,7 +3494,7 @@ body.pipepay-home a.pp-doc-back { color: var(--pp-text-muted); }
 .pp-fit-icon--yes { color: #16a34a; }
 .pp-fit-icon--no  { color: #dc2626; }
 
-/* /docs landing — category icon above the kicker on each doc-card */
+/* /docs landing - category icon above the kicker on each doc-card */
 .pp-doc-card__icon {
     display: inline-flex;
     align-items: center;
@@ -3507,7 +3507,7 @@ body.pipepay-home a.pp-doc-back { color: var(--pp-text-muted); }
 }
 .pp-doc-card__icon svg { width: 22px; height: 22px; display: block; }
 
-/* ===== Section 12 — Live demo at checkout
+/* ===== Section 12 - Live demo at checkout
  * Editorial "specimen plate" of the four P2P methods in their authentic
  * brand colors, framed by hairline rules. Composition: numbered eyebrow →
  * balanced display H2 (with "Pipe Pay" in --pp-blue as the visual accent)
@@ -3523,7 +3523,7 @@ body.pipepay-home a.pp-doc-back { color: var(--pp-text-muted); }
     position: relative;
     overflow: hidden;
 }
-/* Faint top-of-section atmospheric wash — barely there, just enough to
+/* Faint top-of-section atmospheric wash - barely there, just enough to
  * lift the white surface so the section reads as a beat between the two
  * --alt sections it sits between (testimonials above, pricing below). */
 .pp-self-checkout::before {
