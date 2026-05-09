@@ -28,7 +28,7 @@ A WooCommerce plugin that captures customer P2P payment screenshots and verifies
 A workflow layer, not a payment processor.
 
 **Body (~80 words):**
-Pipe Pay is a WooCommerce plugin that lets your store accept Venmo, Cash App, PayPal, and Zelle by capturing the customer's payment screenshot and verifying it with AI. Your customers pay you directly through the P2P apps they already use; you stop spending 30 minutes a day chasing payments by hand. It is built for WooCommerce merchants in restricted verticals who can't use standard card processors, and for anyone who'd rather not pay 2.9% plus 30 cents on every order.
+Pipe Pay is a WooCommerce plugin that lets your store accept Venmo, Cash App, PayPal, and Zelle by capturing the customer's payment screenshot and verifying it with AI. Your customers pay you directly through the P2P apps they already use; you stop spending 30 minutes a day chasing payments by hand. It is built for WooCommerce merchants whose business doesn't fit the major processors' approval boxes, and for anyone who'd rather not pay 2.9% plus 30 cents on every order.
 
 ---
 
@@ -82,9 +82,9 @@ Built by someone who needed it.
 
 **Body (first person, ~180 words):**
 
-I run businesses in restricted verticals. Every traditional payment processor I tried either refused to onboard me, terminated me after a few months without explanation, or held my funds while my customers waited.
+I run businesses that don't fit cleanly into the major processors' approval boxes — different reasons each time, but the result was the same: a processor that wouldn't take me, a processor that took me and changed its mind, or one that held funds long enough to make planning impossible.
 
-I shifted to accepting Venmo, Cash App, PayPal, and Zelle directly. That solved the access problem and immediately created a new one: matching 50+ payments a day by hand to the right WooCommerce orders. I tried other plugins. None of them did the workflow correctly, and most of them assumed you were a low-risk Stripe-compatible merchant who'd just landed on the wrong page.
+I shifted to accepting Venmo, Cash App, PayPal, and Zelle directly. That solved the access problem and immediately created a new one: matching 50+ payments a day by hand to the right WooCommerce orders. I tried other plugins. None of them did the workflow correctly, and most of them assumed you were a textbook Stripe-compatible store who'd just landed on the wrong page.
 
 I built Pipe Pay because I needed it. The AI verification piece exists because manual review at scale is a tax on growth. The security hardening exists because storing customer payment screenshots casually is unacceptable. The honest-about-its-limits framing exists because I've been burned by overpromising plugins, and I assume you have too.
 
@@ -202,7 +202,7 @@ From merchants running Pipe Pay today.
 > "Stripe shut us down twice in a year. Switched to Pipe Pay six months ago and we haven't had a single payment-related issue since. The AI verification is genuinely good."
 > Priya S. - CleanStack Labs - *Supplement brand*
 
-> "I'm not in a restricted vertical, I just hate paying 2.9% on every order. Pipe Pay paid for itself in the first month and now I'm running about 80% of my volume through it."
+> "I just hate paying 2.9% on every order. Pipe Pay paid for itself in the first month and now I'm running about 80% of my volume through it."
 > Dan W. - Mountain Forge Goods - *Outdoor gear*
 
 ---

@@ -202,9 +202,9 @@ $changelog_url   = home_url( '/changelog' );
         <div class="pp-personas-grid">
             <article class="pp-persona">
                 <span class="pp-persona__icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/><path d="M12 8v4"/><path d="M12 16h.01"/></svg></span>
-                <span class="pp-persona__tag">High-risk vertical</span>
-                <p class="pp-persona__quote">"Stripe terminated my account. PayPal froze $40K for 180 days. Every high-risk processor that'll take me wants four to eight percent plus a personal guarantee."</p>
-                <p class="pp-persona__body">No underwriting to fail. No MCC to scrutinize. No rolling reserve. Your customers pay you directly through Venmo, Cash App, PayPal, or Zelle. There is no merchant relationship for a processor to terminate, because there is no processor. Run multiple P2P apps in rotation to limit single-account exposure, and you stay open.</p>
+                <span class="pp-persona__tag">Underserved by major processors</span>
+                <p class="pp-persona__quote">"My processor doesn't fit my business &mdash; and the alternatives that do want four to eight percent plus a personal guarantee."</p>
+                <p class="pp-persona__body">Your customers pay you directly through Venmo, Cash App, PayPal, or Zelle &mdash; the apps they already use. The plugin handles the workflow that comes after: capturing the payment screenshot, verifying the amount and recipient, and moving the order through your existing WooCommerce admin. Use multiple P2P apps so a single account's weekly receive limit doesn't cap your daily volume.</p>
             </article>
 
             <article class="pp-persona">
@@ -464,11 +464,11 @@ $changelog_url   = home_url( '/changelog' );
                 <div class="pp-attr"><strong>Marcus R.</strong></div>
             </div>
             <div class="pp-testimonial">
-                <blockquote>Stripe shut us down twice in a year. Switched to Pipe Pay six months ago and we haven't had a single payment-related issue since. The AI verification is legit.</blockquote>
+                <blockquote>We needed a path that didn't depend on whether a processor would have us. Switched to Pipe Pay six months ago and haven't had a payment-related issue since. The screenshot verification is legit.</blockquote>
                 <div class="pp-attr"><strong>Priya S.</strong></div>
             </div>
             <div class="pp-testimonial">
-                <blockquote>I'm not in a restricted vertical, I just hate paying 2.9% on every order. Pipe Pay paid for itself in the first month and now I'm running about 80% of my volume through it.</blockquote>
+                <blockquote>I just hate paying 2.9% on every order. Pipe Pay paid for itself in the first month and now I'm running about 80% of my volume through it.</blockquote>
                 <div class="pp-attr"><strong>Dan W.</strong></div>
             </div>
         </div>
