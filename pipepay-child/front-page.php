@@ -243,7 +243,7 @@ $changelog_url   = home_url( '/changelog' );
                 <span class="pp-step-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2 11 13"/><path d="M22 2 15 22l-4-9-9-4 20-7Z"/></svg></span>
                 <span class="pp-step-num">2</span>
                 <h3>Customer pays via their P2P app.</h3>
-                <p>The payment page shows a QR code, the merchant handle, and an <em>Open Venmo / Cash App / PayPal / Zelle</em> button that takes the customer straight to the right account.</p>
+                <p>The payment page shows the merchant handle and an <em>Open Venmo / Cash App / PayPal / Zelle</em> button that takes the customer straight to the right account. When a QR code is configured, it renders alongside for desktop visitors to scan with their phone.</p>
             </div>
             <div class="pp-how-card">
                 <span class="pp-step-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 14.9A7 7 0 1 1 15.7 8h1.8a4.5 4.5 0 0 1 2.5 8.2"/><path d="M12 12v9"/><path d="m16 16-4-4-4 4"/></svg></span>
