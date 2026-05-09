@@ -75,8 +75,9 @@ $changelog_url   = home_url( '/changelog' );
         <nav id="pp-primary-nav" class="pp-nav" aria-label="Primary">
             <a href="<?php echo esc_url( home_url( '/how-it-works' ) ); ?>">How it works</a>
             <a href="<?php echo esc_url( home_url( '/pricing' ) ); ?>">Pricing</a>
-            <a href="<?php echo esc_url( home_url( '/changelog' ) ); ?>">Changelog</a>
             <a href="<?php echo esc_url( home_url( '/docs' ) ); ?>">Docs</a>
+            <a href="<?php echo esc_url( home_url( '/changelog' ) ); ?>">Changelog</a>
+            <a href="<?php echo esc_url( home_url( '/contact' ) ); ?>">Contact</a>
             <a href="<?php echo esc_url( home_url( '/my-account' ) ); ?>"><?php echo is_user_logged_in() ? 'Account' : 'Sign in'; ?></a>
             <a class="pp-btn pp-btn--primary" href="<?php echo esc_url( $checkout_url ); ?>">Start free trial</a>
         </nav>
@@ -95,6 +96,7 @@ $changelog_url   = home_url( '/changelog' );
                 <span class="pp-hero-h1__line">without chasing payments by hand.</span>
             </h1>
             <p class="pp-hero-sub">A WooCommerce plugin that captures customer P2P payment screenshots and verifies them with AI, so the only orders you touch are the ones the AI actually flagged.</p>
+            <p class="pp-hero-anchor">A $299/year WordPress plugin you install on your own store. Pipe Pay does not hold customer funds, does not process card payments, and is not a payment processor.</p>
             <div class="pp-hero-ctas">
                 <a class="pp-btn pp-btn--inverse pp-btn--lg" href="<?php echo esc_url( $checkout_url ); ?>">Start 7-day free trial &rarr;</a>
                 <a class="pp-btn pp-btn--ghost-light pp-btn--lg" href="#how">How it works &darr;</a>
@@ -102,15 +104,18 @@ $changelog_url   = home_url( '/changelog' );
             <p class="pp-cta-skip pp-cta-skip--inverse"><a href="<?php echo esc_url( $pricing_url ); ?>">or skip the trial - buy a license now &rarr;</a></p>
         </div>
 
-        <div class="pp-hero-mock">
-            <div class="pp-mock-browser" aria-hidden="true">
+        <div class="pp-hero-mock-col">
+            <p class="pp-hero-mock-label">Preview &middot; what your customer sees on the payment page</p>
+            <div class="pp-hero-mock">
+                <span class="pp-hero-mock-badge" aria-hidden="true">DEMO</span>
+                <div class="pp-mock-browser" aria-hidden="true">
                 <div class="pp-mock-chrome">
                     <span class="pp-mock-dot pp-mock-dot--r"></span>
                     <span class="pp-mock-dot pp-mock-dot--y"></span>
                     <span class="pp-mock-dot pp-mock-dot--g"></span>
                     <div class="pp-mock-url">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-                        <span>pipepay.app/pay/order-1247</span>
+                        <span>your-store.com/pipe-pay &middot; example</span>
                     </div>
                 </div>
 
@@ -157,22 +162,24 @@ $changelog_url   = home_url( '/changelog' );
                         <svg class="pp-pay__handle-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
                     </button>
 
-                    <a class="pp-pay__cta" href="#" onclick="return false;">
+                    <a class="pp-pay__cta" href="#" onclick="return false;" aria-disabled="true" tabindex="-1">
                         Open Venmo
                         <span aria-hidden="true">&rarr;</span>
                     </a>
 
+                    <p class="pp-pay__alts-head">Or pay with:</p>
                     <div class="pp-pay__alts">
-                        <button type="button" class="pp-pay__alt"><span class="pp-pay__alt-mark pp-pay__alt-mark--cash">$</span>Cash App</button>
-                        <button type="button" class="pp-pay__alt"><span class="pp-pay__alt-mark pp-pay__alt-mark--paypal">P</span>PayPal</button>
-                        <button type="button" class="pp-pay__alt"><span class="pp-pay__alt-mark pp-pay__alt-mark--zelle">Z</span>Zelle</button>
+                        <button type="button" class="pp-pay__alt" disabled tabindex="-1"><span class="pp-pay__alt-mark pp-pay__alt-mark--cash">$</span>Cash App</button>
+                        <button type="button" class="pp-pay__alt" disabled tabindex="-1"><span class="pp-pay__alt-mark pp-pay__alt-mark--paypal">P</span>PayPal</button>
+                        <button type="button" class="pp-pay__alt" disabled tabindex="-1"><span class="pp-pay__alt-mark pp-pay__alt-mark--zelle">Z</span>Zelle</button>
                     </div>
 
+                    <p class="pp-pay__steps-head">What your customer does next:</p>
                     <ol class="pp-pay__steps">
-                        <li><span class="pp-pay__step-num">1</span>Open Venmo</li>
-                        <li><span class="pp-pay__step-num">2</span>Send $87.50 to @your-handle</li>
-                        <li><span class="pp-pay__step-num">3</span>Screenshot the confirmation</li>
-                        <li><span class="pp-pay__step-num">4</span>Upload below</li>
+                        <li><span class="pp-pay__step-num">1</span>Opens Venmo</li>
+                        <li><span class="pp-pay__step-num">2</span>Sends $87.50 to your store's handle</li>
+                        <li><span class="pp-pay__step-num">3</span>Screenshots the confirmation</li>
+                        <li><span class="pp-pay__step-num">4</span>Uploads it on your store</li>
                     </ol>
                 </div>
 
@@ -186,6 +193,7 @@ $changelog_url   = home_url( '/changelog' );
                         <span>Drop screenshot or click</span>
                     </div>
                 </footer>
+                </div>
             </div>
         </div>
 
@@ -260,7 +268,8 @@ $changelog_url   = home_url( '/changelog' );
         </div>
 
         <div class="pp-how-mock-wrap">
-            <ol class="pp-flow" aria-label="End-to-end customer flow">
+            <p class="pp-flow-label">Demo &middot; the customer's view at each step (sample data, not a live page)</p>
+            <ol class="pp-flow" aria-label="End-to-end customer flow demo">
                 <!-- Step 1: WooCommerce checkout, Pipe Pay as the only payment method.
                      Shows order summary + contact + payment method + Place order to look
                      like a real checkout, not just a payment-radio cherry-pick. -->

@@ -542,6 +542,10 @@ The signed verdict drives one runtime decision (`is_available()` returns false a
 - ❌ Disabling the payment gateway when a license **expires** (see above; revoked is the one carve-out)
 - ❌ Trying to detect "AI-generated competitors" specifically (you can't, and the right frame is "any competitor")
 
+## Voice & copy rules
+
+- **Never use the phrase "open source" anywhere** — not on the marketing site, not in customer-facing copy, not in customer-facing emails, not in the changelog, not in product descriptions. Pipe Pay is GPL by virtue of being a WordPress plugin, but we do not market it as "open-source software" because that frames the product as free / community-built / forkable, which both undersells the paid license model and invites GPL-violation chest-thumping. Use instead: "WordPress plugin," "WooCommerce plugin," "independent software," or just leave it implicit. If you need a trust signal that says "real software, not a phishing trojan," reach for "$299/year WordPress plugin" or "Built by [name]" — never "open source." This rule is load-bearing: the user has been explicit about it.
+
 ## Mental model
 
 - The defensible thing isn't the code. It's the business - brand, customer count, marketplace listings, relationships, shipping cadence, and (eventually) the cross-merchant fraud network.

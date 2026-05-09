@@ -646,10 +646,24 @@ body.pipepay-home .pp-hero-h1 {
     color: rgba(255, 255, 255, 0.86);
     max-width: 660px;
     line-height: 1.55;
-    margin-bottom: 40px;
+    margin-bottom: 16px;
     font-weight: 400;
     opacity: 0;
     animation: pp-rise 700ms cubic-bezier(0.2, 0.8, 0.2, 1) 0.45s forwards;
+}
+/* Trust-signal anchor: tells classifiers and visitors that pipepay.app
+ * sells software, doesn't custody funds, and isn't a payment processor.
+ * Reduces phishing-classifier risk and clarifies the product on first
+ * read. */
+.pp-hero-anchor {
+    font-size: 14px;
+    color: rgba(255, 255, 255, 0.72);
+    max-width: 660px;
+    line-height: 1.55;
+    margin-bottom: 32px;
+    font-weight: 400;
+    opacity: 0;
+    animation: pp-rise 700ms cubic-bezier(0.2, 0.8, 0.2, 1) 0.5s forwards;
 }
 .pp-hero-ctas {
     display: flex;
@@ -660,7 +674,7 @@ body.pipepay-home .pp-hero-h1 {
     animation: pp-rise 700ms cubic-bezier(0.2, 0.8, 0.2, 1) 0.58s forwards;
 }
 @media (prefers-reduced-motion: reduce) {
-    .pp-hero-sub, .pp-hero-ctas { opacity: 1; animation: none; }
+    .pp-hero-sub, .pp-hero-anchor, .pp-hero-ctas { opacity: 1; animation: none; }
 }
 
 /* Spec block - editorial trade-journal data row */
@@ -722,6 +736,7 @@ body.pipepay-home .pp-hero-h1 {
  * full width. Above 900px the two-column grid layout below takes over and
  * the mock fills its column instead of being capped. */
 .pp-hero-mock {
+    position: relative; /* anchor for the DEMO badge */
     margin: 0 auto;
     max-width: 640px;
     border-radius: var(--pp-radius-lg);
@@ -730,6 +745,56 @@ body.pipepay-home .pp-hero-h1 {
     transform: perspective(1800px) rotateX(0.6deg);
     opacity: 0;
     animation: pp-rise 700ms cubic-bezier(0.2, 0.8, 0.2, 1) 0.32s forwards;
+}
+
+/* Wrapper that holds the "Preview" label + the mock together as a single
+ * grid item on desktop, so the label sits directly above the mock in the
+ * right-hand column instead of fighting the 2-col grid auto-placement. */
+.pp-hero-mock-col { display: contents; }
+@media (min-width: 900px) {
+    .pp-hero .pp-container > .pp-hero-mock-col {
+        display: block;
+        max-width: 460px;
+    }
+}
+
+/* "Preview · what your customer sees" caption above the hero mockup.
+ * Tells phishing classifiers (and humans) that the rendered payment UI
+ * below is a demo screenshot, not a live page. */
+.pp-hero-mock-label {
+    margin: 0 auto 12px;
+    max-width: 640px;
+    text-align: center;
+    font-size: 13px;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.78);
+    font-weight: 600;
+}
+@media (min-width: 900px) {
+    .pp-hero-mock-col > .pp-hero-mock-label {
+        margin: 0 0 12px;
+        max-width: 460px;
+        text-align: left;
+    }
+}
+
+/* Top-right "DEMO" ribbon over the hero mockup. Small and unobtrusive
+ * in the visual design but readable to text-only crawlers parsing the
+ * page for phishing-classifier heuristics. */
+.pp-hero-mock-badge {
+    position: absolute;
+    top: 10px;
+    right: 12px;
+    z-index: 2;
+    padding: 3px 8px;
+    border-radius: 4px;
+    background: rgba(15, 23, 42, 0.78);
+    color: #fff;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    pointer-events: none;
 }
 
 /* ============== Hero two-column layout (desktop, ≥ 900px) ============
@@ -744,10 +809,13 @@ body.pipepay-home .pp-hero-h1 {
         column-gap: 64px;
         align-items: center;
     }
-    .pp-hero .pp-container > .pp-hero-mock {
-        /* Cap mock width so the headline reads as the primary signal and
-         * the demo as supporting evidence. Column itself is wider; the
-         * cap keeps the mock proportional to the text block. */
+    /* Cap mock width on desktop so the headline reads as the primary
+     * signal and the demo as supporting evidence. Column itself is wider;
+     * the cap keeps the mock proportional to the text block. The selector
+     * targets the mock both as a direct grid child (older layouts) and
+     * as a child of the new pp-hero-mock-col wrapper. */
+    .pp-hero .pp-container > .pp-hero-mock,
+    .pp-hero-mock-col > .pp-hero-mock {
         margin: 0;
         max-width: 460px;
     }
@@ -871,6 +939,17 @@ body.pipepay-home .pp-hero-h1 {
     cursor: pointer;
 }
 
+/* "Or pay with:" header above the alt-method demo buttons. Tells the
+ * classifier (and humans) that the buttons below describe a feature,
+ * not impersonate live app launchers. */
+.pp-pay__alts-head {
+    margin: 0 0 8px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--pp-text-soft);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
 .pp-pay__alts { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 22px; }
 .pp-pay__alt {
     display: flex; align-items: center; justify-content: center; gap: 6px;
@@ -879,8 +958,9 @@ body.pipepay-home .pp-hero-h1 {
     border: 1px solid var(--pp-border);
     border-radius: var(--pp-radius);
     font: inherit; font-size: 13px; font-weight: 500;
-    color: var(--pp-text); cursor: pointer;
+    color: var(--pp-text); cursor: default; /* not actually clickable - this is a demo */
 }
+.pp-pay__alt[disabled] { opacity: 0.85; }
 .pp-pay__alt-mark {
     display: inline-flex; align-items: center; justify-content: center;
     width: 18px; height: 18px; border-radius: 4px;
@@ -891,6 +971,17 @@ body.pipepay-home .pp-hero-h1 {
 .pp-pay__alt-mark--paypal { background: #003087; }
 .pp-pay__alt-mark--zelle { background: #6d1ed4; }
 
+/* "What your customer does next:" header above the step list. Frames
+ * the four-step flow as documentation of a workflow, not as imperative
+ * instructions issued to the visitor (a phishing-script tell). */
+.pp-pay__steps-head {
+    margin: 0 0 8px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--pp-text-soft);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
 .pp-pay__steps {
     list-style: none; padding: 14px 16px; margin: 0;
     background: var(--pp-bg-alt);
@@ -986,6 +1077,19 @@ body.pipepay-home .pp-hero-h1 {
 .pp-step-num::before { content: '0'; }
 .pp-how-card h3 { font-size: 17px; margin-bottom: 10px; line-height: 1.3; letter-spacing: -0.012em; }
 .pp-how-card p { font-size: 14px; color: var(--pp-text-muted); line-height: 1.6; }
+
+/* "Demo · the customer's view at each step" caption above the flow
+ * mockup. Same role as .pp-hero-mock-label - frames the three repeated
+ * payment-page mocks below as screenshots, not live phishing-shaped UI. */
+.pp-flow-label {
+    margin: 0 0 16px;
+    text-align: center;
+    font-size: 13px;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--pp-text-muted);
+    font-weight: 600;
+}
 
 .pp-how-mock-wrap {
     border: 1px solid var(--pp-border);
