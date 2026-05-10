@@ -1,9 +1,9 @@
 <?php
 /**
  * Plugin Name: Pipe Pay - License Revalidator
- * Description: Daily server-side license-state check for the Pipe Pay plugin (v1.8.1+). Returns Ed25519-signed (state) responses where state ∈ {active, expired, revoked}. Revoked is the runtime-disable kill switch with drain semantics; expired is banner-only.
+ * Description: Daily server-side license-state check for the Pipe Pay plugin (v1.8.1+). Returns Ed25519-signed (state) responses where state ∈ {active, expired, revoked}. Revoked is the runtime-disable kill switch with drain semantics; expired is banner-only. v1.1.0 (plugin v1.8.5+): also emits a signed at-rest state envelope in the response body so the plugin can verify the persisted state on every read, defeating direct-option-write bypass.
  * Author:      Pipe Pay
- * Version:     1.0.0
+ * Version:     1.1.0
  *
  * Endpoint: POST https://pipepay.app/wp-json/pipepay-license/v1/revalidate
  * Body:     api_key, instance, site_url, plugin_version
@@ -208,29 +208,50 @@ function pipepay_license_revalidate_handler( WP_REST_Request $request ): WP_REST
 
     pipepay_license_revalidate_log( $ip, $api_key, 200, 'resolved_' . $state );
 
-    $payload  = array( 'success' => true, 'state' => $state );
-    $response = new WP_REST_Response( $payload, 200 );
+    $payload = array( 'success' => true, 'state' => $state );
 
     // ── Sign the response (Ed25519) ──────────────────────────────────────────
-    // Canonical: revalidate-v1|<issued_at>|<api_key>|<instance>|<state>
-    // Distinct prefix from the activation v1| canonical so a captured
-    // activation sig can't be replayed as a revalidation sig.
+    // We mint TWO signatures with one shared `issued_at`:
+    //
+    //   1. Response-signature header (`revalidate-v1|...`): authenticates
+    //      this specific HTTP response so an MITM can't forge a verdict.
+    //      Verified by the plugin BEFORE state is touched.
+    //
+    //   2. State-envelope payload (`state-envelope-v1|...`, v1.8.5+):
+    //      authenticates the state value AT REST in the customer's
+    //      WP options. The plugin stores this whole envelope; its
+    //      reader verifies the signature on every read. An attacker
+    //      with shell-level option-write access can no longer flip
+    //      the state by direct option-write because they can't forge
+    //      this signature.
+    //
+    // Distinct prefixes mean a captured signature in either context
+    // cannot be replayed in the other.
     if ( defined( 'PIPEPAY_LICENSE_SIGNING_PRIVATE_KEY' ) && function_exists( 'sodium_crypto_sign_detached' ) ) {
-        $issued_at = time();
-        $canonical = sprintf(
-            'revalidate-v1|%d|%s|%s|%s',
-            $issued_at,
-            $api_key,
-            $instance,
-            $state
-        );
+        $issued_at  = time();
         $secret_key = base64_decode( PIPEPAY_LICENSE_SIGNING_PRIVATE_KEY, true );
         if ( $secret_key !== false && strlen( $secret_key ) === SODIUM_CRYPTO_SIGN_SECRETKEYBYTES ) {
             try {
-                $sig = sodium_crypto_sign_detached( $canonical, $secret_key );
-                $response->header( 'X-Pipepay-Signature',          base64_encode( $sig ) );
+                // Response signature (header).
+                $resp_canonical = sprintf( 'revalidate-v1|%d|%s|%s|%s', $issued_at, $api_key, $instance, $state );
+                $resp_sig       = sodium_crypto_sign_detached( $resp_canonical, $secret_key );
+
+                // State envelope signature (body).
+                $env_canonical = sprintf( 'state-envelope-v1|%d|%s|%s|%s', $issued_at, $api_key, $instance, $state );
+                $env_sig       = sodium_crypto_sign_detached( $env_canonical, $secret_key );
+
+                $payload['envelope'] = array(
+                    'v'     => 1,
+                    'iat'   => $issued_at,
+                    'state' => $state,
+                    'sig'   => base64_encode( $env_sig ),
+                );
+
+                $response = new WP_REST_Response( $payload, 200 );
+                $response->header( 'X-Pipepay-Signature',          base64_encode( $resp_sig ) );
                 $response->header( 'X-Pipepay-Signature-IssuedAt', (string) $issued_at );
                 $response->header( 'X-Pipepay-Signature-Version',  'revalidate-v1' );
+                return $response;
             } catch ( \Throwable $e ) {
                 // Don't fail the response if signing breaks. The plugin
                 // refuses to honor unsigned/malformed responses (state
@@ -245,7 +266,11 @@ function pipepay_license_revalidate_handler( WP_REST_Request $request ): WP_REST
         }
     }
 
-    return $response;
+    // Signing-unavailable fallback: return the body-only payload (no
+    // envelope, no headers). Plugin will refuse to update state because
+    // its envelope verifier rejects missing/malformed envelopes. State
+    // stays at whatever was last written. Acceptable degraded mode.
+    return new WP_REST_Response( $payload, 200 );
 }
 
 /**
