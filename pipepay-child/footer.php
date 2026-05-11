@@ -21,6 +21,8 @@ if ( ! defined( 'ABSPATH' ) ) { exit; }
                 <a href="<?php echo esc_url( home_url( '/my-account' ) ); ?>">My account</a>
                 <a href="<?php echo esc_url( home_url( '/refund-policy' ) ); ?>">Refunds</a>
                 <a href="<?php echo esc_url( home_url( '/privacy' ) ); ?>">Privacy</a>
+                <a href="<?php echo esc_url( home_url( '/sub-processors' ) ); ?>">Sub-processors</a>
+                <a href="<?php echo esc_url( home_url( '/data-handling' ) ); ?>">Data handling</a>
                 <a href="<?php echo esc_url( home_url( '/terms' ) ); ?>">Terms</a>
             </nav>
             <a class="pp-footer-changelog" href="<?php echo esc_url( home_url( '/changelog' ) ); ?>">

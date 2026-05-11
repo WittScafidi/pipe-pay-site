@@ -657,6 +657,8 @@ $changelog_url   = home_url( '/changelog' );
                 <a href="<?php echo esc_url( $contact_url ); ?>">Contact</a>
                 <a href="<?php echo esc_url( $refund_url ); ?>">Refunds</a>
                 <a href="<?php echo esc_url( $privacy_url ); ?>">Privacy</a>
+                <a href="<?php echo esc_url( home_url( '/sub-processors' ) ); ?>">Sub-processors</a>
+                <a href="<?php echo esc_url( home_url( '/data-handling' ) ); ?>">Data handling</a>
                 <a href="<?php echo esc_url( $terms_url ); ?>">Terms</a>
             </nav>
             <a class="pp-footer-changelog" href="<?php echo esc_url( $changelog_url ); ?>">

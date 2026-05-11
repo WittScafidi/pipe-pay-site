@@ -3841,3 +3841,104 @@ body.pipepay-home a.pp-doc-back { color: var(--pp-text-muted); }
     .pp-self-checkout__method:nth-child(3)::before { display: none; }
 }
 
+
+/* ── Legal / privacy / sub-processors page styling (v1.8.11) ───────────────
+ * Used by page-privacy.php, page-subprocessors.php, page-data-handling.php.
+ * Long-form prose layout. Generous line-height, narrow container (inherited
+ * via .pp-container--narrow on the host section). */
+.pp-legal-doc {
+    font-size: 15px;
+    line-height: 1.65;
+    color: #2c3340;
+}
+.pp-legal-doc h2 {
+    font-size: 22px;
+    font-weight: 700;
+    margin: 40px 0 12px;
+    color: #1d2327;
+    letter-spacing: -0.01em;
+}
+.pp-legal-doc h2:first-child { margin-top: 0; }
+.pp-legal-doc h3 {
+    font-size: 17px;
+    font-weight: 600;
+    margin: 28px 0 10px;
+    color: #1d2327;
+}
+.pp-legal-doc p { margin: 12px 0; }
+.pp-legal-doc ul,
+.pp-legal-doc ol { margin: 12px 0 12px 24px; padding: 0; }
+.pp-legal-doc li { margin: 6px 0; }
+.pp-legal-doc hr {
+    border: 0;
+    border-top: 1px solid var(--pp-border);
+    margin: 36px 0;
+}
+.pp-legal-doc a {
+    color: var(--pp-accent);
+    text-decoration: underline;
+}
+.pp-legal-doc code {
+    font-family: var(--pp-font-mono);
+    font-size: 13px;
+    background: var(--pp-bg-alt);
+    padding: 1px 5px;
+    border-radius: 3px;
+}
+
+/* Sub-processor list — each provider in a bordered block for scannability. */
+.pp-subproc-block {
+    border: 1px solid var(--pp-border);
+    border-radius: var(--pp-radius);
+    padding: 16px 20px;
+    margin: 16px 0;
+    background: #fff;
+}
+.pp-subproc-block h3 {
+    margin: 0 0 8px;
+    font-size: 16px;
+    color: var(--pp-accent);
+}
+.pp-subproc-meta { margin: 4px 0; font-size: 14px; }
+
+/* Data-handling page table. */
+.pp-data-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 12px 0 16px;
+    font-size: 14px;
+}
+.pp-data-table th,
+.pp-data-table td {
+    border: 1px solid var(--pp-border);
+    padding: 10px 12px;
+    text-align: left;
+    vertical-align: top;
+}
+.pp-data-table th {
+    background: var(--pp-bg-alt);
+    font-weight: 600;
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--pp-text-soft);
+}
+
+/* Paste-able block on the merchant-facing data-handling page. */
+.pp-paste-block {
+    background: #f8f9fb;
+    border: 1px solid var(--pp-border);
+    border-radius: var(--pp-radius);
+    padding: 16px;
+    margin: 16px 0 24px;
+    overflow-x: auto;
+}
+.pp-paste-block pre {
+    margin: 0;
+    font-family: var(--pp-font-mono);
+    font-size: 13px;
+    line-height: 1.55;
+    white-space: pre-wrap;
+    color: #2c3340;
+}
+.pp-paste-block code { background: none; padding: 0; font-size: 13px; }

@@ -387,6 +387,56 @@ A `woocommerce_add_cart_item_data` filter in `functions.php` empties the cart be
 - [x] **Pipe Pay v1.6.0 - one-field license activation** (2026-05-06): custom resolver mu-plugin on pipepay.app maps license key → product ID. Plugin's License page is a single field (no product ID). Tier upgrades work without zip swap. Migration path for existing 1.5.x customers is automatic - they just upgrade and re-paste their key.
 - [x] **Pipe Pay v1.6.3 - security/correctness audit hardening** (2026-05-07): fixes from a parallel three-agent code review of the Kestrel implementation. Resolver call moved to POST body (was URL query string - keys were landing in nginx access logs). Tier-upgrade cleanup of old SDK options. Deactivate only clears local state on server confirm. Idempotent re-activation (no double-burn). `manage_woocommerce` capability instead of `manage_options`. Stale-nonce friendly notice. `esc_html` on remote response messages. Resolver IP detection simplified to `REMOTE_ADDR` (nginx already does the trusted CF rewrite). uninstall.php sweeps license options + SDK option residue.
 
+## Right-to-be-forgotten (RTBF) runbook
+
+Privacy framework lives on three pages: `/privacy/` (the policy), `/sub-processors/` (the disclosure list), `/data-handling/` (the merchant-facing technical inventory + paste-able template). All three rendered from `pipepay-child/page-{privacy,sub-processors,data-handling}.php` via WordPress's slug-based template hierarchy auto-match. When a substantive change ships, bump the `$last_updated` constant in each affected file AND email active license-holders before the change takes effect.
+
+**Privacy requests inbox.** wittscafidi@gmail.com with "Privacy Request" in the subject. Pre-LLC, the operator is "Witt Scafidi (sole proprietor, NY)" — update the `$operator_name` + `$jurisdiction` constants in `page-privacy.php` on incorporation.
+
+**The RTBF mu-plugin** (`wp-content/mu-plugins/pipepay-rtbf.php`, local source at `pipe-pay-site/mu-plugins/pipepay-rtbf.php`) is the operational tool for executing a deletion request against the four customer-data stores on pipepay.app:
+
+| Store | What happens |
+|---|---|
+| `wp_wc_am_api_resource` (Kestrel licenses) | Rows deleted. License revalidation + auto-update stops working for any installs using that license. |
+| `wp_wc_orders` / `wp_users` | Orders anonymized: billing_first_name → "RTBF", billing_last_name → "Anonymized", billing_email/address fields tombstoned, customer_id → 0. WP user account deleted unless `--keep-user` was passed. Tax-record line items remain per CLAUDE.md (legal obligation). |
+| `wp_pipepay_revalidate_log` | Rows for the matching email's licenses are deleted. |
+| `pipepay_license_revocation_log` option | Entries are anonymized to the tombstone marker (NOT deleted) — security audit trail must remain. |
+| `pipepay_rtbf_audit_log` option | A new entry is added recording: fingerprint (SHA-256 of email + pepper, 16 hex chars; full email NOT stored), reason, timestamp, actor user ID, actor source (cli vs admin), and counts of what was deleted. Capped at 500 entries. |
+
+**Two execution paths.** Both call the same `pipepay_rtbf_execute()`.
+
+1. **WP Admin → Pipe Pay → RTBF Requests** (capability `manage_options`). Two-step form: paste the email, click Preview to confirm the survey matches the person who asked, then enter a reason and click Execute. Use this for documentation-friendly requests where you want the audit log to capture the actor as the admin UI session.
+
+2. **wp-cli on the OptiPlex** (use when a customer asks for deletion via a non-admin channel and you want to act quickly):
+   ```bash
+   # Preview only — no mutations.
+   ssh witt-scafidi@100.102.251.125 'sudo -u www-data wp --path=/var/www/pipepay pipepay-rtbf preview --email=customer@example.com'
+
+   # Execute. Reason is REQUIRED; keep-user is optional (default deletes the WP user too).
+   ssh witt-scafidi@100.102.251.125 'sudo -u www-data wp --path=/var/www/pipepay pipepay-rtbf execute --email=customer@example.com --reason="Customer email 2026-XX-XX, ticket #N" [--keep-user]'
+   ```
+
+**Standard 30-day response procedure.**
+
+1. Acknowledge receipt within 1 business day. Standard reply template:
+   > Thanks — we'll process your deletion request within 30 days as required by GDPR Article 17 / CCPA §1798.105. Before we delete, can you confirm: (1) the email address on your Pipe Pay purchase, and (2) the last 4 characters of your license key (visible at pipepay.app/my-account/api-keys/)? This is to verify you're the license-holder before we purge.
+2. Once verified (verification = matching email + last 4 of any associated license key), run `pipepay-rtbf preview` and confirm the survey shape matches what the customer remembers buying.
+3. Run `pipepay-rtbf execute` with a reason string of the form `"<requester>'s email YYYY-MM-DD via <channel>"`.
+4. Reply confirming each step:
+   > Done. We've: (a) purged your license record in API Manager — auto-update and license revalidation will stop on installs using that license, (b) anonymized your WooCommerce order with our standard tombstone marker (line-item totals remain for our tax records as required by law), (c) deleted your entries in our daily revalidation log, (d) anonymized any revocation-log entries (the events remain as a security audit trail but are no longer linkable to you). Backups age out at 30 days. If you'd also like the AI-provider on any merchant store you've ordered from to delete data, you'll need to contact that merchant directly — they're the data controller for their store's customer data, not us.
+5. Audit-log the request in the operator notebook (one-line entry per request: date, fingerprint, reason). For high-volume periods this could grow into a CSV — for now, the option-store audit log (capped at 500) is enough.
+
+**What RTBF does NOT delete.**
+- Tax-record line items on the order (kept per legal obligation; only PII is tombstoned).
+- Web server access logs (rotated weekly, don't selectively delete).
+- Backups (rotate on the 30-day cycle).
+- Revocation events (events remain as audit trail, but their actor is anonymized so they're no longer linkable to a person).
+- Data the customer sent to AI providers via their own merchant store — that's the merchant's controller obligation, not ours. The data-handling page documents this; the email reply above repeats it.
+
+**Sub-processor list updates.** Live in `page-sub-processors.php`. When adding or removing a sub-processor, OR adding a new data category to an existing one: bump `$last_updated` and email active license-holders before the change takes effect (per the privacy policy's "Changes to this policy" commitment).
+
+**The fingerprint pepper.** `PIPEPAY_RTBF_LOG_PEPPER` is optional; the mu-plugin falls back to `wp_salt('auth')` if undefined. The pepper guarantees the audit-log fingerprint can't be reversed to the original email by anyone who later steals a database backup. If you ever want hardened separation (a pepper that survives a `wp_salt` rotation), define it in `wp-config.php`. Don't rotate the pepper unless you understand it invalidates fingerprint linkability for older audit-log entries.
+
 ## Common operations cheatsheet
 
 ```bash
@@ -425,6 +475,9 @@ cd "/Users/wittscafidi/Desktop/Pipe Pay/pipe-pay-site" && tar czf /tmp/pipepay-c
 
 # Sync the resolver mu-plugin to the server
 scp "/Users/wittscafidi/Desktop/Pipe Pay/pipe-pay-site/mu-plugins/pipepay-license-resolve.php" witt-scafidi@100.102.251.125:/tmp/ && ssh witt-scafidi@100.102.251.125 'sudo install -o www-data -g www-data -m 644 /tmp/pipepay-license-resolve.php /var/www/pipepay/wp-content/mu-plugins/pipepay-license-resolve.php && rm /tmp/pipepay-license-resolve.php && sudo systemctl reload php8.3-fpm'
+
+# Sync the RTBF mu-plugin to the server
+scp "/Users/wittscafidi/Desktop/Pipe Pay/pipe-pay-site/mu-plugins/pipepay-rtbf.php" witt-scafidi@100.102.251.125:/tmp/ && ssh witt-scafidi@100.102.251.125 'sudo install -o www-data -g www-data -m 644 /tmp/pipepay-rtbf.php /var/www/pipepay/wp-content/mu-plugins/pipepay-rtbf.php && rm /tmp/pipepay-rtbf.php && sudo systemctl reload php8.3-fpm'
 
 # Replace the dogfood gateway with a new zip (deactivate, swap files, reactivate)
 ssh witt-scafidi@100.102.251.125 'sudo tar -czf /tmp/pipe-pay-backup-$(date +%Y%m%d-%H%M%S).tar.gz -C /var/www/pipepay/wp-content/plugins pipe-pay && sudo -u www-data wp --path=/var/www/pipepay plugin deactivate pipe-pay && sudo rm -rf /var/www/pipepay/wp-content/plugins/pipe-pay && sudo unzip -q /var/www/pipepay/wp-content/uploads/woocommerce_uploads/pipe-pay-v1.7.0.zip -d /var/www/pipepay/wp-content/plugins/ && sudo chown -R www-data:www-data /var/www/pipepay/wp-content/plugins/pipe-pay && sudo find /var/www/pipepay/wp-content/plugins/pipe-pay -type f -exec chmod 644 {} \; && sudo find /var/www/pipepay/wp-content/plugins/pipe-pay -type d -exec chmod 755 {} \; && sudo -u www-data wp --path=/var/www/pipepay plugin activate pipe-pay && sudo systemctl reload php8.3-fpm'
