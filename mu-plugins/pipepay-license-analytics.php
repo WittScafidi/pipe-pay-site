@@ -3,7 +3,7 @@
  * Plugin Name: Pipe Pay - License Analytics (clone detection)
  * Description: Logs every revalidation call to pipepay.app and surfaces (license, instance) tuples that report from multiple distinct site_urls — the canonical clone signal. Admin page at WP Admin → Pipe Pay → License Anomalies. Hands off to the existing License Revocation tool.
  * Author:      Pipe Pay
- * Version:     1.0.0
+ * Version:     1.1.0
  *
  * Threat model:
  *   v1.8.5's Phase D per-install nonce gives FRESH installs a unique
@@ -141,15 +141,28 @@ function pipepay_license_analytics_prune(): void {
 /**
  * Find (api_resource_id, instance) tuples where the same fingerprint is
  * reporting from MORE THAN ONE distinct site_url within the detection
- * window. That's the clone signal.
+ * window. That's the primary clone signal.
  *
- * @return array<int, array{api_resource_id:int, instance:string, site_urls:array<string>, distinct_site_count:int, distinct_ip_count:int, total_calls:int, last_seen:string}>
+ * v1.8.11 also returns an `ip_heterogeneity` advisory flag derived from
+ * /24 subnet diversity: legitimate single-site customers report from a
+ * stable IP /24 (their host's egress, or their CDN's edge cluster).
+ * A clone that hides its tracks by ALSO rewriting the `site_url` field
+ * outbound (defeating the primary signal) would still show two distinct
+ * /24 subnets — one per host install — over the 30-day window. The flag
+ * is advisory, not a primary detection: Cloudflare-fronted sites
+ * legitimately span Cloudflare's edge, which can produce multiple /24s
+ * across global PoPs. Treat it as a "look more carefully" indicator,
+ * not as proof.
+ *
+ * @return array<int, array{api_resource_id:int, instance:string, site_urls:array<string>, distinct_site_count:int, distinct_ip_count:int, distinct_subnet_count:int, ip_heterogeneity:bool, total_calls:int, last_seen:string}>
  */
 function pipepay_license_analytics_find_anomalies( int $window_days = PIPEPAY_LICENSE_ANALYTICS_DETECTION_DAYS ): array {
     global $wpdb;
     $table  = $wpdb->prefix . PIPEPAY_LICENSE_ANALYTICS_TABLE;
     $cutoff = gmdate( 'Y-m-d H:i:s', time() - ( $window_days * DAY_IN_SECONDS ) );
+
     // phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.DB.DirectDatabaseQuery
+    // Primary detection: site_url mismatch.
     $rows = $wpdb->get_results( $wpdb->prepare(
         "SELECT
             api_resource_id,
@@ -167,17 +180,83 @@ function pipepay_license_analytics_find_anomalies( int $window_days = PIPEPAY_LI
         $cutoff
     ), ARRAY_A );
     // phpcs:enable
+
     if ( ! is_array( $rows ) ) {
-        return array();
+        $rows = array();
     }
-    foreach ( $rows as &$r ) {
+
+    // Secondary advisory: also surface (api_resource_id, instance) tuples
+    // where site_url is unchanged but IP /24 diversity is high. This
+    // catches the v1.8.11 documented "clone rewrites site_url" evasion
+    // where an attacker installs a custom mu-plugin on the clone to
+    // hook http_request_args and rewrite the outgoing site_url field
+    // to match the original's. The clone STILL has a different egress
+    // IP /24 from the original (different hosting provider, almost
+    // always). We compute /24 here in SQL via the textual prefix
+    // because the analytics table stores client_ip as VARCHAR(45).
+    // phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.DB.DirectDatabaseQuery
+    $secondary = $wpdb->get_results( $wpdb->prepare(
+        "SELECT
+            api_resource_id,
+            instance,
+            COUNT(DISTINCT site_url) AS distinct_site_count,
+            COUNT(DISTINCT client_ip) AS distinct_ip_count,
+            COUNT(DISTINCT SUBSTRING_INDEX(client_ip, '.', 3)) AS distinct_subnet_count,
+            COUNT(*) AS total_calls,
+            MAX(created_at) AS last_seen
+         FROM {$table}
+         WHERE created_at >= %s
+         GROUP BY api_resource_id, instance
+         HAVING distinct_site_count = 1 AND distinct_subnet_count >= 3
+         ORDER BY last_seen DESC",
+        $cutoff
+    ), ARRAY_A );
+    // phpcs:enable
+
+    // Merge primary rows with secondary rows. Primary rows take
+    // priority; we annotate them with the same /24 count if their
+    // (api_resource_id, instance) appears in secondary too.
+    $by_key = array();
+    foreach ( $rows as $r ) {
+        $key            = $r['api_resource_id'] . '|' . $r['instance'];
+        $r['ip_heterogeneity']      = false; // primary signal already fired
+        $r['distinct_subnet_count'] = null;  // not yet computed for primary; backfill below
+        $by_key[ $key ] = $r;
+    }
+    if ( is_array( $secondary ) ) {
+        foreach ( $secondary as $s ) {
+            $key = $s['api_resource_id'] . '|' . $s['instance'];
+            if ( isset( $by_key[ $key ] ) ) {
+                // Same tuple appears in both — augment with /24 count.
+                $by_key[ $key ]['distinct_subnet_count'] = (int) $s['distinct_subnet_count'];
+                continue;
+            }
+            // Secondary-only: site_url stable but IPs span ≥3 /24s.
+            $by_key[ $key ] = array(
+                'api_resource_id'       => (int) $s['api_resource_id'],
+                'instance'              => $s['instance'],
+                'site_urls'             => '', // only one site_url seen
+                'distinct_site_count'   => 1,
+                'distinct_ip_count'     => (int) $s['distinct_ip_count'],
+                'distinct_subnet_count' => (int) $s['distinct_subnet_count'],
+                'total_calls'           => (int) $s['total_calls'],
+                'last_seen'             => $s['last_seen'],
+                'ip_heterogeneity'      => true, // advisory flag — needs human review
+            );
+        }
+    }
+
+    $merged = array_values( $by_key );
+    foreach ( $merged as &$r ) {
         $r['api_resource_id']     = (int) $r['api_resource_id'];
         $r['distinct_site_count'] = (int) $r['distinct_site_count'];
         $r['distinct_ip_count']   = (int) $r['distinct_ip_count'];
         $r['total_calls']         = (int) $r['total_calls'];
-        $r['site_urls']           = $r['site_urls'] ? explode( "\n", $r['site_urls'] ) : array();
+        $r['site_urls']           = is_string( $r['site_urls'] ) && '' !== $r['site_urls']
+            ? explode( "\n", $r['site_urls'] )
+            : ( is_array( $r['site_urls'] ) ? $r['site_urls'] : array() );
     }
-    return $rows;
+    return $merged;
 }
 
 /**
@@ -293,14 +372,24 @@ function pipepay_license_analytics_render_page(): void {
                         </td>
                         <td><code style="font-size:11px;"><?php echo esc_html( substr( $a['instance'], 0, 16 ) ); ?>…</code></td>
                         <td>
-                            <strong style="color:#b32d2e;"><?php echo (int) $a['distinct_site_count']; ?>×</strong><br>
-                            <?php foreach ( $a['site_urls'] as $url ) : ?>
-                                <small style="color:#444;"><?php echo esc_html( $url ?: '(empty)' ); ?></small><br>
-                            <?php endforeach; ?>
+                            <?php if ( ! empty( $a['ip_heterogeneity'] ) ) : ?>
+                                <span style="color:#c87a0a;font-weight:700;">⚠ IP heterogeneity</span><br>
+                                <small style="color:#666;">site_url stable but reporting from <?php echo (int) ( $a['distinct_subnet_count'] ?? 0 ); ?> distinct /24 subnets</small><br>
+                                <small style="color:#888;">(advisory: could be clone w/ rewritten site_url, or a Cloudflare-fronted legit customer spanning edges)</small>
+                            <?php else : ?>
+                                <strong style="color:#b32d2e;"><?php echo (int) $a['distinct_site_count']; ?>×</strong><br>
+                                <?php foreach ( $a['site_urls'] as $url ) : ?>
+                                    <small style="color:#444;"><?php echo esc_html( $url ?: '(empty)' ); ?></small><br>
+                                <?php endforeach; ?>
+                            <?php endif; ?>
                         </td>
                         <td>
                             <?php echo number_format_i18n( $a['total_calls'] ); ?> calls<br>
-                            <small style="color:#666;"><?php echo (int) $a['distinct_ip_count']; ?> distinct IPs</small>
+                            <small style="color:#666;"><?php echo (int) $a['distinct_ip_count']; ?> distinct IPs<?php
+                                if ( ! empty( $a['ip_heterogeneity'] ) || ! empty( $a['distinct_subnet_count'] ) ) {
+                                    echo ' (' . (int) ( $a['distinct_subnet_count'] ?? 0 ) . ' /24 subnets)';
+                                }
+                            ?></small>
                         </td>
                         <td>
                             <?php echo esc_html( wp_date( 'Y-m-d H:i', strtotime( $a['last_seen'] . ' UTC' ) ) ); ?>
