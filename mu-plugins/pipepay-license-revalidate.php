@@ -180,7 +180,7 @@ function pipepay_license_revalidate_handler( WP_REST_Request $request ): WP_REST
 
     // phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.DB.DirectDatabaseQuery
     $row = $wpdb->get_row( $wpdb->prepare(
-        "SELECT master_api_key, product_id, access_expires, active
+        "SELECT api_resource_id, master_api_key, product_id, access_expires, active
          FROM {$table}
          WHERE master_api_key = %s
          ORDER BY api_resource_id ASC
@@ -207,6 +207,22 @@ function pipepay_license_revalidate_handler( WP_REST_Request $request ): WP_REST
     $state = pipepay_license_revalidate_compute_state( $api_key, $row );
 
     pipepay_license_revalidate_log( $ip, $api_key, 200, 'resolved_' . $state );
+
+    // ── Clone-detection analytics (v1.1.1, plugin v1.8.7+) ──────────────────
+    // Fire an action with the request context. The pipepay-license-analytics
+    // mu-plugin listens and writes to its log table. We do this BEFORE
+    // signing+returning so the log captures the call even if signing fails.
+    // No raw api_key is passed - the api_resource_id from the Kestrel row is
+    // the stable identifier; analytics never sees the credential.
+    \do_action(
+        'pipepay_revalidate_logged',
+        (int) $row['api_resource_id'],
+        $instance,
+        (string) $request->get_param( 'site_url' ),
+        $ip,
+        (string) $request->get_param( 'plugin_version' ),
+        $state
+    );
 
     $payload = array( 'success' => true, 'state' => $state );
 
