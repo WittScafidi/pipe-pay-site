@@ -91,12 +91,12 @@ $changelog_url   = home_url( '/changelog' );
     <div class="pp-container">
         <div class="pp-hero-text">
             <h1 class="pp-hero-h1">
-                <span class="pp-hero-h1__line">Accept Venmo, Cash App,</span>
-                <span class="pp-hero-h1__line">PayPal, and Zelle in WooCommerce,</span>
+                <span class="pp-hero-h1__line">P2P payment verification</span>
+                <span class="pp-hero-h1__line">for WooCommerce stores,</span>
                 <span class="pp-hero-h1__line">without chasing payments by hand.</span>
             </h1>
-            <p class="pp-hero-sub">A WooCommerce plugin that captures customer P2P payment screenshots and verifies them with AI, so the only orders you touch are the ones the AI actually flagged.</p>
-            <p class="pp-hero-anchor">A $299/year WordPress plugin you install on your own store. Pipe Pay does not hold customer funds, does not process card payments, and is not a payment processor.</p>
+            <p class="pp-hero-sub">A WordPress plugin that captures customer payment screenshots from the P2P app they used and verifies them with AI, so the only orders you touch are the ones flagged for your review. Works with Venmo, Cash App, PayPal, and Zelle.</p>
+            <p class="pp-hero-anchor">For WooCommerce store owners. Pipe Pay is a $299/year verification tool that installs on your own store; it is not a payment processor, money transmitter, or financial institution and does not hold or transmit customer funds.</p>
             <div class="pp-hero-ctas">
                 <a class="pp-btn pp-btn--inverse pp-btn--lg" href="<?php echo esc_url( $checkout_url ); ?>">Start 7-day free trial &rarr;</a>
                 <a class="pp-btn pp-btn--ghost-light pp-btn--lg" href="#how">How it works &darr;</a>
@@ -651,6 +651,7 @@ $changelog_url   = home_url( '/changelog' );
                 <span>Pipe Pay</span>
             </a>
             <nav class="pp-footer-links" aria-label="Footer">
+                <a href="<?php echo esc_url( home_url( '/about' ) ); ?>">About</a>
                 <a href="#pricing">Pricing</a>
                 <a href="<?php echo esc_url( $docs_url ); ?>">Docs</a>
                 <a href="<?php echo esc_url( $changelog_url ); ?>">Changelog</a>
@@ -666,6 +667,9 @@ $changelog_url   = home_url( '/changelog' );
                 <span aria-hidden="true">&rarr;</span>
             </a>
         </div>
+        <p class="pp-footer-disclaimer">
+            Pipe Pay is an independent software tool for WooCommerce merchants. We are not affiliated with, endorsed by, or sponsored by Cash App, Block Inc., Zelle, Early Warning Services, Venmo, PayPal Holdings, Chime, or any payment service mentioned on this site. All product names, logos, and brands referenced are property of their respective owners and are used for identification purposes only.
+        </p>
         <div class="pp-footer-ledger">
             <strong>&copy; <?php echo esc_html( wp_date( 'Y' ) ); ?> Pipe Pay</strong>
             <span class="pp-footer-ledger__sep">/</span>

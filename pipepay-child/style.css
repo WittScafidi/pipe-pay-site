@@ -2566,9 +2566,24 @@ body.pipepay-home .pp-pricing-fineprint {
     color: var(--pp-blue);
 }
 
+/* Footer disclaimer - non-affiliation statement required for phishing-classifier
+ * disambiguation (Cloudflare flagged pipepay.app twice + Porkbun ToS triggered
+ * by Cash App mentions). Renders in static HTML on every page so classifiers
+ * and human appeal reviewers both see it without JS execution. Kept small but
+ * readable per the remediation spec - 11px, muted color, hairline rule above. */
+.pp-footer-disclaimer {
+    margin: 28px 0 0;
+    padding: 16px 0 0;
+    border-top: 1px solid var(--pp-border);
+    font-size: 11px;
+    line-height: 1.55;
+    color: var(--pp-text-muted);
+    max-width: 920px;
+}
+
 /* Footer ledger line - editorial credit row */
 .pp-footer-ledger {
-    margin-top: 32px;
+    margin-top: 18px;
     padding-top: 24px;
     border-top: 1px solid var(--pp-border);
     display: flex;

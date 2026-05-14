@@ -14,6 +14,7 @@ if ( ! defined( 'ABSPATH' ) ) { exit; }
                 <span>Pipe Pay</span>
             </a>
             <nav class="pp-footer-links" aria-label="Footer">
+                <a href="<?php echo esc_url( home_url( '/about' ) ); ?>">About</a>
                 <a href="<?php echo esc_url( home_url( '/pricing' ) ); ?>">Pricing</a>
                 <a href="<?php echo esc_url( home_url( '/docs' ) ); ?>">Docs</a>
                 <a href="<?php echo esc_url( home_url( '/changelog' ) ); ?>">Changelog</a>
@@ -30,6 +31,9 @@ if ( ! defined( 'ABSPATH' ) ) { exit; }
                 <span aria-hidden="true">&rarr;</span>
             </a>
         </div>
+        <p class="pp-footer-disclaimer">
+            Pipe Pay is an independent software tool for WooCommerce merchants. We are not affiliated with, endorsed by, or sponsored by Cash App, Block Inc., Zelle, Early Warning Services, Venmo, PayPal Holdings, Chime, or any payment service mentioned on this site. All product names, logos, and brands referenced are property of their respective owners and are used for identification purposes only.
+        </p>
         <div class="pp-footer-ledger">
             <strong>&copy; <?php echo esc_html( wp_date( 'Y' ) ); ?> Pipe Pay</strong>
             <span class="pp-footer-ledger__sep">/</span>

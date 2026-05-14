@@ -88,9 +88,14 @@ add_action( 'after_setup_theme', function() {
 // Set a sane <title> on every page. Use pre_get_document_title to bypass
 // WordPress's wptexturize step (which converts hyphens to en dashes,
 // violating the brief's "no en/em dashes" rule).
+//
+// Front-page title reads as B2B SaaS positioning ("for WooCommerce stores")
+// rather than payment-action vocabulary ("accept Venmo, Cash App, ...") -
+// the latter trips phishing classifiers because it textually matches
+// phishing-template hero copy. Same product, different shelf placement.
 add_filter( 'pre_get_document_title', function( $title ) {
     if ( is_front_page() ) {
-        return 'Pipe Pay - Accept Venmo, Cash App, PayPal, and Zelle in WooCommerce';
+        return 'Pipe Pay - P2P Payment Verification for WooCommerce Stores';
     }
     if ( is_singular() ) {
         return single_post_title( '', false ) . ' - Pipe Pay';
@@ -106,19 +111,26 @@ add_action( 'wp_head', function() {
     // Per-template descriptions for the templates we have. Slug-keyed.
     // Front-page handled separately below.
     $slug_descriptions = array(
-        'how-it-works'   => 'The full breakdown of what Pipe Pay does, why it exists, and the controls that keep it honest. Manual-reconciliation pain, founder story, traceable workflow, AI deep-dive, security primitives, onboarding shape.',
-        'pricing'        => 'Three license tiers ($299 / $599 / $1,199 per year), all with a 7-day free trial. Built for WooCommerce stores accepting P2P payments. Honest yes/no qualification before you buy.',
-        'docs'           => 'Customer documentation for Pipe Pay: installation, AI verification, admin guide, configuration, order lifecycle, refunds, security, license management, troubleshooting.',
-        'contact'        => 'Reach Pipe Pay support. Built and supported by one person. Expect a reply within one business day.',
-        'changelog'      => 'Every shipped release of Pipe Pay, newest first. What changed and what to know about each version.',
-        'refund-policy'  => 'Refund policy for Pipe Pay licenses. The 7-day free trial is the evaluation window; once your trial converts to a paid license, all sales are final.',
-        'privacy'        => 'Privacy policy for Pipe Pay. What data we collect, how we use it, how long we keep it, your rights.',
-        'terms'          => 'Terms of Service for Pipe Pay. The agreement governing your use of the plugin and pipepay.app.',
+        'about'          => 'About Pipe Pay - an independent WooCommerce plugin for store owners who accept Venmo, Cash App, PayPal, or Zelle directly from customers. We are a verification tool, not a payment processor or money transmitter; we do not hold or transmit funds.',
+        'how-it-works'   => 'How Pipe Pay works for WooCommerce store owners: customer pays via their preferred P2P app, uploads a screenshot at checkout, AI verifies it against the order, you only see the ones flagged for review.',
+        'pricing'        => 'Pipe Pay annual subscription pricing for WooCommerce stores: $299 / $599 / $1,199 per year tiers, all with a 7-day free trial. Per-site licensing. Honest yes/no qualification before you buy.',
+        'docs'           => 'Pipe Pay documentation for WooCommerce store owners: installation, AI verification setup, admin guide, configuration, order lifecycle, refunds, security, license management, troubleshooting.',
+        'contact'        => 'Contact Pipe Pay support. Independent B2B SaaS built and supported by one person. We respond to all merchant inquiries within one business day.',
+        'changelog'      => 'Pipe Pay plugin release notes, newest first. WooCommerce-compatibility patches, AI verification improvements, admin queue updates.',
+        'refund-policy'  => 'Refund policy for Pipe Pay annual licenses. The 7-day free trial is the evaluation window; once your trial converts to a paid license, all sales are final.',
+        'privacy'        => 'Privacy policy for the Pipe Pay merchant-facing website. What data we collect from store owners, how we use it, how long we keep it, your rights.',
+        'terms'          => 'Terms of Service for Pipe Pay. The agreement governing use of the WordPress plugin and the pipepay.app merchant-facing site.',
     );
 
+    // Site name + brand keywords - used on every page meta block. The keyword
+    // mix deliberately includes B2B SaaS / WooCommerce terms ahead of payment-
+    // brand names to balance phishing-classifier signals.
+    $site_name     = 'Pipe Pay';
+    $site_keywords = 'WooCommerce plugin, B2B SaaS, merchant tool, P2P payment verification, WordPress plugin, payment screenshot verification, merchant admin queue, annual subscription, per-site licensing, Venmo verification, Cash App verification, PayPal verification, Zelle verification';
+
     if ( is_front_page() ) {
-        $title       = 'Pipe Pay - Accept Venmo, Cash App, PayPal, and Zelle in WooCommerce';
-        $description = 'A WooCommerce plugin that captures customer P2P payment screenshots and verifies them with AI, so the only orders you touch are the ones the AI flagged.';
+        $title       = 'Pipe Pay - P2P Payment Verification for WooCommerce Stores';
+        $description = 'WooCommerce plugin for store owners who accept Venmo, Cash App, PayPal, or Zelle from customers. AI-verified, queue-managed, merchant-controlled. A verification tool installed on your own WordPress store - not a payment processor.';
         $canonical   = home_url( '/' );
     } elseif ( is_singular() ) {
         $slug        = get_post_field( 'post_name', get_the_ID() );
@@ -128,7 +140,7 @@ add_action( 'wp_head', function() {
             $description = wp_strip_all_tags( get_the_excerpt() );
         }
         if ( ! $description ) {
-            $description = 'Pipe Pay - the WooCommerce checkout add-on for stores accepting Venmo, Cash App, PayPal, and Zelle.';
+            $description = 'Pipe Pay - a WooCommerce verification plugin for store owners accepting Venmo, Cash App, PayPal, or Zelle. Not a payment processor.';
         }
         $canonical   = wp_get_canonical_url() ?: get_permalink();
     } else {
@@ -141,13 +153,45 @@ add_action( 'wp_head', function() {
         echo '<link rel="canonical" href="' . esc_url( $canonical ) . '">' . "\n";
     }
     echo '<meta name="description" content="' . esc_attr( $description ) . '">' . "\n";
+    echo '<meta name="keywords" content="' . esc_attr( $site_keywords ) . '">' . "\n";
     echo '<meta property="og:title" content="' . esc_attr( $title ) . '">' . "\n";
     echo '<meta property="og:description" content="' . esc_attr( $description ) . '">' . "\n";
     echo '<meta property="og:type" content="website">' . "\n";
+    echo '<meta property="og:site_name" content="' . esc_attr( $site_name ) . '">' . "\n";
     echo '<meta property="og:url" content="' . esc_url( $canonical ) . '">' . "\n";
     echo '<meta name="twitter:card" content="summary">' . "\n";
     echo '<meta name="twitter:title" content="' . esc_attr( $title ) . '">' . "\n";
     echo '<meta name="twitter:description" content="' . esc_attr( $description ) . '">' . "\n";
+
+    // Schema.org SoftwareApplication on the front page. Explicitly classes the
+    // site as B2B software ("BusinessApplication") rather than letting crawlers
+    // guess from page text - phishing classifiers train on text and miss this
+    // structural signal entirely. Disambiguates Pipe Pay from a payment service.
+    if ( is_front_page() ) {
+        $schema = array(
+            '@context'            => 'https://schema.org',
+            '@type'               => 'SoftwareApplication',
+            'name'                => 'Pipe Pay',
+            'url'                 => home_url( '/' ),
+            'applicationCategory' => 'BusinessApplication',
+            'applicationSubCategory' => 'WooCommerce Plugin',
+            'operatingSystem'     => 'WordPress 6.0+, WooCommerce 8.0+',
+            'description'         => $description,
+            'offers'              => array(
+                '@type'         => 'AggregateOffer',
+                'lowPrice'      => '299',
+                'highPrice'     => '1199',
+                'priceCurrency' => 'USD',
+                'offerCount'    => 3,
+            ),
+            'publisher'           => array(
+                '@type' => 'Organization',
+                'name'  => 'Pipe Pay',
+                'url'   => home_url( '/' ),
+            ),
+        );
+        echo '<script type="application/ld+json">' . wp_json_encode( $schema, JSON_UNESCAPED_SLASHES ) . '</script>' . "\n";
+    }
 }, 1 );
 
 // Override the default title separator (en dash) with a plain hyphen,
