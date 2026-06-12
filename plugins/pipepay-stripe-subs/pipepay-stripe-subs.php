@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Pipe Pay - Stripe Subscriptions Bridge
  * Description: Bridges Stripe subscription events to WCAM license issuance/renewal/revocation. Provides /pricing Checkout + /my-account Customer Portal endpoints.
- * Version:     0.7.0
+ * Version:     0.7.1
  * Author:      Pipe Pay
  * License:     GPLv2 or later
  */
@@ -11,7 +11,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'PIPEPAY_STRIPE_SUBS_VERSION', '0.7.0' );
+define( 'PIPEPAY_STRIPE_SUBS_VERSION', '0.7.1' );
 define( 'PIPEPAY_STRIPE_API_BASE', 'https://api.stripe.com' );
 define( 'PIPEPAY_STRIPE_WEBHOOK_TOLERANCE', 300 ); // 5 minutes replay protection
 
@@ -67,7 +67,7 @@ function pipepay_stripe_subs_get_config() {
 		$config[ PIPEPAY_STRIPE_PRICE_SINGLE_YR ] = array(
 			'tier'          => 'single',
 			'wc_product_id' => 34,
-			'amount_cents'  => 29900,
+			'amount_cents'  => 29700,
 			'label'         => 'Single Site Annual',
 		);
 	}
@@ -75,7 +75,7 @@ function pipepay_stripe_subs_get_config() {
 		$config[ PIPEPAY_STRIPE_PRICE_FIVE_YR ] = array(
 			'tier'          => 'five',
 			'wc_product_id' => 35,
-			'amount_cents'  => 49900,
+			'amount_cents'  => 49700,
 			'label'         => '5 Sites Annual',
 		);
 	}
@@ -83,7 +83,7 @@ function pipepay_stripe_subs_get_config() {
 		$config[ PIPEPAY_STRIPE_PRICE_UNLIM_YR ] = array(
 			'tier'          => 'unlimited',
 			'wc_product_id' => 36,
-			'amount_cents'  => 99900,
+			'amount_cents'  => 99700,
 			'label'         => 'Unlimited Annual',
 		);
 	}

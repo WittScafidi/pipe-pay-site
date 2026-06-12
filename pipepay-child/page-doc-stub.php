@@ -373,9 +373,9 @@ HTML,
 
 <h2>Site limits per tier</h2>
 <ul>
-    <li><strong>Single Site</strong> ($299/year): 1 activation. One site URL at a time.</li>
-    <li><strong>5 Sites</strong> ($499/year): up to 5 activations, any combination of staging and production sites.</li>
-    <li><strong>Unlimited Sites</strong> ($999/year): no activation cap. Run it on as many sites as you want.</li>
+    <li><strong>Single Site</strong> ($297/year): 1 activation. One site URL at a time.</li>
+    <li><strong>5 Sites</strong> ($497/year): up to 5 activations, any combination of staging and production sites.</li>
+    <li><strong>Unlimited Sites</strong> ($997/year): no activation cap. Run it on as many sites as you want.</li>
 </ul>
 <p>The activation count is enforced server-side at <code>pipepay.app</code>. Trying to activate beyond your tier returns a clear error rather than silently allowing it.</p>
 

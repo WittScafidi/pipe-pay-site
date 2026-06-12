@@ -55,7 +55,7 @@ $monthly_buy_unlim  = home_url( '/checkout/?add-to-cart=528' );
                 <h3>Single Site</h3>
                 <p class="pp-price-detail">For one WooCommerce store.</p>
                 <div data-billing-show="annual">
-                    <div class="pp-price">$299<small></small></div>
+                    <div class="pp-price">$297<small></small></div>
                     <div class="pp-price-period">per year</div>
                 </div>
                 <div data-billing-show="monthly" hidden>
@@ -79,7 +79,7 @@ $monthly_buy_unlim  = home_url( '/checkout/?add-to-cart=528' );
                 <h3>5 Sites</h3>
                 <p class="pp-price-detail">For agencies or multi-store owners.</p>
                 <div data-billing-show="annual">
-                    <div class="pp-price">$499<small></small></div>
+                    <div class="pp-price">$497<small></small></div>
                     <div class="pp-price-period">per year</div>
                 </div>
                 <div data-billing-show="monthly" hidden>
@@ -103,7 +103,7 @@ $monthly_buy_unlim  = home_url( '/checkout/?add-to-cart=528' );
                 <h3>Unlimited Sites</h3>
                 <p class="pp-price-detail">No activation cap. Run it everywhere.</p>
                 <div data-billing-show="annual">
-                    <div class="pp-price">$999<small></small></div>
+                    <div class="pp-price">$997<small></small></div>
                     <div class="pp-price-period">per year</div>
                 </div>
                 <div data-billing-show="monthly" hidden>

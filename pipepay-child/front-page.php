@@ -104,7 +104,7 @@ $changelog_url   = home_url( '/changelog' );
                 <span class="pp-hero-h1__line">without chasing payments by hand.</span>
             </h1>
             <p class="pp-hero-sub">A WordPress plugin that captures customer payment screenshots from the P2P app they used and verifies them with AI, so the only orders you touch are the ones flagged for your review. Works with Venmo, Cash App, PayPal, and Zelle.</p>
-            <p class="pp-hero-anchor">For WooCommerce store owners. Pipe Pay is a $299/year verification tool that installs on your own store; it is not a payment processor, money transmitter, or financial institution and does not hold or transmit customer funds.</p>
+            <p class="pp-hero-anchor">For WooCommerce store owners. Pipe Pay is a $297/year verification tool that installs on your own store; it is not a payment processor, money transmitter, or financial institution and does not hold or transmit customer funds.</p>
             <div class="pp-hero-ctas">
                 <a class="pp-btn pp-btn--inverse pp-btn--lg" href="<?php echo esc_url( $checkout_url ); ?>">Start 7-day free trial &rarr;</a>
                 <a class="pp-btn pp-btn--ghost-light pp-btn--lg" href="#how">How it works &darr;</a>
@@ -244,10 +244,10 @@ $changelog_url   = home_url( '/changelog' );
                 <span class="pp-persona__tag">Tired of paying fees</span>
                 <p class="pp-persona__quote">"I'm bleeding fourteen and a half thousand a year in Stripe fees on $500K of orders. For what, a dashboard?"</p>
                 <ul class="pp-persona__list">
-                    <li><strong>$299/year, flat.</strong> Zero per-transaction fees on the plugin side.</li>
+                    <li><strong>$297/year, flat.</strong> Zero per-transaction fees on the plugin side.</li>
                     <li><strong>Personal Venmo / Cash App / PayPal F&amp;F:</strong> 0% fees.</li>
                     <li><strong>Business profiles:</strong> 1.9-2.75% &mdash; still under Stripe.</li>
-                    <li><strong>Breaks even at ~$10,300 in annual card volume.</strong> Every dollar saved from there is yours.</li>
+                    <li><strong>Breaks even at ~$10,200 in annual card volume.</strong> Every dollar saved from there is yours.</li>
                 </ul>
             </article>
         </div>
@@ -578,7 +578,7 @@ $changelog_url   = home_url( '/changelog' );
                 <h3>Single Site</h3>
                 <p class="pp-price-detail">For one WooCommerce store.</p>
                 <div data-billing-show="annual">
-                    <div class="pp-price">$299<small></small></div>
+                    <div class="pp-price">$297<small></small></div>
                     <div class="pp-price-period">per year</div>
                 </div>
                 <div data-billing-show="monthly" hidden>
@@ -602,7 +602,7 @@ $changelog_url   = home_url( '/changelog' );
                 <h3>5 Sites</h3>
                 <p class="pp-price-detail">For agencies or multi-store owners.</p>
                 <div data-billing-show="annual">
-                    <div class="pp-price">$499<small></small></div>
+                    <div class="pp-price">$497<small></small></div>
                     <div class="pp-price-period">per year</div>
                 </div>
                 <div data-billing-show="monthly" hidden>
@@ -626,7 +626,7 @@ $changelog_url   = home_url( '/changelog' );
                 <h3>Unlimited Sites</h3>
                 <p class="pp-price-detail">No activation cap. Run it everywhere.</p>
                 <div data-billing-show="annual">
-                    <div class="pp-price">$999<small></small></div>
+                    <div class="pp-price">$997<small></small></div>
                     <div class="pp-price-period">per year</div>
                 </div>
                 <div data-billing-show="monthly" hidden>

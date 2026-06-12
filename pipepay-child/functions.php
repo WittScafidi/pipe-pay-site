@@ -113,7 +113,7 @@ add_action( 'wp_head', function() {
     $slug_descriptions = array(
         'about'          => 'About Pipe Pay - an independent WooCommerce plugin for store owners who accept Venmo, Cash App, PayPal, or Zelle directly from customers. We are a verification tool, not a payment processor or money transmitter; we do not hold or transmit funds.',
         'how-it-works'   => 'How Pipe Pay works for WooCommerce store owners: customer pays via their preferred P2P app, uploads a screenshot at checkout, AI verifies it against the order, you only see the ones flagged for review.',
-        'pricing'        => 'Pipe Pay annual subscription pricing for WooCommerce stores: $299 / $499 / $999 per year tiers, all with a 7-day free trial. Per-site licensing. Honest yes/no qualification before you buy.',
+        'pricing'        => 'Pipe Pay annual subscription pricing for WooCommerce stores: $297 / $497 / $997 per year tiers, all with a 7-day free trial. Per-site licensing. Honest yes/no qualification before you buy.',
         'docs'           => 'Pipe Pay documentation for WooCommerce store owners: installation, AI verification setup, admin guide, configuration, order lifecycle, refunds, security, license management, troubleshooting.',
         'contact'        => 'Contact Pipe Pay support. Independent B2B SaaS for WooCommerce merchants. We respond to all merchant inquiries within one business day.',
         'changelog'      => 'Pipe Pay plugin release notes, newest first. WooCommerce-compatibility patches, AI verification improvements, admin queue updates.',
