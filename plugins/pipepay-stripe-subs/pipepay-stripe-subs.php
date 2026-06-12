@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Pipe Pay - Stripe Subscriptions Bridge
  * Description: Bridges Stripe subscription events to WCAM license issuance/renewal/revocation. Provides /pricing Checkout + /my-account Customer Portal endpoints.
- * Version:     0.8.0
+ * Version:     0.8.1
  * Author:      Pipe Pay
  * License:     GPLv2 or later
  */
@@ -11,7 +11,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'PIPEPAY_STRIPE_SUBS_VERSION', '0.8.0' );
+define( 'PIPEPAY_STRIPE_SUBS_VERSION', '0.8.1' );
 define( 'PIPEPAY_STRIPE_API_BASE', 'https://api.stripe.com' );
 define( 'PIPEPAY_STRIPE_WEBHOOK_TOLERANCE', 300 ); // 5 minutes replay protection
 
@@ -947,17 +947,36 @@ function pipepay_stripe_subs_handle_charge_refunded( $charge ) {
  * REST: Checkout session creation (called by /pricing CTA)
  * ------------------------------------------------------------------------- */
 
+/**
+ * True when $url shares scheme + host + port with home_url().
+ *
+ * Used for the Origin/Referer same-origin gate below. Parsed comparison,
+ * not string prefix: a prefix check would accept https://pipepay.app.evil.com.
+ */
+function pipepay_stripe_subs_is_same_origin( $url ) {
+	if ( ! is_string( $url ) || '' === $url ) {
+		return false;
+	}
+	$home  = wp_parse_url( home_url() );
+	$check = wp_parse_url( $url );
+	if ( empty( $check['scheme'] ) || empty( $check['host'] ) || empty( $home['scheme'] ) || empty( $home['host'] ) ) {
+		return false;
+	}
+	$default_port = static function ( $parts ) {
+		return isset( $parts['port'] ) ? (int) $parts['port'] : ( 'https' === strtolower( $parts['scheme'] ) ? 443 : 80 );
+	};
+	return strtolower( $check['scheme'] ) === strtolower( $home['scheme'] )
+		&& strtolower( $check['host'] ) === strtolower( $home['host'] )
+		&& $default_port( $check ) === $default_port( $home );
+}
+
 function pipepay_stripe_subs_create_checkout_session( WP_REST_Request $request ) {
 	// Same-origin check: this endpoint is only ever called by our own pricing pages.
 	// Pricing pages are Cloudflare-cached for anonymous visitors, so a WP nonce can't
 	// work here (it would be stale in the cached HTML); Origin/Referer is the check
 	// that survives caching. Browsers always send Origin on fetch() POSTs.
-	// Exact-host match: a prefix check would accept https://pipepay.app.evil.com.
-	$home   = untrailingslashit( home_url() );
-	$origin = $request->get_header( 'origin' );
-	$refer  = $request->get_header( 'referer' );
-	$origin_ok = ( $origin && untrailingslashit( $origin ) === $home )
-		|| ( $refer && ( $refer === $home || 0 === strpos( $refer, $home . '/' ) ) );
+	$origin_ok = pipepay_stripe_subs_is_same_origin( $request->get_header( 'origin' ) )
+		|| pipepay_stripe_subs_is_same_origin( $request->get_header( 'referer' ) );
 	if ( ! $origin_ok ) {
 		return new WP_REST_Response( array( 'error' => 'forbidden' ), 403 );
 	}
