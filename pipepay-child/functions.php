@@ -679,12 +679,19 @@ add_filter( 'woocommerce_available_payment_gateways', function ( $gateways ) {
     }
 
     if ( $has_monthly ) {
-        // Monthly tiers are card-subscription only (P2P cannot auto-bill).
-        // The checkout template embeds Stripe instead of the WC form; emptying
-        // the gateway list makes the hidden form unusable as well.
-        return array();
+        // Monthly tiers are card-subscription only (P2P cannot auto-bill):
+        // keep just the auto-renewing card gateway.
+        foreach ( array_keys( $gateways ) as $gateway_id ) {
+            if ( 'pipepay_stripe_sub' !== $gateway_id ) {
+                unset( $gateways[ $gateway_id ] );
+            }
+        }
+        return $gateways;
     }
     if ( $has_annual ) {
+        // Annual tiers: Pipe Pay (payment apps, manual renewal) + the
+        // auto-renewing card gateway. The one-time card gateway is removed
+        // so a card payment is always the auto-renewing subscription.
         foreach ( array_keys( $gateways ) as $gateway_id ) {
             if ( 0 === strpos( $gateway_id, 'stripe_' ) ) {
                 unset( $gateways[ $gateway_id ] );

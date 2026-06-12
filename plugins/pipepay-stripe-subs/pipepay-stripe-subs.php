@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Pipe Pay - Stripe Subscriptions Bridge
  * Description: Bridges Stripe subscription events to WCAM license issuance/renewal/revocation. Provides /pricing Checkout + /my-account Customer Portal endpoints.
- * Version:     0.6.1
+ * Version:     0.7.0
  * Author:      Pipe Pay
  * License:     GPLv2 or later
  */
@@ -11,7 +11,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'PIPEPAY_STRIPE_SUBS_VERSION', '0.6.1' );
+define( 'PIPEPAY_STRIPE_SUBS_VERSION', '0.7.0' );
 define( 'PIPEPAY_STRIPE_API_BASE', 'https://api.stripe.com' );
 define( 'PIPEPAY_STRIPE_WEBHOOK_TOLERANCE', 300 ); // 5 minutes replay protection
 
@@ -121,6 +121,185 @@ function pipepay_stripe_subs_get_secret_key() {
 function pipepay_stripe_subs_get_webhook_secret() {
 	return defined( 'PIPEPAY_STRIPE_WEBHOOK_SECRET' ) ? PIPEPAY_STRIPE_WEBHOOK_SECRET : '';
 }
+
+/**
+ * Reverse lookup: WC product id → (price_id, config entry). Used by the WC
+ * payment gateway to map an order line to the matching Stripe subscription.
+ *
+ * @return array|null [ price_id, config ] or null.
+ */
+function pipepay_stripe_subs_price_for_product( $product_id ) {
+	foreach ( pipepay_stripe_subs_get_config() as $price_id => $cfg ) {
+		if ( (int) $cfg['wc_product_id'] === (int) $product_id ) {
+			return array( $price_id, $cfg );
+		}
+	}
+	return null;
+}
+
+/* -------------------------------------------------------------------------
+ * WC payment gateway: "Credit/Debit Card" (auto-renewing Stripe subscription)
+ *
+ * Appears in the normal WooCommerce payment-options list next to Pipe Pay.
+ * process_payment() creates a Stripe Checkout session carrying the WC order
+ * id in metadata and redirects the customer to Stripe's hosted payment page.
+ * The checkout.session.completed webhook then completes THIS order (no
+ * duplicate bridge order) and WCAM issues the license from it.
+ * ------------------------------------------------------------------------- */
+
+add_action( 'plugins_loaded', function () {
+	if ( ! class_exists( 'WC_Payment_Gateway' ) ) {
+		return;
+	}
+
+	class PipePay_Stripe_Sub_Gateway extends WC_Payment_Gateway {
+		public function __construct() {
+			$this->id                 = 'pipepay_stripe_sub';
+			$this->method_title       = 'Credit/Debit Card (Stripe subscription)';
+			$this->method_description = 'Auto-renewing card billing for Pipe Pay license tiers via Stripe Checkout.';
+			$this->has_fields         = false;
+			$this->title              = 'Credit/Debit Card';
+			$this->description        = 'Auto-renews through Stripe. Cancel anytime from your billing portal. You will be sent to Stripe\'s secure payment page.';
+			$this->supports           = array( 'products' );
+			// No admin settings: availability is driven entirely by the cart
+			// contents + the configured Stripe prices.
+			$this->enabled = 'yes';
+		}
+
+		/** Available only when the cart/order holds a tier mapped to a Stripe price. */
+		public function is_available() {
+			if ( ! pipepay_stripe_subs_get_secret_key() ) {
+				return false;
+			}
+			// Pay-for-order page: inspect the order.
+			if ( function_exists( 'is_checkout_pay_page' ) && is_checkout_pay_page() ) {
+				$order = wc_get_order( absint( get_query_var( 'order-pay' ) ) );
+				if ( $order ) {
+					foreach ( $order->get_items() as $item ) {
+						if ( pipepay_stripe_subs_price_for_product( $item->get_product_id() ) ) {
+							return true;
+						}
+					}
+				}
+				return false;
+			}
+			if ( function_exists( 'WC' ) && WC()->cart ) {
+				foreach ( WC()->cart->get_cart() as $cart_item ) {
+					if ( pipepay_stripe_subs_price_for_product( $cart_item['product_id'] ) ) {
+						return true;
+					}
+				}
+			}
+			return false;
+		}
+
+		public function process_payment( $order_id ) {
+			$order = wc_get_order( $order_id );
+
+			$mapped = null;
+			foreach ( $order->get_items() as $item ) {
+				$mapped = pipepay_stripe_subs_price_for_product( $item->get_product_id() );
+				if ( $mapped ) {
+					break;
+				}
+			}
+			if ( ! $mapped ) {
+				wc_add_notice( 'This payment method is not available for the items in your cart.', 'error' );
+				return array( 'result' => 'failure' );
+			}
+			list( $price_id ) = $mapped;
+
+			try {
+				$session = pipepay_stripe_subs_api_post( '/v1/checkout/sessions', array(
+					'mode'                       => 'subscription',
+					'currency'                   => 'usd',
+					'line_items[0][price]'       => $price_id,
+					'line_items[0][quantity]'    => 1,
+					'customer_email'             => $order->get_billing_email(),
+					'client_reference_id'        => (string) $order_id,
+					'metadata[wc_order_id]'      => (string) $order_id,
+					'subscription_data[metadata][wc_order_id]' => (string) $order_id,
+					'allow_promotion_codes'      => 'true',
+					'billing_address_collection' => 'auto',
+					'success_url'                => home_url( '/my-account/?stripe_success=1&session_id={CHECKOUT_SESSION_ID}' ),
+					'cancel_url'                 => wc_get_checkout_url(),
+				) );
+			} catch ( Throwable $e ) {
+				pipepay_stripe_subs_log( 'gateway: session create failed for order ' . $order_id . ': ' . $e->getMessage(), 'error' );
+				wc_add_notice( 'Could not start the card payment. Please try again or choose another payment method.', 'error' );
+				return array( 'result' => 'failure' );
+			}
+
+			$order->update_meta_data( '_pipepay_stripe_session_id', $session['id'] ?? '' );
+			$order->update_status( 'pending', 'Awaiting Stripe Checkout payment.' );
+			$order->save();
+
+			return array(
+				'result'   => 'success',
+				'redirect' => $session['url'],
+			);
+		}
+	}
+
+	add_filter( 'woocommerce_payment_gateways', function ( $gateways ) {
+		$gateways[] = 'PipePay_Stripe_Sub_Gateway';
+		return $gateways;
+	} );
+} );
+
+// Block Checkout integration: register the gateway with the blocks payment
+// registry via an inline script (the bridge is a single-file plugin).
+add_action( 'woocommerce_blocks_payment_method_type_registration', function ( $registry ) {
+	if ( ! class_exists( 'Automattic\\WooCommerce\\Blocks\\Payments\\Integrations\\AbstractPaymentMethodType' ) ) {
+		return;
+	}
+
+	$integration = new class extends Automattic\WooCommerce\Blocks\Payments\Integrations\AbstractPaymentMethodType {
+		protected $name = 'pipepay_stripe_sub';
+
+		public function initialize() {}
+
+		public function is_active() {
+			$gateways = WC()->payment_gateways()->payment_gateways();
+			return isset( $gateways['pipepay_stripe_sub'] ) && $gateways['pipepay_stripe_sub']->is_available();
+		}
+
+		public function get_payment_method_script_handles() {
+			if ( ! wp_script_is( 'pipepay-stripe-sub-blocks', 'registered' ) ) {
+				wp_register_script( 'pipepay-stripe-sub-blocks', '', array( 'wc-blocks-registry', 'wp-element', 'wp-html-entities' ), PIPEPAY_STRIPE_SUBS_VERSION, true );
+				wp_add_inline_script( 'pipepay-stripe-sub-blocks', '
+( function () {
+	var settings = window.wc.wcSettings.getSetting( "pipepay_stripe_sub_data", {} );
+	var label    = window.wp.htmlEntities.decodeEntities( settings.title || "Credit/Debit Card" );
+	var content  = window.wp.htmlEntities.decodeEntities( settings.description || "" );
+	window.wc.wcBlocksRegistry.registerPaymentMethod( {
+		name: "pipepay_stripe_sub",
+		label: label,
+		ariaLabel: label,
+		content: window.wp.element.createElement( "div", null, content ),
+		edit: window.wp.element.createElement( "div", null, content ),
+		canMakePayment: function () { return true; },
+		supports: { features: ( settings.supports || [ "products" ] ) }
+	} );
+} )();
+' );
+			}
+			return array( 'pipepay-stripe-sub-blocks' );
+		}
+
+		public function get_payment_method_data() {
+			$gateways = WC()->payment_gateways()->payment_gateways();
+			$gw       = $gateways['pipepay_stripe_sub'] ?? null;
+			return array(
+				'title'       => $gw ? $gw->title : 'Credit/Debit Card',
+				'description' => $gw ? $gw->description : '',
+				'supports'    => array( 'products' ),
+			);
+		}
+	};
+
+	$registry->register( $integration );
+} );
 
 /* -------------------------------------------------------------------------
  * REST endpoints
@@ -323,6 +502,14 @@ function pipepay_stripe_subs_handle_checkout_completed( $session ) {
 		throw new Exception( 'Missing email/customer/subscription in checkout session' );
 	}
 
+	// Sessions created by the WC payment gateway carry the order id: complete
+	// THAT order instead of creating a bridge order.
+	$wc_order_id = (int) ( $session['metadata']['wc_order_id'] ?? 0 );
+	if ( $wc_order_id ) {
+		pipepay_stripe_subs_complete_gateway_order( $wc_order_id, $email, $stripe_customer_id, $stripe_sub_id );
+		return;
+	}
+
 	// Fetch subscription to read price + current_period_end.
 	$sub = pipepay_stripe_subs_api_get( '/v1/subscriptions/' . rawurlencode( $stripe_sub_id ) );
 	if ( empty( $sub['items']['data'][0]['price']['id'] ) ) {
@@ -417,6 +604,96 @@ function pipepay_stripe_subs_handle_checkout_completed( $session ) {
 	}
 
 	pipepay_stripe_subs_log( "initial sub for $email (user $user_id, order " . $order->get_id() . ", price $price_id, api_resource $api_resource_id)" );
+}
+
+/**
+ * Complete a WC order placed through the PipePay_Stripe_Sub_Gateway once its
+ * Stripe Checkout session has been paid. Mirrors the bridge-order path:
+ * user wiring, payment_complete (→ WCAM mints the license at priority 10),
+ * access_expires sync, per-product meta, superseded-row cleanup.
+ */
+function pipepay_stripe_subs_complete_gateway_order( $order_id, $email, $stripe_customer_id, $stripe_sub_id ) {
+	global $wpdb;
+
+	$order = wc_get_order( $order_id );
+	if ( ! $order ) {
+		pipepay_stripe_subs_log( "gateway order $order_id not found for sub $stripe_sub_id", 'error' );
+		return;
+	}
+
+	// Idempotency: Stripe retries re-run the sync only.
+	$already = (string) $order->get_meta( '_pipepay_stripe_subscription_id' );
+
+	$sub = pipepay_stripe_subs_api_get( '/v1/subscriptions/' . rawurlencode( $stripe_sub_id ) );
+	if ( empty( $sub['items']['data'][0]['price']['id'] ) ) {
+		throw new Exception( 'No price on subscription ' . $stripe_sub_id );
+	}
+	$price_id   = $sub['items']['data'][0]['price']['id'];
+	$period_end = pipepay_stripe_subs_extract_period_end( $sub );
+	$config     = pipepay_stripe_subs_get_config();
+	if ( ! isset( $config[ $price_id ] ) ) {
+		throw new Exception( "Unknown Stripe price: $price_id" );
+	}
+	$tier_config = $config[ $price_id ];
+
+	// Guest checkout: attach (or create) the WP user so WCAM has an owner.
+	$user_id = (int) $order->get_customer_id();
+	if ( ! $user_id ) {
+		$user_id = (int) email_exists( $email );
+		if ( ! $user_id ) {
+			$user_id = wc_create_new_customer( $email, '', wp_generate_password( 16 ), array(
+				'first_name' => $order->get_billing_first_name(),
+			) );
+			if ( is_wp_error( $user_id ) ) {
+				$user_id = (int) email_exists( $email );
+				if ( ! $user_id ) {
+					throw new Exception( 'User creation failed' );
+				}
+			}
+		}
+		$order->set_customer_id( $user_id );
+	}
+
+	// Two-tab / re-subscribe guard: cancel a different still-active prior sub.
+	$prior_sub_id = get_user_meta( $user_id, '_pipepay_stripe_subscription_id', true );
+	if ( $prior_sub_id && $prior_sub_id !== $stripe_sub_id
+		&& get_user_meta( $user_id, '_pipepay_stripe_subscription_status', true ) === 'active' ) {
+		try {
+			pipepay_stripe_subs_api_delete( '/v1/subscriptions/' . rawurlencode( $prior_sub_id ) );
+			pipepay_stripe_subs_log( "canceled orphaned prior sub $prior_sub_id for user $user_id (superseded by $stripe_sub_id)" );
+		} catch ( Throwable $e ) {
+			pipepay_stripe_subs_log( "could not cancel prior sub $prior_sub_id: " . $e->getMessage() );
+		}
+	}
+
+	update_user_meta( $user_id, '_pipepay_stripe_customer_id', $stripe_customer_id );
+	update_user_meta( $user_id, '_pipepay_stripe_subscription_id', $stripe_sub_id );
+	update_user_meta( $user_id, '_pipepay_stripe_price_id', $price_id );
+	update_user_meta( $user_id, '_pipepay_stripe_subscription_status', 'active' );
+	update_user_meta( $user_id, '_pipepay_stripe_period_end', $period_end );
+
+	$order->update_meta_data( '_pipepay_stripe_subscription_id', $stripe_sub_id );
+	$order->update_meta_data( '_pipepay_stripe_event_type', 'initial' );
+	$order->save();
+
+	if ( ! $already && ! $order->is_paid() ) {
+		// payment_complete → completed (virtual+downloadable) → WCAM mints.
+		$order->payment_complete( $stripe_sub_id );
+	}
+
+	$api_resource_id = pipepay_stripe_subs_sync_wcam_for_order( $order_id, $period_end );
+	if ( $api_resource_id ) {
+		pipepay_stripe_subs_set_api_resource_meta( $user_id, $tier_config['wc_product_id'], $api_resource_id );
+		$deleted = $wpdb->query( $wpdb->prepare(
+			"DELETE FROM {$wpdb->prefix}wc_am_api_resource WHERE user_id = %d AND product_id = %d AND active = 0 AND api_resource_id != %d",
+			$user_id, $tier_config['wc_product_id'], $api_resource_id
+		) );
+		if ( $deleted ) {
+			pipepay_stripe_subs_log( "removed $deleted superseded inactive license row(s) for user $user_id product {$tier_config['wc_product_id']}" );
+		}
+	}
+
+	pipepay_stripe_subs_log( "gateway sub for $email (user $user_id, order $order_id, price $price_id, api_resource $api_resource_id)" );
 }
 
 /**
