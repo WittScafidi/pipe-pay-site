@@ -599,9 +599,9 @@ $changelog_url   = home_url( '/changelog' );
                     <li data-billing-show="monthly" hidden>Cancel anytime in your billing portal</li>
                 </ul>
                 <a class="pp-btn pp-btn--secondary" data-billing-show="annual" href="<?php echo esc_url( $trial_intent_single ); ?>">Start 7-day trial</a>
-                <button type="button" class="pp-btn pp-btn--ghost pp-monthly-cta" data-billing-show="annual" data-price-id="<?php echo esc_attr( $annual_price_single ); ?>">Buy now &mdash; $299/yr, auto-renews</button>
+                <button type="button" class="pp-btn pp-btn--ghost pp-stripe-cta" data-billing-show="annual" data-price-id="<?php echo esc_attr( $annual_price_single ); ?>">Buy now &mdash; $299/yr, auto-renews</button>
                 <p class="pp-cta-skip" data-billing-show="annual"><a href="<?php echo esc_url( $buy_single ); ?>">or pay with a payment app (renew manually)</a></p>
-                <button type="button" class="pp-btn pp-btn--secondary pp-monthly-cta" data-billing-show="monthly" data-price-id="<?php echo esc_attr( $monthly_price_single ); ?>" hidden>Subscribe monthly &mdash; $35/mo</button>
+                <button type="button" class="pp-btn pp-btn--secondary pp-stripe-cta" data-billing-show="monthly" data-price-id="<?php echo esc_attr( $monthly_price_single ); ?>" hidden>Subscribe monthly &mdash; $35/mo</button>
             </div>
             <div class="pp-pricing-card pp-pricing-card--featured">
                 <span class="pp-pricing-ribbon">Most Popular</span>
@@ -625,9 +625,9 @@ $changelog_url   = home_url( '/changelog' );
                     <li data-billing-show="monthly" hidden>Cancel anytime in your billing portal</li>
                 </ul>
                 <a class="pp-btn pp-btn--primary" data-billing-show="annual" href="<?php echo esc_url( $trial_intent_five ); ?>">Start 7-day trial</a>
-                <button type="button" class="pp-btn pp-btn--ghost pp-monthly-cta" data-billing-show="annual" data-price-id="<?php echo esc_attr( $annual_price_five ); ?>">Buy now &mdash; $499/yr, auto-renews</button>
+                <button type="button" class="pp-btn pp-btn--ghost pp-stripe-cta" data-billing-show="annual" data-price-id="<?php echo esc_attr( $annual_price_five ); ?>">Buy now &mdash; $499/yr, auto-renews</button>
                 <p class="pp-cta-skip" data-billing-show="annual"><a href="<?php echo esc_url( $buy_five ); ?>">or pay with a payment app (renew manually)</a></p>
-                <button type="button" class="pp-btn pp-btn--primary pp-monthly-cta" data-billing-show="monthly" data-price-id="<?php echo esc_attr( $monthly_price_five ); ?>" hidden>Subscribe monthly &mdash; $65/mo</button>
+                <button type="button" class="pp-btn pp-btn--primary pp-stripe-cta" data-billing-show="monthly" data-price-id="<?php echo esc_attr( $monthly_price_five ); ?>" hidden>Subscribe monthly &mdash; $65/mo</button>
             </div>
             <div class="pp-pricing-card">
                 <svg class="pp-tier-illustration" viewBox="0 0 120 80" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false"><path d="M22 40 C22 22, 48 22, 60 40 C72 58, 98 58, 98 40 C98 22, 72 22, 60 40 C48 58, 22 58, 22 40 Z" fill="none" stroke="#1336a8" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/><rect x="29" y="35" width="12" height="10" rx="2" fill="#1336a8"/><rect x="79" y="35" width="12" height="10" rx="2" fill="#1336a8"/></svg>
@@ -650,16 +650,16 @@ $changelog_url   = home_url( '/changelog' );
                     <li data-billing-show="monthly" hidden>Cancel anytime in your billing portal</li>
                 </ul>
                 <a class="pp-btn pp-btn--secondary" data-billing-show="annual" href="<?php echo esc_url( $trial_intent_unlim ); ?>">Start 7-day trial</a>
-                <button type="button" class="pp-btn pp-btn--ghost pp-monthly-cta" data-billing-show="annual" data-price-id="<?php echo esc_attr( $annual_price_unlim ); ?>">Buy now &mdash; $999/yr, auto-renews</button>
+                <button type="button" class="pp-btn pp-btn--ghost pp-stripe-cta" data-billing-show="annual" data-price-id="<?php echo esc_attr( $annual_price_unlim ); ?>">Buy now &mdash; $999/yr, auto-renews</button>
                 <p class="pp-cta-skip" data-billing-show="annual"><a href="<?php echo esc_url( $buy_unlim ); ?>">or pay with a payment app (renew manually)</a></p>
-                <button type="button" class="pp-btn pp-btn--secondary pp-monthly-cta" data-billing-show="monthly" data-price-id="<?php echo esc_attr( $monthly_price_unlim ); ?>" hidden>Subscribe monthly &mdash; $129/mo</button>
+                <button type="button" class="pp-btn pp-btn--secondary pp-stripe-cta" data-billing-show="monthly" data-price-id="<?php echo esc_attr( $monthly_price_unlim ); ?>" hidden>Subscribe monthly &mdash; $129/mo</button>
             </div>
         </div>
         <p class="pp-pricing-fineprint" data-billing-show="annual">Each annual license includes 1 year of plugin updates and support. Renew annually to keep receiving WooCommerce-compatibility patches, security updates, and support &mdash; without renewal, your install falls behind each WP and WC release and eventually needs an update you can no longer get. Cancel anytime before the trial ends and you won't be charged. Once your trial converts to a paid license, all sales are final, no refunds. The 7-day trial is your evaluation window.</p>
         <p class="pp-pricing-fineprint" data-billing-show="monthly" hidden>Monthly subscriptions include plugin updates and support for as long as the subscription is active. Cancel anytime in your billing portal &mdash; your license stays active until the end of the current billing period, then expires. Annual saves up to 35% if you're committing to a full year; monthly is best for testing the waters or short-term needs. Monthly charges are non-refundable; cancel before the next billing date to avoid the next charge.</p>
     </div>
 
-    <?php get_template_part( 'partials/billing-toggle-assets' ); ?>
+    <?php include __DIR__ . '/partials/billing-toggle-assets.php'; ?>
 </section>
 
 <!-- ============== Ship log strip ============== -->

@@ -6,7 +6,7 @@
  * Expects the including template to render:
  *   .pp-billing-toggle[role=group] > button[data-billing][aria-pressed]
  *   [data-billing-show=annual|monthly] blocks
- *   button.pp-monthly-cta[data-price-id]
+ *   button.pp-stripe-cta[data-price-id]
  */
 if ( ! defined( 'ABSPATH' ) ) { exit; }
 ?>
@@ -65,9 +65,9 @@ if ( ! defined( 'ABSPATH' ) ) { exit; }
 }
 /* Reset <button> UA defaults so .pp-btn variants render the <button> identically to
    the <a class="pp-btn"> CTAs. Don't touch border — would strip the outline. */
-.pp-monthly-cta{ appearance:none; -webkit-appearance:none; margin:0; cursor:pointer; position:relative; }
-.pp-monthly-cta[disabled]{ opacity:0.6; cursor:wait; }
-.pp-monthly-cta--loading::after{
+.pp-stripe-cta{ appearance:none; -webkit-appearance:none; margin:0; cursor:pointer; position:relative; }
+.pp-stripe-cta[disabled]{ opacity:0.6; cursor:wait; }
+.pp-stripe-cta--loading::after{
     content:"";
     display:inline-block;
     width:14px;
@@ -80,7 +80,7 @@ if ( ! defined( 'ABSPATH' ) ) { exit; }
     vertical-align:-2px;
 }
 @keyframes pp-cta-spin{ to{ transform:rotate(360deg); } }
-.pp-monthly-cta-error{
+.pp-stripe-cta-error{
     margin:10px 0 0;
     font-size:0.85rem;
     line-height:1.45;
@@ -98,7 +98,7 @@ if ( ! defined( 'ABSPATH' ) ) { exit; }
     if (!toggle) return;
 
     function clearErrors(){
-        document.querySelectorAll('.pp-monthly-cta-error').forEach(function(p){ p.remove(); });
+        document.querySelectorAll('.pp-stripe-cta-error').forEach(function(p){ p.remove(); });
     }
 
     function setBilling(billing){
@@ -119,12 +119,12 @@ if ( ! defined( 'ABSPATH' ) ) { exit; }
         setBilling(btn.dataset.billing);
     });
 
-    var allCtas = document.querySelectorAll('.pp-monthly-cta');
+    var allCtas = document.querySelectorAll('.pp-stripe-cta');
 
     function setPending(pending, clicked){
         allCtas.forEach(function(b){
             b.disabled = pending;
-            b.classList.toggle('pp-monthly-cta--loading', pending && b === clicked);
+            b.classList.toggle('pp-stripe-cta--loading', pending && b === clicked);
             if (pending && b === clicked) { b.setAttribute('aria-busy', 'true'); }
             else { b.removeAttribute('aria-busy'); }
         });
@@ -132,7 +132,7 @@ if ( ! defined( 'ABSPATH' ) ) { exit; }
 
     function showError(btn, msg){
         var p = document.createElement('p');
-        p.className = 'pp-monthly-cta-error';
+        p.className = 'pp-stripe-cta-error';
         p.setAttribute('role', 'alert');
         p.textContent = msg;
         btn.insertAdjacentElement('afterend', p);
