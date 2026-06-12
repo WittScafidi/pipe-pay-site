@@ -122,6 +122,10 @@ if ( ! defined( 'ABSPATH' ) ) { exit; }
 body.pp-checkout-modal-open{ overflow:hidden; }
 @media (max-width:540px){
     .pp-checkout-modal__panel{ margin:0 auto; width:100vw; max-height:100vh; border-radius:0; min-height:100vh; }
+    /* iOS dynamic toolbar: dvh tracks the VISIBLE viewport (vh above is the fallback). */
+    @supports (height:100dvh){
+        .pp-checkout-modal__panel{ max-height:100dvh; min-height:100dvh; }
+    }
 }
 </style>
 
@@ -186,6 +190,8 @@ body.pp-checkout-modal-open{ overflow:hidden; }
     var mountEl      = document.getElementById('pp-embedded-checkout');
     var stripeJs     = null;   // Promise for the Stripe.js loader
     var embedded     = null;   // active embedded checkout instance
+    var embedBroken  = false;  // loader failed (adblocker etc.) - go straight to redirect
+    var triggerBtn   = null;   // CTA that opened the modal, for focus restore
 
     function loadStripeJs(){
         if (stripeJs) return stripeJs;
@@ -194,7 +200,7 @@ body.pp-checkout-modal-open{ overflow:hidden; }
             var tag = document.createElement('script');
             tag.src = 'https://js.stripe.com/v3/';
             tag.onload = function(){ window.Stripe ? resolve(window.Stripe) : reject(new Error('stripe missing')); };
-            tag.onerror = function(){ reject(new Error('stripe load failed')); };
+            tag.onerror = function(){ stripeJs = null; reject(new Error('stripe load failed')); };
             document.head.appendChild(tag);
         });
         return stripeJs;
@@ -205,6 +211,10 @@ body.pp-checkout-modal-open{ overflow:hidden; }
         document.body.classList.remove('pp-checkout-modal-open');
         if (embedded) { try { embedded.destroy(); } catch (e) {} embedded = null; }
         mountEl.innerHTML = '';
+        // CTAs were held disabled while the modal was open (background Tab+Enter
+        // must not start a second checkout over a mounted one).
+        setPending(false, null);
+        if (triggerBtn) { try { triggerBtn.focus(); } catch (e) {} triggerBtn = null; }
     }
     modal.querySelectorAll('[data-pp-modal-close]').forEach(function(el){
         el.addEventListener('click', closeModal);
@@ -240,30 +250,38 @@ body.pp-checkout-modal-open{ overflow:hidden; }
     allCtas.forEach(function(btn){
         btn.addEventListener('click', function(){
             var priceId = btn.dataset.priceId;
-            if (!priceId || btn.disabled) return;
+            if (!priceId || btn.disabled || modal.classList.contains('is-open')) return;
             clearErrors();
             setPending(true, btn);
 
-            if (!STRIPE_PK) { redirectFlow(btn, priceId); return; }
+            // Known-broken embed (or no key): one session, one rate-limit slot.
+            if (!STRIPE_PK || embedBroken) { redirectFlow(btn, priceId); return; }
 
-            Promise.all([ loadStripeJs(), createSession(priceId, 'embedded') ])
-                .then(function(results){
-                    var StripeCtor = results[0];
-                    var data       = results[1];
-                    if (!data || !data.client_secret) { throw new Error((data && data.error) || 'no client secret'); }
-                    var stripe = StripeCtor(STRIPE_PK);
-                    return stripe.initEmbeddedCheckout({ clientSecret: data.client_secret });
+            // Loader FIRST, session second: if Stripe.js is blocked we learn it
+            // before spending a session/rate-slot on the embedded attempt.
+            loadStripeJs()
+                .then(function(StripeCtor){
+                    return createSession(priceId, 'embedded').then(function(data){
+                        if (!data || !data.client_secret) { throw new Error((data && data.error) || 'no client secret'); }
+                        return StripeCtor(STRIPE_PK).initEmbeddedCheckout({ clientSecret: data.client_secret });
+                    });
                 })
                 .then(function(instance){
-                    embedded = instance;
+                    embedded   = instance;
+                    triggerBtn = btn;
                     embedded.mount('#pp-embedded-checkout');
                     modal.classList.add('is-open');
                     document.body.classList.add('pp-checkout-modal-open');
-                    setPending(false, null);
+                    // Clear the spinner but KEEP all CTAs disabled until the modal
+                    // closes - prevents a keyboard user starting a second checkout.
+                    btn.classList.remove('pp-stripe-cta--loading');
+                    btn.removeAttribute('aria-busy');
+                    modal.querySelector('.pp-checkout-modal__close').focus();
                 })
-                .catch(function(){
-                    // Any embed failure (script blocked, API error) falls back to the
-                    // battle-tested redirect flow so the purchase path never dies.
+                .catch(function(err){
+                    if (err && /stripe/i.test(String(err.message || ''))) { embedBroken = true; }
+                    // Fall back to the battle-tested redirect flow so the purchase
+                    // path never dies.
                     redirectFlow(btn, priceId);
                 });
         });

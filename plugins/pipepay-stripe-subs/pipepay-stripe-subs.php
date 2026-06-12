@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Pipe Pay - Stripe Subscriptions Bridge
  * Description: Bridges Stripe subscription events to WCAM license issuance/renewal/revocation. Provides /pricing Checkout + /my-account Customer Portal endpoints.
- * Version:     0.6.0
+ * Version:     0.6.1
  * Author:      Pipe Pay
  * License:     GPLv2 or later
  */
@@ -11,7 +11,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'PIPEPAY_STRIPE_SUBS_VERSION', '0.6.0' );
+define( 'PIPEPAY_STRIPE_SUBS_VERSION', '0.6.1' );
 define( 'PIPEPAY_STRIPE_API_BASE', 'https://api.stripe.com' );
 define( 'PIPEPAY_STRIPE_WEBHOOK_TOLERANCE', 300 ); // 5 minutes replay protection
 
@@ -675,10 +675,12 @@ function pipepay_stripe_subs_create_checkout_session( WP_REST_Request $request )
 	// Pricing pages are Cloudflare-cached for anonymous visitors, so a WP nonce can't
 	// work here (it would be stale in the cached HTML); Origin/Referer is the check
 	// that survives caching. Browsers always send Origin on fetch() POSTs.
-	$home   = home_url();
+	// Exact-host match: a prefix check would accept https://pipepay.app.evil.com.
+	$home   = untrailingslashit( home_url() );
 	$origin = $request->get_header( 'origin' );
 	$refer  = $request->get_header( 'referer' );
-	$origin_ok = ( $origin && strpos( $origin, $home ) === 0 ) || ( $refer && strpos( $refer, $home ) === 0 );
+	$origin_ok = ( $origin && untrailingslashit( $origin ) === $home )
+		|| ( $refer && ( $refer === $home || 0 === strpos( $refer, $home . '/' ) ) );
 	if ( ! $origin_ok ) {
 		return new WP_REST_Response( array( 'error' => 'forbidden' ), 403 );
 	}
@@ -749,7 +751,11 @@ function pipepay_stripe_subs_create_checkout_session( WP_REST_Request $request )
 	}
 
 	if ( $embedded ) {
-		return new WP_REST_Response( array( 'client_secret' => $session['client_secret'] ?? '' ), 200 );
+		if ( empty( $session['client_secret'] ) ) {
+			pipepay_stripe_subs_log( 'embedded checkout: session created without client_secret' );
+			return new WP_REST_Response( array( 'error' => 'could not start checkout' ), 500 );
+		}
+		return new WP_REST_Response( array( 'client_secret' => $session['client_secret'] ), 200 );
 	}
 	return new WP_REST_Response( array( 'url' => $session['url'] ), 200 );
 }
