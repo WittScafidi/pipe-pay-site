@@ -33,8 +33,8 @@ if ( $plain_text ) :
     echo "  - Single Site     - \$299/yr  - 1 site\n";
     echo "  - 5 Sites         - \$499/yr  - up to 5 sites\n";
     echo "  - Unlimited Sites - \$999/yr  - any number\n\n";
-    echo "Prefer a card? Auto-renewing card billing is available at\n";
-    echo "https://pipepay.app/pricing/ - pick your tier and use the Buy now button.\n\n";
+    echo "Prefer a card? Choose the card option at checkout and your license\n";
+    echo "switches to automatic yearly renewal.\n\n";
     echo "Questions? Reply to this email or contact support@pipepay.app.\n\n";
     echo "- Pipe Pay\n";
     return;

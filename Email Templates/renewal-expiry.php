@@ -34,8 +34,8 @@ if ( $plain_text ) :
     echo "{$renewal_url}\n\n";
     echo "Orders already in progress always finish normally, and renewing at\n";
     echo "any point - before or after the stop date - restores checkout.\n\n";
-    echo "Prefer a card? Auto-renewing card billing is available at\n";
-    echo "https://pipepay.app/pricing/ - pick your tier and use the Buy now button.\n\n";
+    echo "Prefer a card? Choose the card option at checkout and your license\n";
+    echo "switches to automatic yearly renewal.\n\n";
     echo "Questions? Reply to this email or contact support@pipepay.app.\n\n";
     echo "- Pipe Pay\n";
     return;

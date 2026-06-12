@@ -338,7 +338,7 @@ add_action( 'woocommerce_add_to_cart', function ( $cart_item_key, $product_id ) 
     if ( ! function_exists( 'WC' ) || ! WC()->cart ) {
         return;
     }
-    $pipepay_product_ids = array( 34, 35, 36, 38 );
+    $pipepay_product_ids = array( 34, 35, 36, 38, 526, 527, 528 );
     if ( ! in_array( (int) $product_id, $pipepay_product_ids, true ) ) {
         return;
     }
@@ -384,7 +384,7 @@ add_filter( 'woocommerce_add_cart_item_data', function( $cart_item_data, $produc
     if ( ! function_exists( 'WC' ) || ! WC()->cart ) {
         return $cart_item_data;
     }
-    $pipepay_product_ids = array( 34, 35, 36, 38 );
+    $pipepay_product_ids = array( 34, 35, 36, 38, 526, 527, 528 );
     if ( ! in_array( (int) $product_id, $pipepay_product_ids, true ) ) {
         return $cart_item_data;
     }
@@ -628,7 +628,7 @@ add_filter( 'woocommerce_get_price_html', function( $price_html, $product ) {
     if ( ! $product instanceof WC_Product ) {
         return $price_html;
     }
-    $pipepay_ids = array( 34, 35, 36, 38 );
+    $pipepay_ids = array( 34, 35, 36, 38, 526, 527, 528 );
     if ( ! in_array( (int) $product->get_id(), $pipepay_ids, true ) ) {
         return $price_html;
     }
@@ -648,34 +648,43 @@ add_filter( 'woocommerce_available_payment_gateways', function ( $gateways ) {
         return $gateways;
     }
 
-    $has_license_product = false;
+    $has_annual  = false;
+    $has_monthly = false;
+
+    $classify = function ( $pid ) use ( &$has_annual, &$has_monthly ) {
+        if ( in_array( $pid, array( 34, 35, 36 ), true ) ) {
+            $has_annual = true;
+        } elseif ( in_array( $pid, array( 526, 527, 528 ), true ) ) {
+            $has_monthly = true;
+        }
+    };
 
     // Normal checkout: inspect the cart.
     if ( WC()->cart ) {
         foreach ( WC()->cart->get_cart() as $cart_item ) {
-            if ( in_array( (int) $cart_item['product_id'], array( 34, 35, 36 ), true ) ) {
-                $has_license_product = true;
-                break;
-            }
+            $classify( (int) $cart_item['product_id'] );
         }
     }
 
     // Pay-for-order page (admin-created orders): the cart is empty there, so
     // inspect the order's line items instead.
-    if ( ! $has_license_product && function_exists( 'is_checkout_pay_page' ) && is_checkout_pay_page() ) {
+    if ( ! $has_annual && ! $has_monthly && function_exists( 'is_checkout_pay_page' ) && is_checkout_pay_page() ) {
         $order_id = absint( get_query_var( 'order-pay' ) );
         $order    = $order_id ? wc_get_order( $order_id ) : false;
         if ( $order ) {
             foreach ( $order->get_items() as $item ) {
-                if ( in_array( (int) $item->get_product_id(), array( 34, 35, 36 ), true ) ) {
-                    $has_license_product = true;
-                    break;
-                }
+                $classify( (int) $item->get_product_id() );
             }
         }
     }
 
-    if ( $has_license_product ) {
+    if ( $has_monthly ) {
+        // Monthly tiers are card-subscription only (P2P cannot auto-bill).
+        // The checkout template embeds Stripe instead of the WC form; emptying
+        // the gateway list makes the hidden form unusable as well.
+        return array();
+    }
+    if ( $has_annual ) {
         foreach ( array_keys( $gateways ) as $gateway_id ) {
             if ( 0 === strpos( $gateway_id, 'stripe_' ) ) {
                 unset( $gateways[ $gateway_id ] );

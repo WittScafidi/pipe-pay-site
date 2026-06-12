@@ -40,8 +40,8 @@ if ( $plain_text ) :
     echo "orders for a 30-day grace period, then stops offering Pipe Pay at\n";
     echo "checkout until you pick a paid tier. Updates and support pause as\n";
     echo "soon as the trial ends.\n\n";
-    echo "Prefer a card? Auto-renewing card billing is available at\n";
-    echo "https://pipepay.app/pricing/ - pick your tier and use the Buy now button.\n\n";
+    echo "Prefer a card? Choose the card option at checkout and your license\n";
+    echo "switches to automatic yearly renewal.\n\n";
     echo "Questions? Reply to this email or contact support@pipepay.app.\n\n";
     echo "- Pipe Pay\n";
     return;

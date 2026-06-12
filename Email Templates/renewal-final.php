@@ -35,8 +35,8 @@ if ( $plain_text ) :
     echo "After renewing, checkout restores on its own within 24 hours - or\n";
     echo "immediately if you open WP Admin -> Pipe Pay -> License and click\n";
     echo "Activate.\n\n";
-    echo "Prefer a card? Auto-renewing card billing is available at\n";
-    echo "https://pipepay.app/pricing/ - pick your tier and use the Buy now button.\n\n";
+    echo "Prefer a card? Choose the card option at checkout and your license\n";
+    echo "switches to automatic yearly renewal.\n\n";
     echo "Or contact support@pipepay.app if you have questions about renewing\n";
     echo "or want to switch to a different tier.\n\n";
     echo "- Pipe Pay\n";

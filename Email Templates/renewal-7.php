@@ -30,8 +30,8 @@ if ( $plain_text ) :
     echo "If it lapses, auto-updates and support pause right away, and 30 days\n";
     echo "after expiry the gateway stops accepting new orders on your store\n";
     echo "until you renew. Renewing at any point restores everything.\n\n";
-    echo "Prefer a card? Auto-renewing card billing is available at\n";
-    echo "https://pipepay.app/pricing/ - pick your tier and use the Buy now button.\n\n";
+    echo "Prefer a card? Choose the card option at checkout and your license\n";
+    echo "switches to automatic yearly renewal.\n\n";
     echo "Questions? Reply to this email or contact support@pipepay.app.\n\n";
     echo "- Pipe Pay\n";
     return;

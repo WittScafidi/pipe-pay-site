@@ -34,8 +34,8 @@ if ( $plain_text ) :
     echo "Your billing details are pre-filled - renewal takes about 30 seconds.\n";
     echo "Or just wait - we'll send another reminder a week before your\n";
     echo "expiry date if you haven't renewed by then.\n\n";
-    echo "Prefer a card? Auto-renewing card billing is available at\n";
-    echo "https://pipepay.app/pricing/ - pick your tier and use the Buy now button.\n\n";
+    echo "Prefer a card? Choose the card option at checkout and your license\n";
+    echo "switches to automatic yearly renewal.\n\n";
     echo "Questions? Reply to this email or contact support@pipepay.app.\n\n";
     echo "- Pipe Pay\n";
     return;

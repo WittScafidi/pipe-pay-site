@@ -23,18 +23,12 @@ $buy_five        = home_url( '/checkout/?add-to-cart=35' );
 $buy_unlim       = home_url( '/checkout/?add-to-cart=36' );
 $refund_url      = home_url( '/refund-policy' );
 
-// Monthly Stripe Price IDs come from wp-config.php constants so the plugin config and
-// both pricing templates flip to live mode with one wp-config edit. Fallbacks are the
-// test-mode IDs. Wired to hidden WC products 526/527/528 via the pipepay-stripe-subs
-// plugin: /wp-json/pipepay-stripe-subs/v1/checkout.
-$monthly_price_single = defined( 'PIPEPAY_STRIPE_PRICE_SINGLE' ) ? PIPEPAY_STRIPE_PRICE_SINGLE : 'price_1TgPw3GFSkcp1uiX7linrCwn';
-$monthly_price_five   = defined( 'PIPEPAY_STRIPE_PRICE_FIVE' ) ? PIPEPAY_STRIPE_PRICE_FIVE : 'price_1TgPw5GFSkcp1uiXU49mFdS3';
-$monthly_price_unlim  = defined( 'PIPEPAY_STRIPE_PRICE_UNLIM' ) ? PIPEPAY_STRIPE_PRICE_UNLIM : 'price_1TgPwAGFSkcp1uiXF9Tasn8m';
-// Yearly auto-renew Price IDs (the CARD lane for annual tiers). The WC checkout
-// add-to-cart links below are the payment-app lane (manual renewal).
-$annual_price_single = defined( 'PIPEPAY_STRIPE_PRICE_SINGLE_YR' ) ? PIPEPAY_STRIPE_PRICE_SINGLE_YR : '';
-$annual_price_five   = defined( 'PIPEPAY_STRIPE_PRICE_FIVE_YR' ) ? PIPEPAY_STRIPE_PRICE_FIVE_YR : '';
-$annual_price_unlim  = defined( 'PIPEPAY_STRIPE_PRICE_UNLIM_YR' ) ? PIPEPAY_STRIPE_PRICE_UNLIM_YR : '';
+// Monthly subscription buy URLs. All purchases funnel through the WC checkout
+// page, which embeds the Stripe card form inline (monthly = card-only; annual
+// offers a card-vs-payment-app chooser). See page-checkout.php.
+$monthly_buy_single = home_url( '/checkout/?add-to-cart=526' );
+$monthly_buy_five   = home_url( '/checkout/?add-to-cart=527' );
+$monthly_buy_unlim  = home_url( '/checkout/?add-to-cart=528' );
 ?>
 
 <section class="pp-page-hero">
@@ -52,7 +46,7 @@ $annual_price_unlim  = defined( 'PIPEPAY_STRIPE_PRICE_UNLIM_YR' ) ? PIPEPAY_STRI
             <button type="button" class="pp-billing-toggle__btn pp-billing-toggle__btn--active" aria-pressed="true" data-billing="annual">Annual <span class="pp-billing-toggle__save">save up to 35%</span></button>
             <button type="button" class="pp-billing-toggle__btn" aria-pressed="false" data-billing="monthly">Monthly</button>
         </div>
-        <p class="pp-billing-toggle__note" data-billing-show="annual">The Start trial button gives you 7 days free, no card. The Buy now button charges today and auto-renews yearly.</p>
+        <p class="pp-billing-toggle__note" data-billing-show="annual">Annual includes a 7-day free trial. Buying now? Pay by card (auto-renews) or a payment app (renew manually) &mdash; choose at checkout.</p>
         <p class="pp-billing-toggle__note" data-billing-show="monthly" hidden>Monthly is cancel-anytime in your Stripe billing portal. No trial; pay only for what you use.</p>
 
         <div class="pp-pricing-grid">
@@ -76,9 +70,8 @@ $annual_price_unlim  = defined( 'PIPEPAY_STRIPE_PRICE_UNLIM_YR' ) ? PIPEPAY_STRI
                     <li data-billing-show="monthly" hidden>Cancel anytime in your billing portal</li>
                 </ul>
                 <a class="pp-btn pp-btn--secondary" data-billing-show="annual" href="<?php echo esc_url( $trial_intent_single ); ?>">Start 7-day trial</a>
-                <button type="button" class="pp-btn pp-btn--ghost pp-stripe-cta" data-billing-show="annual" data-price-id="<?php echo esc_attr( $annual_price_single ); ?>">Buy now &mdash; $299/yr, auto-renews</button>
-                <p class="pp-cta-skip" data-billing-show="annual"><a href="<?php echo esc_url( $buy_single ); ?>">or pay with a payment app (renew manually)</a></p>
-                <button type="button" class="pp-btn pp-btn--secondary pp-stripe-cta" data-billing-show="monthly" data-price-id="<?php echo esc_attr( $monthly_price_single ); ?>" hidden>Subscribe monthly &mdash; $35/mo</button>
+                <a class="pp-btn pp-btn--ghost" data-billing-show="annual" href="<?php echo esc_url( $buy_single ); ?>">Buy now - skip the trial</a>
+                <a class="pp-btn pp-btn--secondary" data-billing-show="monthly" href="<?php echo esc_url( $monthly_buy_single ); ?>" hidden>Subscribe monthly &mdash; $35/mo</a>
             </div>
             <div class="pp-pricing-card pp-pricing-card--featured">
                 <span class="pp-pricing-ribbon">Most Popular</span>
@@ -102,9 +95,8 @@ $annual_price_unlim  = defined( 'PIPEPAY_STRIPE_PRICE_UNLIM_YR' ) ? PIPEPAY_STRI
                     <li data-billing-show="monthly" hidden>Cancel anytime in your billing portal</li>
                 </ul>
                 <a class="pp-btn pp-btn--primary" data-billing-show="annual" href="<?php echo esc_url( $trial_intent_five ); ?>">Start 7-day trial</a>
-                <button type="button" class="pp-btn pp-btn--ghost pp-stripe-cta" data-billing-show="annual" data-price-id="<?php echo esc_attr( $annual_price_five ); ?>">Buy now &mdash; $499/yr, auto-renews</button>
-                <p class="pp-cta-skip" data-billing-show="annual"><a href="<?php echo esc_url( $buy_five ); ?>">or pay with a payment app (renew manually)</a></p>
-                <button type="button" class="pp-btn pp-btn--primary pp-stripe-cta" data-billing-show="monthly" data-price-id="<?php echo esc_attr( $monthly_price_five ); ?>" hidden>Subscribe monthly &mdash; $65/mo</button>
+                <a class="pp-btn pp-btn--ghost" data-billing-show="annual" href="<?php echo esc_url( $buy_five ); ?>">Buy now - skip the trial</a>
+                <a class="pp-btn pp-btn--primary" data-billing-show="monthly" href="<?php echo esc_url( $monthly_buy_five ); ?>" hidden>Subscribe monthly &mdash; $65/mo</a>
             </div>
             <div class="pp-pricing-card">
                 <svg class="pp-tier-illustration" viewBox="0 0 120 80" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false"><path d="M22 40 C22 22, 48 22, 60 40 C72 58, 98 58, 98 40 C98 22, 72 22, 60 40 C48 58, 22 58, 22 40 Z" fill="none" stroke="#1336a8" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/><rect x="29" y="35" width="12" height="10" rx="2" fill="#1336a8"/><rect x="79" y="35" width="12" height="10" rx="2" fill="#1336a8"/></svg>
@@ -127,9 +119,8 @@ $annual_price_unlim  = defined( 'PIPEPAY_STRIPE_PRICE_UNLIM_YR' ) ? PIPEPAY_STRI
                     <li data-billing-show="monthly" hidden>Cancel anytime in your billing portal</li>
                 </ul>
                 <a class="pp-btn pp-btn--secondary" data-billing-show="annual" href="<?php echo esc_url( $trial_intent_unlim ); ?>">Start 7-day trial</a>
-                <button type="button" class="pp-btn pp-btn--ghost pp-stripe-cta" data-billing-show="annual" data-price-id="<?php echo esc_attr( $annual_price_unlim ); ?>">Buy now &mdash; $999/yr, auto-renews</button>
-                <p class="pp-cta-skip" data-billing-show="annual"><a href="<?php echo esc_url( $buy_unlim ); ?>">or pay with a payment app (renew manually)</a></p>
-                <button type="button" class="pp-btn pp-btn--secondary pp-stripe-cta" data-billing-show="monthly" data-price-id="<?php echo esc_attr( $monthly_price_unlim ); ?>" hidden>Subscribe monthly &mdash; $129/mo</button>
+                <a class="pp-btn pp-btn--ghost" data-billing-show="annual" href="<?php echo esc_url( $buy_unlim ); ?>">Buy now - skip the trial</a>
+                <a class="pp-btn pp-btn--secondary" data-billing-show="monthly" href="<?php echo esc_url( $monthly_buy_unlim ); ?>" hidden>Subscribe monthly &mdash; $129/mo</a>
             </div>
         </div>
         <p class="pp-pricing-fineprint" data-billing-show="annual">Each annual license includes 1 year of plugin updates and support. Renew annually to keep receiving WooCommerce-compatibility patches, security updates, and support &mdash; without renewal, your install falls behind each WP and WC release and eventually needs an update you can no longer get. Cancel anytime before the trial ends and you won't be charged. Once your trial converts to a paid license, all sales are final, no refunds. The 7-day trial is your evaluation window.</p>

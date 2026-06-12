@@ -354,7 +354,7 @@ function pipepay_renewal_render_tier_picker( string $key, string $token ): void 
                             <?php endforeach; ?>
                         </ul>
                         <a class="<?php echo esc_attr( $btn_class ); ?>" href="<?php echo esc_url( $continue_url ); ?>">Continue with <?php echo esc_html( $t['title'] ); ?></a>
-                        <p class="pp-cta-skip"><a href="<?php echo esc_url( home_url( '/pricing/' ) ); ?>">or pay by card with auto-renewal &rarr;</a></p>
+                        <p class="pp-cta-skip">Card (auto-renews yearly) or payment app (renew manually) &mdash; you choose at checkout.</p>
                     </div>
                     <?php
                 }
