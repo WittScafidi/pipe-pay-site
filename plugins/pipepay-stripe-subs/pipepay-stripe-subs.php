@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Pipe Pay - Stripe Subscriptions Bridge
  * Description: Bridges Stripe subscription events to WCAM license issuance/renewal/revocation. Provides /pricing Checkout + /my-account Customer Portal endpoints.
- * Version:     0.5.1
+ * Version:     0.6.0
  * Author:      Pipe Pay
  * License:     GPLv2 or later
  */
@@ -11,7 +11,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'PIPEPAY_STRIPE_SUBS_VERSION', '0.5.1' );
+define( 'PIPEPAY_STRIPE_SUBS_VERSION', '0.6.0' );
 define( 'PIPEPAY_STRIPE_API_BASE', 'https://api.stripe.com' );
 define( 'PIPEPAY_STRIPE_WEBHOOK_TOLERANCE', 300 ); // 5 minutes replay protection
 
@@ -703,6 +703,12 @@ function pipepay_stripe_subs_create_checkout_session( WP_REST_Request $request )
 		return new WP_REST_Response( array( 'error' => 'unknown price' ), 400 );
 	}
 
+	// Embedded mode mounts the same Stripe Checkout inside a modal on our own
+	// pages (no redirect to stripe.com); the front end exchanges the returned
+	// client_secret with Stripe.js. Redirect mode remains the fallback for
+	// no-JS / Stripe.js-load-failure paths.
+	$embedded = ( 'embedded' === $request->get_param( 'ui' ) );
+
 	// Note: subscription mode auto-creates a customer — do NOT pass customer_creation (payment-mode only).
 	$body = array(
 		'mode'                       => 'subscription',
@@ -711,11 +717,18 @@ function pipepay_stripe_subs_create_checkout_session( WP_REST_Request $request )
 		'currency'                   => 'usd',
 		'line_items[0][price]'       => $price_id,
 		'line_items[0][quantity]'    => 1,
-		'success_url'                => home_url( '/my-account/?stripe_success=1&session_id={CHECKOUT_SESSION_ID}' ),
-		'cancel_url'                 => home_url( '/pricing/' ),
 		'allow_promotion_codes'      => 'true',
 		'billing_address_collection' => 'auto',
 	);
+	if ( $embedded ) {
+		// Embedded sessions take return_url only; on completion Stripe performs a
+		// top-level redirect there, so the existing auto-login flow is unchanged.
+		$body['ui_mode']    = 'embedded_page'; // Stripe 2025+ name (was 'embedded')
+		$body['return_url'] = home_url( '/my-account/?stripe_success=1&session_id={CHECKOUT_SESSION_ID}' );
+	} else {
+		$body['success_url'] = home_url( '/my-account/?stripe_success=1&session_id={CHECKOUT_SESSION_ID}' );
+		$body['cancel_url']  = home_url( '/pricing/' );
+	}
 
 	// If user is logged in, prefill email + link to their existing Stripe customer if known.
 	if ( is_user_logged_in() ) {
@@ -735,6 +748,9 @@ function pipepay_stripe_subs_create_checkout_session( WP_REST_Request $request )
 		return new WP_REST_Response( array( 'error' => 'could not start checkout' ), 500 );
 	}
 
+	if ( $embedded ) {
+		return new WP_REST_Response( array( 'client_secret' => $session['client_secret'] ?? '' ), 200 );
+	}
 	return new WP_REST_Response( array( 'url' => $session['url'] ), 200 );
 }
 
