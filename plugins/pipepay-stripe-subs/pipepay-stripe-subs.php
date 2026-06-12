@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Pipe Pay - Stripe Subscriptions Bridge
  * Description: Bridges Stripe subscription events to WCAM license issuance/renewal/revocation. Provides /pricing Checkout + /my-account Customer Portal endpoints.
- * Version:     0.7.1
+ * Version:     0.8.0
  * Author:      Pipe Pay
  * License:     GPLv2 or later
  */
@@ -11,7 +11,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'PIPEPAY_STRIPE_SUBS_VERSION', '0.7.1' );
+define( 'PIPEPAY_STRIPE_SUBS_VERSION', '0.8.0' );
 define( 'PIPEPAY_STRIPE_API_BASE', 'https://api.stripe.com' );
 define( 'PIPEPAY_STRIPE_WEBHOOK_TOLERANCE', 300 ); // 5 minutes replay protection
 
@@ -1060,6 +1060,83 @@ function pipepay_stripe_subs_create_portal_session( WP_REST_Request $request ) {
 
 	return new WP_REST_Response( array( 'url' => $session['url'] ), 200 );
 }
+
+/* -------------------------------------------------------------------------
+ * My Account "Billing" menu item -> Stripe Customer Portal
+ *
+ * Shown only to users with a Stripe customer record. The link goes through
+ * admin-post.php so the portal session is created server-side and the
+ * customer is redirected straight into Stripe's portal (cancel at period
+ * end, payment method update, invoice history per the default live
+ * configuration). No REST/JS involved; the /portal REST route above remains
+ * for any future async UI.
+ * ------------------------------------------------------------------------- */
+
+add_filter( 'woocommerce_account_menu_items', function ( $items ) {
+	if ( ! get_user_meta( get_current_user_id(), '_pipepay_stripe_customer_id', true ) ) {
+		return $items;
+	}
+	$new = array();
+	foreach ( $items as $key => $label ) {
+		$new[ $key ] = $label;
+		// Slot Billing right after the License keys tab (fallback: before logout).
+		if ( 'api-keys' === $key ) {
+			$new['pipepay-stripe-billing'] = __( 'Billing', 'pipepay-stripe-subs' );
+		}
+	}
+	if ( ! isset( $new['pipepay-stripe-billing'] ) ) {
+		$logout = isset( $new['customer-logout'] ) ? $new['customer-logout'] : null;
+		unset( $new['customer-logout'] );
+		$new['pipepay-stripe-billing'] = __( 'Billing', 'pipepay-stripe-subs' );
+		if ( null !== $logout ) {
+			$new['customer-logout'] = $logout;
+		}
+	}
+	return $new;
+	// Priority 50: WCAM appends its License keys / Downloads items at default
+	// priority, and Billing must slot in right after them.
+}, 50 );
+
+add_filter( 'woocommerce_get_endpoint_url', function ( $url, $endpoint ) {
+	if ( 'pipepay-stripe-billing' === $endpoint ) {
+		return wp_nonce_url( admin_url( 'admin-post.php?action=pipepay_stripe_portal' ), 'pipepay_stripe_portal' );
+	}
+	return $url;
+}, 10, 2 );
+
+add_action( 'admin_post_nopriv_pipepay_stripe_portal', function () {
+	wp_safe_redirect( wp_login_url( wc_get_page_permalink( 'myaccount' ) ) );
+	exit;
+} );
+
+add_action( 'admin_post_pipepay_stripe_portal', function () {
+	if ( ! wp_verify_nonce( isset( $_GET['_wpnonce'] ) ? sanitize_key( $_GET['_wpnonce'] ) : '', 'pipepay_stripe_portal' ) ) {
+		wp_safe_redirect( wc_get_page_permalink( 'myaccount' ) );
+		exit;
+	}
+	$stripe_customer_id = get_user_meta( get_current_user_id(), '_pipepay_stripe_customer_id', true );
+	if ( $stripe_customer_id ) {
+		try {
+			$session = pipepay_stripe_subs_api_post( '/v1/billing_portal/sessions', array(
+				'customer'   => $stripe_customer_id,
+				'return_url' => wc_get_page_permalink( 'myaccount' ),
+			) );
+			if ( ! empty( $session['url'] ) ) {
+				// Stripe's billing.stripe.com is intentionally outside the
+				// safe-redirect host list; the URL came from Stripe's API.
+				wp_redirect( $session['url'] ); // phpcs:ignore WordPress.Security.SafeRedirect
+				exit;
+			}
+		} catch ( Throwable $e ) {
+			pipepay_stripe_subs_log( 'portal redirect failed for user ' . get_current_user_id() . ': ' . $e->getMessage() );
+		}
+	}
+	if ( function_exists( 'wc_add_notice' ) ) {
+		wc_add_notice( __( 'We could not open the billing portal. Please try again or contact support@pipepay.app.', 'pipepay-stripe-subs' ), 'error' );
+	}
+	wp_safe_redirect( wc_get_page_permalink( 'myaccount' ) );
+	exit;
+} );
 
 /* -------------------------------------------------------------------------
  * Auto-login after Stripe Checkout success
