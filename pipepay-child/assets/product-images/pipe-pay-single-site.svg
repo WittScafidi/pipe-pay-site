@@ -1,0 +1,48 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 600" role="img" aria-label="Pipe Pay license - Single Site">
+  <rect width="600" height="600" fill="#1336a8"/>
+
+  <!-- Subtle inner border -->
+  <rect x="30" y="30" width="540" height="540" rx="18" fill="none" stroke="rgba(255,255,255,0.18)" stroke-width="2"/>
+
+  <!-- Brand mark, scaled 1.875x of a 64x64 viewBox = 120x120, centered horizontally -->
+  <g transform="translate(240,60) scale(1.875)">
+    <rect x="2"  y="26" width="8" height="12" fill="#fff"/>
+    <rect x="9"  y="22" width="3" height="20" fill="#fff"/>
+    <rect x="54" y="26" width="8" height="12" fill="#fff"/>
+    <rect x="52" y="22" width="3" height="20" fill="#fff"/>
+    <path d="M 12 32 L 32 14" stroke="#fff" stroke-width="1.6" fill="none" stroke-linecap="round"/>
+    <path d="M 12 32 L 22 32" stroke="#fff" stroke-width="1.6" fill="none" stroke-linecap="round"/>
+    <path d="M 12 32 L 32 50" stroke="#fff" stroke-width="1.6" fill="none" stroke-linecap="round"/>
+    <path d="M 52 32 L 32 14" stroke="#fff" stroke-width="1.6" fill="none" stroke-linecap="round"/>
+    <path d="M 52 32 L 42 32" stroke="#fff" stroke-width="1.6" fill="none" stroke-linecap="round"/>
+    <path d="M 52 32 L 32 50" stroke="#fff" stroke-width="1.6" fill="none" stroke-linecap="round"/>
+    <circle cx="12" cy="32" r="1.8" fill="#fff"/>
+    <circle cx="52" cy="32" r="1.8" fill="#fff"/>
+    <circle cx="32" cy="32" r="10.5" fill="#fff"/>
+    <circle cx="32" cy="32" r="8.8"  fill="#1336a8"/>
+    <text x="32" y="38" text-anchor="middle" font-family="Manrope, Inter, -apple-system, sans-serif" font-size="17" font-weight="800" fill="#fff">$</text>
+  </g>
+
+  <!-- Wordmark -->
+  <text x="300" y="255" text-anchor="middle" fill="#fff"
+        font-family="Manrope, Inter, -apple-system, sans-serif"
+        font-size="44" font-weight="800" letter-spacing="-1">Pipe Pay</text>
+
+  <!-- Divider -->
+  <line x1="220" y1="300" x2="380" y2="300" stroke="rgba(255,255,255,0.35)" stroke-width="2"/>
+
+  <!-- Tier label -->
+  <text x="300" y="355" text-anchor="middle" fill="rgba(255,255,255,0.85)"
+        font-family="Manrope, Inter, sans-serif"
+        font-size="18" font-weight="700" letter-spacing="6">SINGLE SITE</text>
+
+  <!-- Big tier indicator -->
+  <text x="300" y="505" text-anchor="middle" fill="#fff"
+        font-family="Manrope, Inter, sans-serif"
+        font-size="130" font-weight="900" letter-spacing="-4">1</text>
+
+  <!-- Footer chip -->
+  <text x="300" y="555" text-anchor="middle" fill="rgba(255,255,255,0.6)"
+        font-family="Manrope, Inter, sans-serif"
+        font-size="14" font-weight="600" letter-spacing="3">ANNUAL LICENSE</text>
+</svg>

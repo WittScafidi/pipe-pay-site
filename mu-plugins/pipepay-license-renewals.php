@@ -24,9 +24,9 @@
  *
  *   paid license (product_id in {34, 35, 36})
  *      -> empty cart, add the same tier, attach _pipepay_renewal_for_license
- *         cart-item meta (used by a future order-completion hook to extend
- *         the existing license's access_expires by 365 days instead of
- *         minting a new license - see CLAUDE.md renewal-cadence to-do)
+ *         cart-item meta (consumed by the renewal-completion hooks at the
+ *         bottom of this file: extends the existing license's access_expires
+ *         by 365 days and removes the duplicate key WCAM mints)
  *
  *   any tier override (?tier=NN, allow-listed) wins over the default routing.
  *   The HMAC still secures the (key, expires) tuple; tier choice is open
@@ -228,10 +228,9 @@ function pipepay_renewal_route_handler(): void {
     }
 
     // Paid renewal path: same tier as the existing license, with the renewal
-    // pointer attached. The order-completion hook that extends access_expires
-    // is a follow-up (renewal-cadence to-do in CLAUDE.md). This path works
-    // today as a normal "buy the same tier" checkout; the future hook just
-    // upgrades it to "extend the existing license."
+    // pointer attached. The renewal-completion hooks at the bottom of this
+    // file consume the pointer on payment completion and extend the existing
+    // license instead of keeping the new key WCAM mints.
     if ( in_array( $license_product_id, PIPEPAY_RENEWAL_TIER_PRODUCT_IDS, true ) ) {
         pipepay_renewal_redirect_to_checkout( $license_product_id, $key );
         return;
@@ -256,8 +255,8 @@ function pipepay_renewal_route_handler(): void {
  *
  * @param int    $tier_product_id     Paid tier product ID (34, 35, 36).
  * @param string $renewal_for_license Optional license key - present on paid
- *                                    renewals so a future order-completion
- *                                    hook can extend the existing license.
+ *                                    renewals so the renewal-completion hook
+ *                                    can extend the existing license.
  *                                    Empty for trial -> paid conversions.
  */
 function pipepay_renewal_redirect_to_checkout( int $tier_product_id, string $renewal_for_license = '' ): void {
@@ -416,3 +415,320 @@ function pipepay_renewal_render_error( string $title, string $body_html, int $st
  *    CLAUDE.md), the email templates will use these same helpers to mint
  *    URLs for outbound reminders.
  */
+
+// ── Cadence cron handler ─────────────────────────────────────────────────────
+//
+// Daily scan of `wp_wc_am_api_resource` to fire renewal/trial-cadence emails
+// at the configured intervals. Idempotent via order postmeta stamps so a
+// double-firing cron doesn't double-send.
+//
+// Schedule: daily at 02:00 UTC via Action Scheduler (already used by WC).
+// Hook tag: `pipepay_license_check_renewals` - safe to trigger manually:
+//   wp action-scheduler run --hooks=pipepay_license_check_renewals
+
+const PIPEPAY_CADENCE_HOOK = 'pipepay_license_check_renewals';
+
+const PIPEPAY_CADENCE_STAGES = [
+    // [ days_from_now, email_id, product_id_filter ('trial' | 'paid'), stamp_key ]
+    'trial_t-2'     => [ 'days' =>  2, 'email' => 'WC_Email_PipePay_Trial_Ending_Soon', 'kind' => 'trial', 'stamp' => '_pipepay_renewal_stamp_trial_t-2' ],
+    'trial_t+0'     => [ 'days' =>  0, 'email' => 'WC_Email_PipePay_Trial_Ended',       'kind' => 'trial', 'stamp' => '_pipepay_renewal_stamp_trial_t+0' ],
+    'paid_t-30'     => [ 'days' => 30, 'email' => 'WC_Email_PipePay_Renewal_30',        'kind' => 'paid',  'stamp' => '_pipepay_renewal_stamp_paid_t-30' ],
+    'paid_t-7'      => [ 'days' =>  7, 'email' => 'WC_Email_PipePay_Renewal_7',         'kind' => 'paid',  'stamp' => '_pipepay_renewal_stamp_paid_t-7' ],
+    'paid_t-0'      => [ 'days' =>  0, 'email' => 'WC_Email_PipePay_Renewal_Expiry',    'kind' => 'paid',  'stamp' => '_pipepay_renewal_stamp_paid_t-0' ],
+    'paid_t+7'      => [ 'days' => -7, 'email' => 'WC_Email_PipePay_Renewal_Grace',     'kind' => 'paid',  'stamp' => '_pipepay_renewal_stamp_paid_t+7' ],
+    'paid_t+30'     => [ 'days' =>-30, 'email' => 'WC_Email_PipePay_Renewal_Final',     'kind' => 'paid',  'stamp' => '_pipepay_renewal_stamp_paid_t+30' ],
+];
+
+const PIPEPAY_CADENCE_TOLERANCE_DAYS = 1;
+const PIPEPAY_CADENCE_FAIL_CAP       = 3;  // skip license after this many consecutive send failures per stage
+
+/**
+ * Schedule the daily cron on plugin load. Action Scheduler handles persistence;
+ * no extra cron table needed.
+ */
+add_action( 'init', function () {
+    if ( ! function_exists( 'as_schedule_recurring_action' ) ) {
+        return;
+    }
+    if ( false === as_next_scheduled_action( PIPEPAY_CADENCE_HOOK ) ) {
+        // Next 02:00 UTC, then every 24h.
+        $next = strtotime( 'tomorrow 02:00 UTC' );
+        as_schedule_recurring_action( $next, DAY_IN_SECONDS, PIPEPAY_CADENCE_HOOK, [], 'pipepay' );
+    }
+} );
+
+add_action( PIPEPAY_CADENCE_HOOK, 'pipepay_license_cadence_run' );
+
+/**
+ * Main cadence handler. Walks active licenses, matches each against a stage,
+ * sends the appropriate email if not already sent.
+ */
+function pipepay_license_cadence_run(): void {
+    global $wpdb;
+
+    // Monthly Stripe-billed products (526/527/528) are excluded: Stripe auto-renews
+    // them and emails its own receipts, so "renew your license" emails would be
+    // wrong — and their HMAC links would 403 anyway because the pipepay-stripe-subs
+    // bridge rewrites access_expires (an HMAC input) on every billing cycle.
+    $licenses = $wpdb->get_results(
+        "SELECT api_resource_id, master_api_key, product_id, product_title, order_id, user_id, access_expires, active
+         FROM {$wpdb->prefix}wc_am_api_resource
+         WHERE active = 1 AND access_expires > 0
+           AND product_id NOT IN (526, 527, 528)",
+        ARRAY_A
+    );
+    if ( ! $licenses ) {
+        return;
+    }
+
+    $now = time();
+    foreach ( $licenses as $lic ) {
+        // Yearly Stripe subscriptions (card lane) renew automatically — "renew your
+        // license" emails would be wrong, and their HMAC links break the moment the
+        // bridge rewrites access_expires anyway. The bridge stamps per-product user
+        // meta pointing at the rows it manages; skip those while the sub is active.
+        $stripe_backed_row = (int) get_user_meta( (int) $lic['user_id'], '_pipepay_stripe_api_resource_id_' . (int) $lic['product_id'], true );
+        if ( $stripe_backed_row === (int) $lic['api_resource_id']
+            && 'active' === get_user_meta( (int) $lic['user_id'], '_pipepay_stripe_subscription_status', true ) ) {
+            continue;
+        }
+
+        $expires       = (int) $lic['access_expires'];
+        $days_to_expiry = (int) floor( ( $expires - $now ) / DAY_IN_SECONDS );
+        $is_trial      = (int) $lic['product_id'] === PIPEPAY_RENEWAL_TRIAL_PRODUCT_ID;
+        $kind          = $is_trial ? 'trial' : 'paid';
+
+        foreach ( PIPEPAY_CADENCE_STAGES as $stage_key => $stage ) {
+            if ( $stage['kind'] !== $kind ) {
+                continue;
+            }
+            // Match with +/- 1 day tolerance so a missed cron run doesn't drop the email.
+            if ( abs( $days_to_expiry - $stage['days'] ) > PIPEPAY_CADENCE_TOLERANCE_DAYS ) {
+                continue;
+            }
+            pipepay_cadence_maybe_send( $lic, $stage_key, $stage );
+        }
+    }
+}
+
+/**
+ * Send one cadence email if idempotency permits. Stamps on success; bumps a
+ * failure counter on failure and gives up after PIPEPAY_CADENCE_FAIL_CAP misses.
+ */
+function pipepay_cadence_maybe_send( array $lic, string $stage_key, array $stage ): void {
+    $order_id = (int) $lic['order_id'];
+    if ( ! $order_id ) {
+        return;
+    }
+
+    $stamp_key = $stage['stamp'];
+    $fail_key  = $stamp_key . '_fails';
+
+    // Already sent?
+    if ( get_post_meta( $order_id, $stamp_key, true ) ) {
+        return;
+    }
+    // Hit the fail cap?
+    if ( (int) get_post_meta( $order_id, $fail_key, true ) >= PIPEPAY_CADENCE_FAIL_CAP ) {
+        return;
+    }
+
+    $order = wc_get_order( $order_id );
+    if ( ! $order ) {
+        return;
+    }
+
+    $license_data = pipepay_cadence_build_license_data( $lic, $order );
+    if ( ! $license_data ) {
+        return;
+    }
+
+    $emails = WC()->mailer()->get_emails();
+    $email  = $emails[ $stage['email'] ] ?? null;
+    if ( ! $email ) {
+        // Email class not registered (mu-plugin failed to load?) - log + skip.
+        if ( function_exists( 'pipepay_log' ) ) {
+            pipepay_log( 'error', 'Cadence email class not registered', [ 'email_id' => $stage['email'], 'stage' => $stage_key ] );
+        }
+        return;
+    }
+
+    $sent = (bool) $email->trigger( $license_data );
+
+    if ( $sent ) {
+        update_post_meta( $order_id, $stamp_key, time() );
+        delete_post_meta( $order_id, $fail_key );
+        if ( function_exists( 'pipepay_log' ) ) {
+            pipepay_log( 'info', 'Cadence email sent', [ 'stage' => $stage_key, 'order_id' => $order_id, 'recipient_domain' => substr( strrchr( $license_data['recipient'], '@' ), 1 ) ] );
+        }
+    } else {
+        $fails = (int) get_post_meta( $order_id, $fail_key, true ) + 1;
+        update_post_meta( $order_id, $fail_key, $fails );
+        if ( function_exists( 'pipepay_log' ) ) {
+            pipepay_log( 'warning', 'Cadence email send failed', [ 'stage' => $stage_key, 'order_id' => $order_id, 'fail_count' => $fails ] );
+        }
+    }
+}
+
+/**
+ * Assemble the context expected by the cadence email classes / templates.
+ */
+function pipepay_cadence_build_license_data( array $lic, WC_Order $order ): array {
+    $license_key   = (string) $lic['master_api_key'];
+    $expires       = (int) $lic['access_expires'];
+    $expires_dt    = ( new DateTime( '@' . $expires ) )->setTimezone( wp_timezone() );
+    $expires_label = wc_format_datetime( $expires_dt, 'F j, Y' );
+
+    $renewal_url = add_query_arg(
+        [
+            'key'   => rawurlencode( $license_key ),
+            'token' => pipepay_renewal_hmac_sign( $license_key, $expires ),
+        ],
+        home_url( '/' . PIPEPAY_RENEWAL_PAGE_SLUG . '/' )
+    );
+
+    return [
+        'license_key'   => $license_key,
+        'order_id'      => $order->get_id(),
+        'recipient'     => $order->get_billing_email(),
+        'first_name'    => $order->get_billing_first_name(),
+        'tier_name'     => $lic['product_title'] ?: 'Pipe Pay',
+        'expires_at'    => $expires,
+        'expires_label' => $expires_label,
+        'renewal_url'   => $renewal_url,
+    ];
+}
+
+/**
+ * On uninstall, clean up the cron + meta stamps. (mu-plugin doesn't get a
+ * traditional uninstall hook - this runs if the file is deleted and the
+ * action-scheduler unschedule is best-effort via init guard.)
+ */
+register_deactivation_hook( __FILE__, function () {
+    if ( function_exists( 'as_unschedule_all_actions' ) ) {
+        as_unschedule_all_actions( PIPEPAY_CADENCE_HOOK );
+    }
+} );
+
+/* =========================================================================
+ * Renewal completion (2026-06-12) — the missing half of the /renew/ flow.
+ *
+ * The /renew/ landing above attaches `_pipepay_renewal_for_license` cart-item
+ * data; until now nothing persisted it to the order or consumed it, so every
+ * renewal minted a brand-new key instead of extending the customer's existing
+ * one. These hooks close that: persist the marker onto the order line item,
+ * extend the ORIGINAL license +365 days on payment completion, and remove the
+ * duplicate key WCAM mints for the renewal order. Same key, fresh expiry.
+ *
+ * Hook ordering on woocommerce_order_status_completed / _processing:
+ *   9   pipepay_renewal_extend             — extend original license, stamp order
+ *   10  WCAM WC_AM_Order::update_order     — mints a duplicate key for this order
+ *   10  WC transactional emails            — paid-completed.php renewal branch
+ *                                            reads the original key (already extended)
+ *   999 pipepay_renewal_cleanup_duplicate  — delete the WCAM duplicate
+ * ========================================================================= */
+
+add_action( 'woocommerce_checkout_create_order_line_item', function ( $item, $cart_item_key, $values ) {
+    if ( ! empty( $values['_pipepay_renewal_for_license'] ) ) {
+        $item->add_meta_data( '_pipepay_renewal_for_license', sanitize_text_field( (string) $values['_pipepay_renewal_for_license'] ), true );
+    }
+}, 10, 3 );
+
+function pipepay_renewal_order_license_key( $order ): string {
+    foreach ( $order->get_items() as $item ) {
+        $key = (string) $item->get_meta( '_pipepay_renewal_for_license', true );
+        if ( '' !== $key ) {
+            return $key;
+        }
+    }
+    return '';
+}
+
+add_action( 'woocommerce_order_status_completed', 'pipepay_renewal_extend', 9 );
+add_action( 'woocommerce_order_status_processing', 'pipepay_renewal_extend', 9 );
+
+function pipepay_renewal_extend( $order_id ): void {
+    global $wpdb;
+
+    $order = wc_get_order( $order_id );
+    if ( ! $order || $order->get_meta( '_pipepay_renewal_extended' ) ) {
+        return;
+    }
+
+    $license_key = pipepay_renewal_order_license_key( $order );
+    if ( '' === $license_key ) {
+        return; // not a renewal order
+    }
+
+    $table = $wpdb->prefix . 'wc_am_api_resource';
+    $row   = $wpdb->get_row( $wpdb->prepare(
+        "SELECT api_resource_id, access_expires FROM {$table} WHERE master_api_key = %s ORDER BY api_resource_id ASC LIMIT 1",
+        $license_key
+    ) );
+
+    if ( ! $row ) {
+        // Original license gone (RTBF, manual delete). The key WCAM mints for this
+        // order stands as a fresh license instead — cleanup below skips 'orphan'.
+        $order->update_meta_data( '_pipepay_renewal_extended', 'orphan' );
+        $order->add_order_note( 'Pipe Pay renewal: original license not found — the new key issued with this order stands.' );
+        $order->save();
+        error_log( "Pipe Pay renewal: order $order_id references unknown license ..." . substr( $license_key, -4 ) );
+        return;
+    }
+
+    // +365 days from the later of now / current expiry: early renewals keep their
+    // remaining time; lapsed renewals restart from today.
+    $new_expires = max( time(), (int) $row->access_expires ) + 365 * DAY_IN_SECONDS;
+
+    $wpdb->update(
+        $table,
+        [ 'access_expires' => $new_expires, 'active' => 1 ],
+        [ 'api_resource_id' => (int) $row->api_resource_id ],
+        [ '%d', '%d' ],
+        [ '%d' ]
+    );
+
+    $order->update_meta_data( '_pipepay_renewal_extended', gmdate( 'c' ) );
+    $order->update_meta_data( '_pipepay_renewal_resource_id', (int) $row->api_resource_id );
+    $order->add_order_note( sprintf(
+        'Pipe Pay renewal: extended license ...%s to %s (+365 days, same key).',
+        substr( $license_key, -4 ),
+        gmdate( 'Y-m-d', $new_expires )
+    ) );
+    $order->save();
+}
+
+add_action( 'woocommerce_order_status_completed', 'pipepay_renewal_cleanup_duplicate', 999 );
+add_action( 'woocommerce_order_status_processing', 'pipepay_renewal_cleanup_duplicate', 999 );
+
+function pipepay_renewal_cleanup_duplicate( $order_id ): void {
+    global $wpdb;
+
+    $order = wc_get_order( $order_id );
+    if ( ! $order ) {
+        return;
+    }
+    $stamp = (string) $order->get_meta( '_pipepay_renewal_extended' );
+    if ( '' === $stamp || 'orphan' === $stamp ) {
+        return; // not a renewal, or original license missing (the new key stands)
+    }
+
+    $original_resource_id = (int) $order->get_meta( '_pipepay_renewal_resource_id' );
+    if ( ! $original_resource_id ) {
+        return;
+    }
+
+    // Kestrel's master_api_key is per-USER: the duplicate row WCAM mints for this
+    // renewal order shares the original license's key, so the only safe filter is
+    // the row id. The original row is keyed to its own (old) order and can never
+    // match order_id = this renewal order; the exclusion is belt-and-braces.
+    $table   = $wpdb->prefix . 'wc_am_api_resource';
+    $deleted = $wpdb->query( $wpdb->prepare(
+        "DELETE FROM {$table} WHERE order_id = %d AND api_resource_id != %d",
+        $order_id,
+        $original_resource_id
+    ) );
+    if ( $deleted ) {
+        $order->add_order_note( "Pipe Pay renewal: removed $deleted duplicate license key(s) minted for this renewal order." );
+    }
+}

@@ -19,7 +19,7 @@ if ( ! defined( 'PIPEPAY_SITE_VERSION' ) ) {
     // unless they introduce a behavior change worth noting"). Customers
     // auto-updating past this number get the patches without a public release
     // narrative for each one.
-    define( 'PIPEPAY_SITE_VERSION', '1.7.4' );
+    define( 'PIPEPAY_SITE_VERSION', '1.9.9' );
 }
 
 add_action( 'wp_enqueue_scripts', function() {
@@ -113,9 +113,9 @@ add_action( 'wp_head', function() {
     $slug_descriptions = array(
         'about'          => 'About Pipe Pay - an independent WooCommerce plugin for store owners who accept Venmo, Cash App, PayPal, or Zelle directly from customers. We are a verification tool, not a payment processor or money transmitter; we do not hold or transmit funds.',
         'how-it-works'   => 'How Pipe Pay works for WooCommerce store owners: customer pays via their preferred P2P app, uploads a screenshot at checkout, AI verifies it against the order, you only see the ones flagged for review.',
-        'pricing'        => 'Pipe Pay annual subscription pricing for WooCommerce stores: $299 / $599 / $1,199 per year tiers, all with a 7-day free trial. Per-site licensing. Honest yes/no qualification before you buy.',
+        'pricing'        => 'Pipe Pay annual subscription pricing for WooCommerce stores: $299 / $499 / $999 per year tiers, all with a 7-day free trial. Per-site licensing. Honest yes/no qualification before you buy.',
         'docs'           => 'Pipe Pay documentation for WooCommerce store owners: installation, AI verification setup, admin guide, configuration, order lifecycle, refunds, security, license management, troubleshooting.',
-        'contact'        => 'Contact Pipe Pay support. Independent B2B SaaS built and supported by one person. We respond to all merchant inquiries within one business day.',
+        'contact'        => 'Contact Pipe Pay support. Independent B2B SaaS for WooCommerce merchants. We respond to all merchant inquiries within one business day.',
         'changelog'      => 'Pipe Pay plugin release notes, newest first. WooCommerce-compatibility patches, AI verification improvements, admin queue updates.',
         'refund-policy'  => 'Refund policy for Pipe Pay annual licenses. The 7-day free trial is the evaluation window; once your trial converts to a paid license, all sales are final.',
         'privacy'        => 'Privacy policy for the Pipe Pay merchant-facing website. What data we collect from store owners, how we use it, how long we keep it, your rights.',
@@ -180,7 +180,7 @@ add_action( 'wp_head', function() {
             'offers'              => array(
                 '@type'         => 'AggregateOffer',
                 'lowPrice'      => '299',
-                'highPrice'     => '1199',
+                'highPrice'     => '999',
                 'priceCurrency' => 'USD',
                 'offerCount'    => 3,
             ),
@@ -314,20 +314,87 @@ add_action( 'wp_footer', function() {
 }, 99 );
 
 
-// WooCommerce: when the customer clicks any "Start trial" or tier CTA, the
-// cart should hold ONE Pipe Pay product at a time. If they switch tiers
-// (or click trial after browsing a paid tier), we empty the cart and add
-// only the new product so the order summary stays sensible.
+// WooCommerce: enforce ONE Pipe Pay product per cart. When a customer
+// switches tiers (or clicks trial after browsing a paid tier, or vice
+// versa), we drop any other Pipe Pay products and keep only the most
+// recently added one.
+//
+// We hook `woocommerce_add_to_cart` (action that fires AFTER the new item
+// has been inserted into the cart) rather than the older
+// `woocommerce_add_cart_item_data` filter that runs BEFORE insertion. The
+// after-the-fact action is more robust:
+//
+//   - Filter priority conflicts with other plugins can't cause the dedup
+//     to be skipped or run on stale state.
+//   - We have full visibility into the resulting cart and can target
+//     other-Pipe-Pay items by cart_item_key, preserving the just-added
+//     one even if its product_id collides with an existing entry.
+//   - Block Cart / Block Checkout's Store API add-item endpoint also
+//     fires this action, so the dedup covers both the classic
+//     ?add-to-cart=N URL flow and the Store API flow uniformly.
+//
+// Constraint: we never remove the just-added item (matched by cart_item_key).
+add_action( 'woocommerce_add_to_cart', function ( $cart_item_key, $product_id ) {
+    if ( ! function_exists( 'WC' ) || ! WC()->cart ) {
+        return;
+    }
+    $pipepay_product_ids = array( 34, 35, 36, 38 );
+    if ( ! in_array( (int) $product_id, $pipepay_product_ids, true ) ) {
+        return;
+    }
+    foreach ( WC()->cart->get_cart() as $key => $item ) {
+        if ( $key === $cart_item_key ) {
+            continue;
+        }
+        if ( in_array( (int) $item['product_id'], $pipepay_product_ids, true ) ) {
+            WC()->cart->remove_cart_item( $key );
+        }
+    }
+}, 10, 2 );
+
+// Pre-insertion guard that runs INSIDE WC_Cart::add_to_cart(), BEFORE the
+// `sold_individually` "already in cart" duplicate check fires. Pipe Pay
+// tier products are sold_individually, so adding the SAME product twice
+// produces a "You cannot add another ..." error notice — even though the
+// customer-intent ("I want this tier") is clear and idempotent.
+//
+// Hook choice matters: `woocommerce_add_cart_item_data` fires INSIDE
+// `WC_Cart::add_to_cart()` itself (just before `find_product_in_cart()`),
+// which means it runs on EVERY add-to-cart path including:
+//   - Classic `?add-to-cart=N` URL → WC_Form_Handler::add_to_cart_action()
+//   - Block Cart / Block Checkout → Store API CartAddItem route
+//   - Programmatic `WC()->cart->add_to_cart()` calls from other plugins
+//
+// An earlier attempt used `woocommerce_add_to_cart_validation` which only
+// fires from the form-handler path; Block Checkout's Store API endpoint
+// bypasses it entirely, so the user kept seeing the duplicate error.
+//
+// Behavior: when ANY Pipe Pay product is about to be added, clear all
+// existing Pipe Pay items from the cart first. By the time WC reaches the
+// duplicate check, the cart is empty and the new item adds cleanly with
+// no error notice. Cross-tier intent (Single → 5 Sites → Unlimited) keeps
+// working because the cart only ever contains the most-recently-clicked
+// Pipe Pay product.
+//
+// Priority 9 so the trial-intent filter at priority 11 (below) still runs
+// after this on the cart_item_data array — they don't compete for the
+// same operation. Belt-and-braces: the post-insert action above also
+// covers any path that bypasses this filter.
 add_filter( 'woocommerce_add_cart_item_data', function( $cart_item_data, $product_id ) {
-    if ( ! function_exists( 'WC' ) || ! WC()->cart ) { return $cart_item_data; }
-    // Only enforce for our license-tier products (IDs 34, 35, 36, 38).
+    if ( ! function_exists( 'WC' ) || ! WC()->cart ) {
+        return $cart_item_data;
+    }
     $pipepay_product_ids = array( 34, 35, 36, 38 );
     if ( ! in_array( (int) $product_id, $pipepay_product_ids, true ) ) {
         return $cart_item_data;
     }
-    WC()->cart->empty_cart();
+    foreach ( WC()->cart->get_cart() as $key => $item ) {
+        if ( in_array( (int) $item['product_id'], $pipepay_product_ids, true ) ) {
+            WC()->cart->remove_cart_item( $key );
+        }
+    }
     return $cart_item_data;
-}, 10, 2 );
+}, 9, 2 );
 
 // WooCommerce: capture tier intent on trial signup. When a customer clicks
 // "Start 7-day trial" from a specific pricing card, the URL carries
@@ -365,6 +432,115 @@ add_action( 'woocommerce_checkout_create_order_line_item', function( $item, $car
         );
     }
 }, 10, 4 );
+
+/**
+ * Helper: is this order a Pipe Pay trial (contains product 38)?
+ *
+ * Used by the trial-specific email overrides + auto-complete logic below
+ * and by the customer-completed-order.php template override.
+ */
+function pp_order_is_trial( $order ) {
+    if ( ! $order instanceof WC_Order ) {
+        $order = wc_get_order( $order );
+    }
+    if ( ! $order ) {
+        return false;
+    }
+    foreach ( $order->get_items() as $item ) {
+        if ( (int) $item->get_product_id() === 38 ) {
+            return true;
+        }
+    }
+    return false;
+}
+
+/**
+ * Helper: is this order a Pipe Pay paid tier (products 34, 35, or 36)?
+ *
+ * Used by `customer-completed-order.php` to delegate to paid-completed.php
+ * and by the paid-tier subject/heading filters below.
+ */
+function pp_order_is_paid_tier( $order ) {
+    if ( ! $order instanceof WC_Order ) {
+        $order = wc_get_order( $order );
+    }
+    if ( ! $order ) {
+        return false;
+    }
+    foreach ( $order->get_items() as $item ) {
+        if ( in_array( (int) $item->get_product_id(), [ 34, 35, 36 ], true ) ) {
+            return true;
+        }
+    }
+    return false;
+}
+
+// Trial orders ($0, no payment to verify) should skip the "processing"
+// status entirely and go straight to "completed" so the customer gets their
+// license + download link immediately. Hook fires when WC transitions an
+// order to processing; we bump it to completed in the same request.
+add_action( 'woocommerce_order_status_processing', function( $order_id, $order ) {
+    if ( ! $order ) {
+        $order = wc_get_order( $order_id );
+    }
+    if ( ! pp_order_is_trial( $order ) ) {
+        return;
+    }
+    $order->update_status( 'completed', __( 'Trial: auto-completed (no payment required).', 'pipe-pay' ) );
+}, 10, 2 );
+
+// Suppress the "Your order has been received" customer_processing_order
+// email for trials. They auto-complete to "completed" in the same request
+// (above), so sending both processing + completed emails is noise. Setting
+// the recipient to empty makes WC skip the send entirely.
+add_filter( 'woocommerce_email_recipient_customer_processing_order', function( $recipient, $order ) {
+    if ( pp_order_is_trial( $order ) ) {
+        return '';
+    }
+    return $recipient;
+}, 10, 2 );
+
+// Subject line for the customer_completed_order email - branched per tier.
+// Trials: "Your Pipe Pay 7-day trial is live". Paid: "Your Pipe Pay license is ready".
+// Default WC ("Your Pipe Pay order is now complete") isn't precise for either.
+add_filter( 'woocommerce_email_subject_customer_completed_order', function( $subject, $order ) {
+    if ( pp_order_is_trial( $order ) ) {
+        return 'Your Pipe Pay 7-day trial is live';
+    }
+    if ( pp_order_is_paid_tier( $order ) ) {
+        return 'Your Pipe Pay license is ready';
+    }
+    return $subject;
+}, 10, 2 );
+
+// Heading rendered at the top of the email body, branched per tier.
+add_filter( 'woocommerce_email_heading_customer_completed_order', function( $heading, $order ) {
+    if ( pp_order_is_trial( $order ) ) {
+        return 'Your trial is live';
+    }
+    if ( pp_order_is_paid_tier( $order ) ) {
+        return 'Your license is ready';
+    }
+    return $heading;
+}, 10, 2 );
+
+// Pipe Pay-specific subject + heading for the WC customer_new_account email,
+// which fires when a customer auto-creates an account during checkout.
+add_filter( 'woocommerce_email_subject_customer_new_account', function( $subject ) {
+    return 'Welcome to Pipe Pay - set your password';
+} );
+add_filter( 'woocommerce_email_heading_customer_new_account', function( $heading ) {
+    return 'Welcome to Pipe Pay';
+} );
+
+// Pipe Pay-specific subject + heading for the on-hold email (used by the
+// gateway's "payment pending - upload proof" flow).
+add_filter( 'woocommerce_email_subject_customer_on_hold_order', function( $subject ) {
+    return 'Complete your Pipe Pay order - send payment';
+} );
+add_filter( 'woocommerce_email_heading_customer_on_hold_order', function( $heading ) {
+    return 'Send your P2P payment';
+} );
 
 // WooCommerce: force the no-sidebar layout via GeneratePress's filter so shop,
 // cart, checkout, my-account, and single product pages get the full container width.
@@ -434,3 +610,52 @@ add_filter( 'robots_txt', function( $output, $public ) {
          . "\n"
          . "Sitemap: {$sitemap_url}\n";
 }, 10, 2 );
+
+// Strip trailing ".00" from Pipe Pay license-product price HTML so
+// WC's price-display output (cart-block "New in store" cross-sells, mini-cart,
+// product widgets, /shop, etc.) matches the whole-dollar formatting used on
+// the marketing pages (homepage pricing cards + /pricing). Without this the
+// same product reads as "\\" on one surface and "\\.00" on the next,
+// which makes the cart's cross-sell block feel disconnected from the rest of
+// the site even though the layout is otherwise correct.
+//
+// Scoped to the four license SKUs (Single, 5, Unlimited, Trial). Does NOT
+// affect actual checkout totals or order receipts — those use
+// wc_format_price_range() / order->get_formatted_order_total() internally,
+// not the price-html filter, and we want those to show ".00" so the legal
+// total reads unambiguously to the customer + tax authorities.
+add_filter( 'woocommerce_get_price_html', function( $price_html, $product ) {
+    if ( ! $product instanceof WC_Product ) {
+        return $price_html;
+    }
+    $pipepay_ids = array( 34, 35, 36, 38 );
+    if ( ! in_array( (int) $product->get_id(), $pipepay_ids, true ) ) {
+        return $price_html;
+    }
+    return preg_replace( '/(\d)\.00(?!\d)/', '$1', $price_html );
+}, 10, 2 );
+
+
+/**
+ * License tiers, card lane vs payment-app lane: paying by CARD happens through
+ * Stripe Checkout (the auto-renewing buttons on the pricing cards, via the
+ * pipepay-stripe-subs bridge). The WC checkout is the payment-app lane (Venmo /
+ * Cash App / PayPal / Zelle, manual renewal) — card gateways are removed here so
+ * a card buyer cannot end up with a one-time charge that never auto-renews.
+ */
+add_filter( 'woocommerce_available_payment_gateways', function ( $gateways ) {
+    if ( is_admin() || ! function_exists( 'WC' ) || ! WC()->cart ) {
+        return $gateways;
+    }
+    foreach ( WC()->cart->get_cart() as $cart_item ) {
+        if ( in_array( (int) $cart_item['product_id'], array( 34, 35, 36 ), true ) ) {
+            foreach ( array_keys( $gateways ) as $gateway_id ) {
+                if ( 0 === strpos( $gateway_id, 'stripe_' ) ) {
+                    unset( $gateways[ $gateway_id ] );
+                }
+            }
+            break;
+        }
+    }
+    return $gateways;
+} );

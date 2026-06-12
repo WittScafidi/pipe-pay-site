@@ -242,7 +242,7 @@ A `woocommerce_add_cart_item_data` filter in `functions.php` empties the cart be
   - PayPal F&F: `wittscafidi@gmail.com` (confirm or replace)
   - Zelle: `wittscafidi@gmail.com` (confirm or replace)
 - [ ] **Add an AI provider key** in the same settings panel (Claude / OpenAI / OpenRouter), or stay in manual review mode. Without a key every order requires you to approve from the Proofs queue manually.
-- [ ] **Set up SMTP relay** so order receipts, license-key emails, and trial reminders deliver. Server can't send mail directly (residential IP). Recommended: WP Mail SMTP plugin + Resend (free 3k/mo) or Postmark (free 100/day) + the SMTP creds from whichever you pick.
+- [ ] **Brand WooCommerce email templates** - WP Admin → WooCommerce → Settings → Emails. Set base color `#1336a8`, upload Pipe Pay logo as header image, replace generic "Built with WooCommerce" footer with `Pipe Pay · pipepay.app · support@pipepay.app`. Default WC email templates land but look generic.
 - [ ] **Refund EDD Pro** within the 14-day window (purchased 2026-05-06). EDD support email or use the link in your purchase receipt. The plugin is already deactivated; safe to remove plugin files after refund clears: `sudo -u www-data wp --path=/var/www/pipepay plugin delete easy-digital-downloads-pro`.
 - [ ] **Enable Two-Factor on `pipepayadmin`** - Users → Profile → Two-Factor Options.
 - [ ] **Update the default WC country** if you're not in NY - WP Admin → WooCommerce → Settings → General.
@@ -253,7 +253,7 @@ A `woocommerce_add_cart_item_data` filter in `functions.php` empties the cart be
 - [ ] Fill in dummy email/address. "Place Order." Order should complete (no payment step needed for $0 trial).
 - [ ] Confirm in WP Admin → WooCommerce → Orders that the order exists, status "Completed."
 - [ ] Confirm in WP Admin → WooCommerce → API Manager → Licenses that a 7-day license was issued for the test customer.
-- [ ] Check the WP Admin Mail Log (or your inbox once SMTP is wired) for: order-confirmation email + license-key email.
+- [ ] Check your Gmail inbox for: order-confirmation email + license-key email. (SMTP is live via Resend; WP Mail SMTP's free-tier email log is disabled — paid feature.)
 - [ ] Repeat with a paid tier: visit homepage, scroll to pricing, click "5 Sites." Should land on `/checkout/?add-to-cart=35` with hero kicker "CHECKOUT."
 - [ ] Confirm Pipe Pay payment option is preselected with the description "Pay with Venmo, Cash App, PayPal, or Zelle..."
 - [ ] Place order. Status should be "Pending payment."
@@ -279,7 +279,7 @@ A `woocommerce_add_cart_item_data` filter in `functions.php` empties the cart be
   4. **Paid-renewal branch (year-2+ scenario).** The mu-plugin's logic for `product_id ∈ {34, 35, 36}` (i.e. paid licenses, not trials) is implemented but never exercised in our automated tests because we only have trial test data. When the first real paid customer's renewal cycle approaches, run the renewal URL against their license and confirm the cart-item meta `_pipepay_renewal_for_license` is attached on the line item. (Effect of this meta is wired up by the future order-completion hook in the renewal-cadence work below.)
   5. **Real API Manager license issuance.** Our automated test seeded synthetic rows in `wp_wc_am_api_resource` because the `wc_create_order()` path doesn't fire `woocommerce_payment_complete`, which is what API Manager listens for. Before relying on real customer data, place ONE real test order through the actual checkout flow (Block Checkout, complete payment, mark completed) and verify (a) API Manager auto-mints a license row, (b) the row's `master_api_key` is what shows on the customer's `/my-account` page, (c) the renewal URL built from that real key resolves correctly.
 
-- [ ] **License renewal email cadence + one-click renewal flow.** Server-side on pipepay.app - drives renewal rate without bricking customer gateways. The plugin's gateway always keeps working; only auto-updates and support are gated on license status (per the *Competitive defense → License model* section below). All implementation lives in a new mu-plugin `wp-content/mu-plugins/pipepay-license-renewals.php` next to the existing resolver mu-plugin. Hard prerequisite: SMTP relay must be wired up first (Resend or Postmark free tier; see Operations subsection below).
+- [ ] **End-to-end test the renewal cadence in production.** Cadence cron + 8 custom email classes shipped 2026-05-08 (see resolved entry below). Verify by setting a test license's `access_expires` to exactly 30/7/0/-7/-30 days from now, then running `sudo -u www-data wp --path=/var/www/pipepay action-scheduler run --hooks=pipepay_license_check_renewals` and confirming each stage email arrives at the test billing email. Also confirm idempotency by re-running and confirming no duplicate sends. The HMAC renewal URL inside each email should round-trip through `/renew/?key=...&token=...` correctly.
   - **Cadence (paid tiers - products 34, 35, 36):**
     - T-30: friendly heads-up
     - T-7: 1 week left, slightly firmer
@@ -312,9 +312,6 @@ A `woocommerce_add_cart_item_data` filter in `functions.php` empties the cart be
   - **Estimated effort:** ~1.5 working days (1 day for cadence + cron + emails, half-day for Option B HMAC renewal flow).
   - **Local source of truth:** `pipe-pay-site/mu-plugins/pipepay-license-renewals.php`. Sync to server with the existing mu-plugin sync command in the cheatsheet.
 
-### Pipe Pay plugin - next tagged release (v1.8.1+)
-- [ ] **Register delete capabilities on `wc-awaiting-proof` + `wc-awaiting-approval` post statuses.** Still pending as of 2026-05-09 - did not get folded into v1.7.5 / v1.7.6 / v1.7.7 / v1.8.0 despite the original "next patch (v1.7.5)" framing. Symptom: WC admin orders UI's bulk Trash/Delete and `wp wc shop_order delete` both return 403 "Sorry, you are not allowed to delete this resource" against orders in either custom status. Root cause: the `register_post_status()` calls in `pipe-pay/pipe-pay.php` (lines ~55 + ~76) don't pass a `capabilities` map, so WP/WC fall back to a default that doesn't grant delete to anyone. Fix: add a `capability_type => 'shop_order'` (or an explicit map) so admins can trash/delete via the standard UI without resorting to direct-DB cleanup. Discovered 2026-05-08 when wiping the test-order table required `DELETE FROM wp_wc_orders` SQL.
-
 ### Operations
 - [ ] **Add `pipepay.app` to Google Search Console** - verify via DNS TXT record (Cloudflare DNS panel makes this easy), then submit `https://pipepay.app/wp-sitemap.xml`. Leave the existing `pipepay.money` property in place so the 301 traffic stays monitored as it migrates over.
 - [ ] Off-server uploads backup (UpdraftPlus → S3/B2/Backblaze; needs creds)
@@ -327,9 +324,50 @@ A `woocommerce_add_cart_item_data` filter in `functions.php` empties the cart be
   - How-it-works composite: end-to-end customer flow
   - AI deep-dive: admin Proofs review queue with confidence badges
 - [ ] Replace placeholder testimonials in section 11 of `front-page.php` with real ones once collected
-- [ ] Wire `/contact` to a real contact form (Fluent Forms recommended; needs SMTP first)
+- [ ] Wire `/contact` to a real contact form (Fluent Forms recommended). SMTP is already live, so submissions will deliver.
 
 ### Resolved
+- [x] **Renewal cadence + custom WC email classes shipped** (2026-05-08): the full cron-driven cadence from the License-renewal email cadence to-do is now in place. Daily Action Scheduler cron at 02:00 UTC walks `wp_wc_am_api_resource` and fires the right email per stage with order-postmeta idempotency stamps. Eight custom `WC_Email` subclasses registered (visible at WC -> Settings -> Emails for per-email enable/disable + admin subject/heading editing). Architecture:
+  - **mu-plugins/pipepay-license-renewals.php** - existing landing handler + new cadence cron section at bottom. Cron tag: `pipepay_license_check_renewals`. Schedule: tomorrow 02:00 UTC, recurring daily. Manually trigger: `wp action-scheduler run --hooks=pipepay_license_check_renewals`.
+  - **mu-plugins/pipepay-email-classes.php** - registers the 8 classes via `woocommerce_email_classes` filter; thin file, includes the actual class definitions from a subdirectory.
+  - **mu-plugins/pipepay-lib/email-classes.php** - base class `PipePay_Cadence_Email_Base` (shared trigger() + template-rendering logic) plus 7 concrete cadence subclasses and 1 payment-pending email. **Lives in a subdirectory deliberately** - WP's mu-plugin loader auto-includes every .php file at depth 0 of `wp-content/mu-plugins/`, which would fire BEFORE WC is loaded and crash on `class Foo extends WC_Email`. Subdirectories are not auto-included; the file gets required from the filter callback once WC is up.
+  - **Cadence stages**: trial T-2 / T+0, paid T-30 / T-7 / T-0 / T+7 / T+30. Tolerance: +/-1 day so a missed cron run doesn't drop the email.
+  - **Idempotency**: per-license-per-stage postmeta stamp on the originating order (`_pipepay_renewal_stamp_<stage>`). On send success, stamp + delete the fail counter. On send failure, increment a fail counter; after `PIPEPAY_CADENCE_FAIL_CAP` (3) consecutive failures the license is skipped for that stage to avoid infinite retries.
+  - **Renewal URL** embedded in each email is HMAC-signed via the existing `pipepay_renewal_hmac_sign()` helper - replay-resistant because the signed tuple includes `access_expires`, which changes on successful renewal.
+  - **Payment-pending email** wired separately to fire on `woocommerce_order_status_awaiting-proof` action (Pipe Pay gateway's pre-upload status). Complements the plugin's existing `WC_Email_Pipepay_Review_Pending` which fires on `awaiting-approval` (post-upload). Both use templates from `wp-content/email-templates/`.
+  - **Operations**: logs to WC -> Status -> Logs (source=pipepay) via the plugin's `pipepay_log()` helper - info on successful sends (with recipient domain only, never the local part), warning on failures with fail count, error if the email class registration didn't fire (mu-plugin load problem). To pause a stage: WC -> Settings -> Emails -> [stage name] -> uncheck "Enable this email notification". To re-send a stage for a specific license: `wp post meta delete <order_id> _pipepay_renewal_stamp_<stage>` then run the cron handler.
+- [x] **Email Templates: full set shipped** (2026-05-08): all 11 transactional email body templates now in `pipe-pay-site/Email Templates/` (source of truth, deployed to `wp-content/email-templates/`). Wired emails fire today; renewal-cadence templates ship with cron handler + email classes (see entry above). Roster:
+  - `free-trial.php`, `paid-completed.php`, `new-account.php` - wired via theme wrappers in `pipepay-child/woocommerce/emails/`
+  - `payment-pending.php` - wired via `woocommerce_order_status_awaiting-proof` action in `pipepay-email-classes.php`
+  - `trial-ending-soon.php`, `trial-ended.php`, `renewal-30/-7/-expiry/-grace/-final.php` - wired via the cadence cron + custom email classes
+  - `partials/helpers.php` - shared HTML helpers (license card, brand CTA button, paragraph, signoff, greeting). Single source of truth for visual elements; brand colors hardcoded here so a future palette change is a one-place edit.
+  - Each template has both HTML and plain-text branches; renewal templates emphasize "the gateway keeps working" language per the License Model section below.
+- [x] **Email Templates as a centralized source of truth** (2026-05-08): all transactional email body templates now live in `pipe-pay-site/Email Templates/` (folder name has a space — quote in shell). Deployed to `/var/www/pipepay/wp-content/email-templates/` via dedicated sync command (see cheatsheet). Architecture:
+  - **Source of truth**: `pipe-pay-site/Email Templates/<template>.php` — full body template, expects `$order` / `$email` / `$plain_text` / `$email_heading` / `$additional_content` / `$sent_to_admin` in scope.
+  - **Theme wrapper**: `pipepay-child/woocommerce/emails/customer-completed-order.php` is a thin shim. Trial orders delegate to `WP_CONTENT_DIR/email-templates/free-trial.php`; paid orders fall back to a copy of WC's default rendering inline. Missing source-of-truth file is logged via `pipepay_log()` and falls through to the default so customers still get a usable email.
+  - **Hooks** (in `pipepay-child/functions.php`): `pp_order_is_trial( $order )` helper, `woocommerce_order_status_processing` auto-completes trial orders (skipping the "processing your order" step that doesn't apply to $0 trials), `woocommerce_email_recipient_customer_processing_order` returns empty for trials to suppress the generic processing email, `woocommerce_email_subject_customer_completed_order` and `woocommerce_email_heading_customer_completed_order` rewrite to trial-specific copy ("Your Pipe Pay 7-day trial is live" / "Your trial is live").
+  - **Banner image**: 600×150 PNG with **white logo + wordmark on solid royal-blue (#1336a8) background**. Color is part of the image so the logo reads identically on light and dark email clients (no "white square on dark background" artifact that plagued earlier transparent-bg attempts). Hosted at `/wp-content/uploads/2026/05/pipe-pay-email-banner.png` and set as `woocommerce_email_header_image`. Master copy at `Email Templates/assets/pipe-pay-email-banner.png`. To re-render: use the Playwright HTML harness pattern (capture HTML page with brand-blue body + white SVG, screenshot, upload to Media Library, update option).
+  - **License key** inline in trial emails: queried from `wp_wc_am_api_resource` by order_id at render time. Falls back to "license will arrive in a separate email within a few minutes" if not present (which happens for synthetic test orders bypassing `woocommerce_payment_complete`).
+  - **Adding a new template**: create `Email Templates/<name>.php`, run the Email Templates sync command, wire it into the appropriate theme wrapper or WC email class. README at `Email Templates/README.md` documents the contract.
+  - **Known gap**: API Manager doesn't fire on synthetic `payment_complete()` calls from `wc_create_order()` — real customer checkout flow needs to be verified end-to-end to confirm license issuance fires the customer_completed_order email AFTER the row is in `wp_wc_am_api_resource`. Synthetic tests need a manual `$wpdb->insert()` to populate the licence row before triggering the email.
+- [x] **Free trial UX: auto-complete + branded email** (2026-05-08, supersedes earlier `customer-completed-order.php` direct override): $0 trial orders skip "processing" status, go straight to "completed". Customer gets a single trial-activation email with license key, plugin download link, expiry date. See "Email Templates as a centralized source of truth" entry above for architecture.
+- [x] **Trial product `_download_expiry` set to 7 days** (2026-05-08): product 38's downloadable file now expires from the customer's account 7 days after order completion. Was previously `-1` (never expires) on all 4 tiers; paid tiers (34/35/36) left at `-1` per "you paid, you can always re-download" convention. Existing orders' download permission rows have `access_expires=NULL` and are NOT retroactively updated.
+- [x] **Email infrastructure end-to-end** (2026-05-08): `wp_mail()` now actually delivers. Three-layer architecture:
+  - **Human inbox** (`support@pipepay.app`): Google Workspace Business Starter, $6/user/mo. Receives + sends from real Workspace Gmail. Domain verification via TXT, MX records pointed at Google. Also set as the WP `admin_email` so password resets, plugin update notifications, and DMARC reports land here.
+  - **Transactional sending** (`noreply@updates.pipepay.app`): Resend, free tier 3k emails/mo. Set up as a **subdomain** (`updates.pipepay.app`), not the apex, for reputation isolation per the CLAUDE.md plan. Resend's Cloudflare integration auto-added DKIM + return-path MX to the subdomain in DNS — both verified green.
+  - **WP wiring**: WP Mail SMTP free plugin v4.8.0, configured with mailer = `resend` (native API mode, not "Other SMTP"). Force-From-Email + Force-From-Name both ON. Reply-To auto-set by WP Mail SMTP's `Processor.php` to the original wp_mail_from value, so customers see `From: Pipe Pay <noreply@updates.pipepay.app>` but `Reply-To: support@pipepay.app` — replies route to the real Workspace inbox without any custom hook code.
+  - **DNS records** (in Cloudflare, all `DNS only` grey-cloud):
+    - apex SPF: `v=spf1 include:_spf.google.com ~all` — Workspace senders only; **don't merge** `include:amazonses.com` here, Resend's verified domain is the subdomain
+    - apex DMARC at `_dmarc`: `v=DMARC1; p=none; rua=mailto:support@pipepay.app; ruf=mailto:support@pipepay.app; fo=1; pct=100; adkim=r; aspf=r;` — currently in monitor mode; tighten on schedule below
+    - subdomain DKIM at `resend._domainkey.updates.pipepay.app`: 2048-bit Resend key
+    - subdomain return-path MX at `send.updates.pipepay.app`: `10 feedback-smtp.us-east-1.amazonses.com` — VERP bounce handling for Amazon SES (Resend's underlying provider)
+    - Workspace DKIM at `google._domainkey`: 2048-bit Google key
+    - Verified outbound headers green: SPF PASS via SES include, DKIM PASS with `d=updates.pipepay.app s=resend`, DMARC PASS via DKIM alignment.
+  - **DMARC tightening schedule**: currently `p=none` (monitor only). After 2 weeks of clean reports → `p=quarantine; pct=10`. After 2 more weeks → `p=quarantine; pct=100`. After 2 more weeks → `p=reject; pct=100`. Watch reports via the free tier at dmarcian or postmark.com/dmarc; aggregate XML lands at `support@pipepay.app` daily.
+  - **Pipeline audit** (verified 2026-05-08): no raw `mail()` calls anywhere in plugins/theme/mu-plugins; no `wp_mail_from`/`wp_mail_from_name` filter overrides outside WP Mail SMTP itself; WC + Kestrel API Manager + Pipe Pay gateway all funnel through `wp_mail()` → WP Mail SMTP → Resend API → `updates.pipepay.app`. WP Mail SMTP's force-from rewrites the WC default From (`support@pipepay.app`) to the verified `noreply@updates.pipepay.app` and stashes the original as Reply-To.
+  - **Not set up yet** (deferred, optional): WP Mail SMTP email logging (paid feature only — declined); Resend usage alert at 80% of monthly quota (low volume today, not worth the noise); `outreach@send.pipepay.app` cold-outreach subdomain (not needed until volume cold campaign starts).
+  - **Failover plan** (documented, not built): if Resend has extended outage, swap WP Mail SMTP mailer to **Other SMTP** with creds from Postmark (free 100/day) or Brevo (free 300/day). Domain verification at the failover provider takes ~10 min (SPF would need `include:` merge at `updates.pipepay.app`; DKIM would need a new selector at `<provider>._domainkey.updates.pipepay.app`). Don't pre-register — the recipe takes 30 min when needed.
+- [x] **`wc-awaiting-proof` / `wc-awaiting-approval` delete capabilities — no longer reproducing** (verified 2026-05-13 against plugin v1.8.11): the 403 "Sorry, you are not allowed to delete this resource" that prompted the original direct-DB order wipe on 2026-05-08 does not reproduce in the current dogfood state. Verified four ways against fresh test orders in both custom statuses: (1) `current_user_can('delete_shop_order', $id)` returns true for admin; (2) `map_meta_cap('delete_shop_order', 1, $id)` resolves to `['delete_posts']` (primitive cap admins hold); (3) `wp wc shop_order delete $id --force=true --user=1` succeeds and removes the row; (4) the WC-admin-UI-equivalent `$order->delete(false)` flips status to `trash` and a follow-up `$order->delete(true)` removes the row entirely. Root cause of the original 403 unknown — may have been an HPOS row state inconsistency from the bulk-loop on 2026-05-08, or a transient WC condition since-rectified by one of the v1.7.5-v1.8.11 releases. No plugin code change was required. Leaving this entry for future-me in case the symptom returns; if it does, the fix-of-record is a `map_meta_cap` filter in `pipe-pay.php` that whitelists admins for `delete_shop_order` on custom-status orders.
 - [x] **Custom `wc-awaiting-approval` status for manual review** (2026-05-08, plugin v1.7.1): replaces the prior `on-hold` landing for AI-disabled / low-medium-confidence orders. Status flow is now `awaiting-proof` (pre-upload) → `awaiting-approval` (post-upload, pre-admin-decision) → `processing`/`cancelled`. High-confidence AI auto-approval path unchanged (`awaiting-proof` → `processing` directly). Stock-holding parity with on-hold via `woocommerce_order_is_pending_statuses`. New customer email class `pipepay_review_pending` (subject "we received your payment", heading "We've got your screenshot") replaces the prior reuse of `customer_on_hold_order` so the copy matches the actual state. Pipe Pay Proofs queue and meta-box approve/reject buttons accept both `awaiting-approval` and legacy `on-hold` so pre-1.7.1 orders stay actionable. Also bundled the `_wpnonce` fix on the proof-image proxy URL (admin meta box + Pipe Pay Proofs queue + history) - was a separate hot-patch landed earlier today as 7cf1848 on the plugin repo. No DB migration: too few existing rows to justify the risk on this dogfood install.
 - [x] **Direct-purchase CTA path** (2026-05-08): "Buy now - skip the trial" added across the site for visitors who want to bypass the 7-day trial. Six new buttons: each pricing card on `/` and `/pricing` now stacks a primary "Start 7-day trial" CTA (existing trial-with-intent flow) above a quieter `.pp-btn--ghost` "Buy now" CTA pointing directly at `?add-to-cart=34/35/36`. Two new small `.pp-cta-skip` text links: hero + homepage final-CTA both go to `/pricing`; the `/pricing` final-CTA anchors back up to `#tiers` instead of cross-page-hopping. Header/inline-header left alone - the existing "Pricing" nav link covers that discoverability slot. New CSS: `.pp-btn--ghost` (transparent + blue text, lower emphasis than `--secondary`) and `.pp-cta-skip[--inverse]` (text link with specificity bumped via `.pp-cta-skip.pp-cta-skip--inverse a` to beat `.pp-section--blue a:not(.pp-btn)` on the inverse-blue final CTA). Trial remains the visually-primary CTA everywhere; the buy-now path is an escape hatch, not a competing equal-weight CTA. `page-checkout.php` was already cart-aware so direct-tier purchases automatically get the "Complete your purchase" hero. Updated the CTA wiring table above to reflect the new dual-CTA pattern.
 - [x] www vs apex canonical: **apex** is canonical, `www` 301s to apex
@@ -473,11 +511,19 @@ sudo nginx -t && sudo systemctl reload nginx
 # Sync the local theme to the server
 cd "/Users/wittscafidi/Desktop/Pipe Pay/pipe-pay-site" && tar czf /tmp/pipepay-child.tgz --exclude='._*' -C . pipepay-child && scp /tmp/pipepay-child.tgz witt-scafidi@100.102.251.125:/tmp/ && ssh witt-scafidi@100.102.251.125 'sudo rm -rf /var/www/pipepay/wp-content/themes/pipepay-child && sudo tar xzf /tmp/pipepay-child.tgz -C /var/www/pipepay/wp-content/themes/ && sudo find /var/www/pipepay/wp-content/themes/pipepay-child -name "._*" -delete && sudo chown -R www-data:www-data /var/www/pipepay/wp-content/themes/pipepay-child && sudo systemctl reload php8.3-fpm'
 
+# Sync the Email Templates folder to the server (deploys to wp-content/email-templates/)
+# Source of truth is `pipe-pay-site/Email Templates/` (folder name has a space — must be quoted).
+cd "/Users/wittscafidi/Desktop/Pipe Pay/pipe-pay-site" && tar czf /tmp/email-templates.tgz --exclude='._*' -C . "Email Templates" && scp /tmp/email-templates.tgz witt-scafidi@100.102.251.125:/tmp/ && ssh witt-scafidi@100.102.251.125 'sudo rm -rf /var/www/pipepay/wp-content/email-templates && sudo mkdir -p /var/www/pipepay/wp-content/email-templates && sudo tar xzf /tmp/email-templates.tgz -C /tmp/ && sudo cp -r "/tmp/Email Templates/." /var/www/pipepay/wp-content/email-templates/ && sudo find /var/www/pipepay/wp-content/email-templates -name "._*" -delete && sudo chown -R www-data:www-data /var/www/pipepay/wp-content/email-templates && sudo rm -rf "/tmp/Email Templates" && sudo systemctl reload php8.3-fpm'
+
 # Sync the resolver mu-plugin to the server
 scp "/Users/wittscafidi/Desktop/Pipe Pay/pipe-pay-site/mu-plugins/pipepay-license-resolve.php" witt-scafidi@100.102.251.125:/tmp/ && ssh witt-scafidi@100.102.251.125 'sudo install -o www-data -g www-data -m 644 /tmp/pipepay-license-resolve.php /var/www/pipepay/wp-content/mu-plugins/pipepay-license-resolve.php && rm /tmp/pipepay-license-resolve.php && sudo systemctl reload php8.3-fpm'
 
 # Sync the RTBF mu-plugin to the server
 scp "/Users/wittscafidi/Desktop/Pipe Pay/pipe-pay-site/mu-plugins/pipepay-rtbf.php" witt-scafidi@100.102.251.125:/tmp/ && ssh witt-scafidi@100.102.251.125 'sudo install -o www-data -g www-data -m 644 /tmp/pipepay-rtbf.php /var/www/pipepay/wp-content/mu-plugins/pipepay-rtbf.php && rm /tmp/pipepay-rtbf.php && sudo systemctl reload php8.3-fpm'
+
+# Sync the renewal cadence + custom email classes to the server (3 files: top-level mu-plugin + email-classes registration + class defs in subdir).
+# Note: pipepay-lib/ is a subdirectory deliberately - the class-defs file must NOT be at depth 0 of mu-plugins/ because WP auto-includes everything there at boot BEFORE WC loads, which crashes on `class Foo extends WC_Email`. Subdirectories are not auto-included.
+scp "/Users/wittscafidi/Desktop/Pipe Pay/pipe-pay-site/mu-plugins/pipepay-license-renewals.php" "/Users/wittscafidi/Desktop/Pipe Pay/pipe-pay-site/mu-plugins/pipepay-email-classes.php" "/Users/wittscafidi/Desktop/Pipe Pay/pipe-pay-site/mu-plugins/pipepay-lib/email-classes.php" witt-scafidi@100.102.251.125:/tmp/ && ssh witt-scafidi@100.102.251.125 'sudo install -o www-data -g www-data -m 644 /tmp/pipepay-license-renewals.php /var/www/pipepay/wp-content/mu-plugins/pipepay-license-renewals.php && sudo install -o www-data -g www-data -m 644 /tmp/pipepay-email-classes.php /var/www/pipepay/wp-content/mu-plugins/pipepay-email-classes.php && sudo mkdir -p /var/www/pipepay/wp-content/mu-plugins/pipepay-lib && sudo install -o www-data -g www-data -m 644 /tmp/email-classes.php /var/www/pipepay/wp-content/mu-plugins/pipepay-lib/email-classes.php && sudo chown www-data:www-data /var/www/pipepay/wp-content/mu-plugins/pipepay-lib && rm /tmp/pipepay-license-renewals.php /tmp/pipepay-email-classes.php /tmp/email-classes.php && sudo systemctl reload php8.3-fpm'
 
 # Replace the dogfood gateway with a new zip (deactivate, swap files, reactivate)
 ssh witt-scafidi@100.102.251.125 'sudo tar -czf /tmp/pipe-pay-backup-$(date +%Y%m%d-%H%M%S).tar.gz -C /var/www/pipepay/wp-content/plugins pipe-pay && sudo -u www-data wp --path=/var/www/pipepay plugin deactivate pipe-pay && sudo rm -rf /var/www/pipepay/wp-content/plugins/pipe-pay && sudo unzip -q /var/www/pipepay/wp-content/uploads/woocommerce_uploads/pipe-pay-v1.7.0.zip -d /var/www/pipepay/wp-content/plugins/ && sudo chown -R www-data:www-data /var/www/pipepay/wp-content/plugins/pipe-pay && sudo find /var/www/pipepay/wp-content/plugins/pipe-pay -type f -exec chmod 644 {} \; && sudo find /var/www/pipepay/wp-content/plugins/pipe-pay -type d -exec chmod 755 {} \; && sudo -u www-data wp --path=/var/www/pipepay plugin activate pipe-pay && sudo systemctl reload php8.3-fpm'
@@ -563,32 +609,31 @@ Visible "Activated • [Tier name]" pill in the gateway settings header. Doesn't
 ### Persistent inactive nag (no functional gate)
 For installs without an active license: keep the existing `pipepay_license_inactive_admin_notice` (already in `pipepay-licensing.php`). Don't escalate it past a banner. See "License model" below.
 
-## License model - keep the gateway working past expiry
+## License model - paying ends, service ends (v1.9.32 policy, 2026-06-12)
 
-The gateway must NOT stop accepting orders when a license lapses. Why:
+> **POLICY CHANGE (owner decision 2026-06-12, supersedes the original "never disable on expiry" rule).** The original rule created an arbitrage hole once card subscriptions launched: pay $299 once via a payment app, ignore renewal forever, keep the gateway running — while card customers pay every year for the same runtime. The model is now uniform: **when paying ends, the gateway stops accepting NEW orders** — with safeguards that keep every sympathetic failure mode covered. Implemented in plugin v1.9.32 (`pipepay_license_is_lapsed_effective()`), shipped with zero paying customers in the field, so no grandfathering issue.
 
-- **In-flight orders die mid-checkout** - customer's customer at the moment of expiry sees a broken cart, bounces, blames Pipe Pay
-- **Network hiccups become outages** - fail-closed bricks customers when our infra burps; fail-open defeats the enforcement anyway
-- **Trust signal collapse** - Pipe Pay customers chose us *because* Stripe terminated them; bricking their store replicates that pain
-- **Support volume** - every expiry-related order failure becomes a ticket
-- **It's not the standard model** - Yoast Premium, WP Rocket, GravityForms, ACF Pro all gate updates+support on license, never runtime. Customers expect this model
+**The three lanes:**
 
-**What lapsed license SHOULD do:**
-- Hard-stop auto-updates immediately ✓ already in place
-- Hard-stop email/Discord support (operational, you control)
-- Persistent admin banner: "Your license expired on [date]. Renew to receive security updates."
-- 30-day grace period where the banner is informational only
-- After grace: banner intensifies (yellow → red), still informational, gateway still works
-- Email reminders at expiry-30 / -7 / 0 / +7 / +30
+- **Monthly subscription (card, Stripe):** cancel/lapse → license expires at period end → gateway stops. Stripe handles all billing communication.
+- **Annual subscription (card, Stripe, auto-renews):** same as monthly with a yearly interval.
+- **Annual one-time (payment app, manual renewal):** expiry → updates/support pause immediately → **30-day grace period** with the gateway fully working → gateway stops offering Pipe Pay at NEW checkouts. The email cadence (T-30/-7/0/+7) warns about the stop date at every step; T+30 announces it. The in-admin banner shows the projected stop date during grace and turns red after.
 
-**Don't build a "stop accepting orders past expiry" toggle either.** Even merchant-opt-in, the customers who turn it on will regret it the first time auto-renewal fails on an expired card - they wake up to a broken store and blame Pipe Pay. The actual lever for renewal rate is the email cadence above and a working one-click renewal URL, not gateway bricking. If a future merchant requests this loudly, point them at the cadence and ask what specific renewal-rate problem they're solving that emails don't already address.
+**Safeguards that make this defensible (all load-bearing — do not remove):**
 
-### v1.8.1 carve-out: REVOKED licenses (not expired)
+- **Drain semantics** (shared with the revoke kill-switch): only NEW checkouts stop. The upload endpoint, AI verification, and the approval queue never consult the gate, so in-flight orders always finish and no end-customer is stranded mid-purchase.
+- **30-day fail-open TTL:** the gate requires a FRESH Ed25519-signed `expired` verdict. If pipepay.app is unreachable for 30 days, state degrades to `unknown` and the gateway resumes. Our infrastructure being down never bricks a store.
+- **Instant restore on renewal:** server state flips to `active` → next revalidation reopens the gateway (within 24h via the daily cron, immediately via the one-shot fired by clicking Activate on the License page). The lapse gate also requires the CURRENT state to be `expired`, so a renewal restores checkout even before the local grace marker is cleaned up.
+- **Grace clock:** plugin-side option `pipepay_license_expired_since` records the first cron-observed `expired` transition; the gate fires at +30 days (`PIPEPAY_LICENSE_LAPSE_GRACE`). Cleared on any non-expired state and on (re)activation.
+- **Five explicit warnings** (4 emails + escalating banner) before the stop date. Nobody surprised is sympathetic.
 
-The "never disable runtime" rule has exactly **one** carve-out: a license that has been deliberately **revoked** by the pipepay.app admin (chargeback, license sharing, ToS violation, etc.). Expired ≠ revoked. The distinction matters:
+**What a lapsed license does, in order:** auto-updates stop immediately → support stops (operational) → grace banner with stop date → emails at T-30/-7/0/+7 → gateway stops new checkouts at T+30 → red banner with the renewal-restore path → T+30 final email, then silence.
 
-- **Expired** = legitimate paying customer who let renewal lapse. Banner only, gateway keeps working. Same as before v1.8.1.
-- **Revoked** = explicit admin action against a misbehaving customer. Gateway is disabled for new checkouts (`is_available()` returns false), but **drain semantics** apply: existing `wc-awaiting-proof` / `wc-awaiting-approval` orders keep accepting uploads and running AI until they hit the 60-min auto-cancel. We punish the merchant, not the merchant's customers who already paid.
+### Runtime-disable carve-outs: REVOKED (v1.8.1) and LAPSED (v1.9.32)
+
+- **Revoked** = explicit admin action against a misbehaving customer (chargeback, license sharing, ToS violation), delivered as a signed `revoked` verdict. Gateway stops new checkouts immediately; red banner; drain semantics.
+- **Lapsed** = `expired` signed state + 30-day grace elapsed (the policy above). Gateway stops new checkouts; red banner pointing at renewal; drain semantics; instantly reversible by paying.
+- **Expired within grace** = yellow banner with the stop date; gateway fully working.
 
 The carve-out is gated by:
 
@@ -604,7 +649,7 @@ The signed verdict drives one runtime decision (`is_available()` returns false a
 - ❌ Hardware or browser fingerprinting (invasive; CDN strips most of it anyway)
 - ❌ Phone-home-or-die on every page load (breaks customers behind firewalls; one bad incident wipes goodwill)
 - ❌ DMCA whack-a-mole on GPL-licensed code (we'd lose; it advertises a GPL violation)
-- ❌ Disabling the payment gateway when a license **expires** (see above; revoked is the one carve-out)
+- ❌ Disabling the gateway on expiry **without the v1.9.32 safeguards** (30-day grace + 5 warnings + drain semantics + fail-open TTL + instant renewal restore — see License model above). Sudden or silent cutoffs, fail-closed network checks, and phone-home-or-die remain forbidden.
 - ❌ Trying to detect "AI-generated competitors" specifically (you can't, and the right frame is "any competitor")
 
 ## Voice & copy rules
@@ -824,22 +869,15 @@ Reconsider when growth stalls 30+ days without organic referral momentum, or 6 m
 
 If/when launched (parked spec): 15% recurring lifetime, tier bump to 20% at 10+ active referrals, 180-day cookie, monthly payout, $50 minimum threshold, existing customers grandfather in immediately as charter affiliates.
 
-## Domain + email setup (if migrating to PipePay.app)
+## Domain + email setup
 
-User-facing branding stays unified (`@pipepay.app`); sending splits across subdomains so each has its own deliverability reputation pool (the Stripe pattern):
+**Status as of 2026-05-08**: live in production. Full setup recipe + DNS records + audit notes in the `Email infrastructure end-to-end` Resolved entry above. Summary architecture:
 
-- `you@pipepay.app` - human business / customer replies / partner conversations
-- `support@pipepay.app` - support inbox
-- `noreply@notifications.pipepay.app` - transactional (signup confirmations, billing receipts, license-key emails, AI verification result notifications). Subdomain isolates transactional sending reputation from human email.
-- `outreach@send.pipepay.app` - volume cold outreach. Subdomain isolates reputation so deliverability issues don't poison the main domain. Not needed at launch (direct outreach is 1-to-1 to ~10-50 merchants/week); set up before any volume campaign.
+- `support@pipepay.app` (Google Workspace, $6/mo) — human inbox; customer replies; admin email for WP password resets, plugin update notifications, DMARC report ingestion
+- `noreply@updates.pipepay.app` (Resend, free 3k/mo) — transactional sending only; signed with `d=updates.pipepay.app s=resend`; replies auto-rewritten to `support@pipepay.app` via WP Mail SMTP's Reply-To injection
+- `outreach@send.pipepay.app` — **not set up**, reserved for future volume cold outreach when needed; subdomain isolates reputation so a deliverability hit on outbound marketing wouldn't poison transactional or human-reply flows
 
-Required DNS for any sending domain: **SPF + DKIM + DMARC.** Without all three, even `.com` lands in spam; with them, `.app` delivers indistinguishably from `.com` in practice.
-
-Transactional service: Resend or Postmark (NOT the Workspace inbox). Both walk through SPF/DKIM/DMARC and have free/cheap early tiers. This dovetails with the existing SMTP relay to-do above.
-
-Human inbox: Google Workspace ($6/user/mo) or Fastmail ($5/user/mo). Workspace integrates better if Hunter or others need access later; Fastmail is cheaper and more privacy-respecting.
-
-Sender names: configure as "Pipe Pay Support," "Pipe Pay Notifications" - not raw addresses. Reduces the half-second "is this real?" pause on a non-`.com` TLD; disappears entirely after first interaction.
+Sender names display as `Pipe Pay <noreply@updates.pipepay.app>` and `Pipe Pay Support <support@pipepay.app>` — never raw addresses. Reduces the half-second "is this real?" pause on a non-`.com` TLD; disappears entirely after first interaction.
 
 ## Post-launch roadmap (not blocking)
 

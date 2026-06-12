@@ -35,6 +35,16 @@ if ( ! defined( 'ABSPATH' ) ) { exit; }
             <a href="<?php echo esc_url( home_url( '/changelog' ) ); ?>">Changelog</a>
             <a href="<?php echo esc_url( home_url( '/contact' ) ); ?>">Contact</a>
             <a href="<?php echo esc_url( home_url( '/my-account' ) ); ?>"><?php echo is_user_logged_in() ? 'Account' : 'Sign in'; ?></a>
+            <?php
+            /* Conditional Cart link — only renders when WC is active AND there's
+             * something in the cart. Lets users reach /cart to remove items
+             * (otherwise the "View cart" hint in WC duplicate-add error notices
+             * is a dead-end because the nav has no cart surface). */
+            if ( function_exists( 'WC' ) && WC()->cart && WC()->cart->get_cart_contents_count() > 0 ) :
+                $pp_cart_count = WC()->cart->get_cart_contents_count();
+            ?>
+            <a class="pp-nav-cart" href="<?php echo esc_url( wc_get_cart_url() ); ?>">Cart <span class="pp-nav-cart__count"><?php echo esc_html( $pp_cart_count ); ?></span></a>
+            <?php endif; ?>
             <a class="pp-btn pp-btn--primary" href="<?php echo esc_url( home_url( '/checkout/?add-to-cart=38' ) ); ?>">Start free trial</a>
         </nav>
     </div>

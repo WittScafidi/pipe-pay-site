@@ -8,6 +8,79 @@ get_header();
 
 $releases = array(
     array(
+        'date'    => 'June 4, 2026',
+        'version' => 'v1.9.23',
+        'title'   => 'Venmo handle-link deep-link polish',
+        'notes'   => array(
+            'Tapping the Venmo merchant handle on the customer payment page now jumps straight into the Venmo app with the merchant pre-loaded - the same deep-link flow as scanning the QR or tapping the &ldquo;Open Venmo&rdquo; button.',
+            'Previously the handle-link routed to Venmo&rsquo;s web profile page, which left mobile customers to either copy the handle manually or back out and use one of the other entry points. The page now uses a consistent deep-link across all three entry surfaces.',
+            'Recommended update for everyone, especially merchants whose customers tap the handle frequently.',
+        ),
+    ),
+    array(
+        'date'    => 'June 4, 2026',
+        'version' => 'v1.9.21',
+        'title'   => 'Cash App amount prefill &amp; QR-failure hardening',
+        'notes'   => array(
+            'Cash App customers tapping &ldquo;Open Cash App&rdquo; now arrive at the merchant&rsquo;s cashtag with the order amount already filled in - matching the Venmo prefill behavior from v1.9.7. One less number the customer has to type, one less off-by-one error in your reconciliation.',
+            'When a QR code fails to render in a customer&rsquo;s browser (a rare quirk we&rsquo;ve seen on a handful of older mobile browsers), the page now falls back cleanly to handle-only instructions instead of leaving a broken image element in place.',
+            'WooCommerce tested up to version 10.8.',
+            'Recommended update for everyone.',
+        ),
+    ),
+    array(
+        'date'    => 'June 4, 2026',
+        'version' => 'v1.9.19',
+        'title'   => 'Clean-install QA fixes',
+        'notes'   => array(
+            'A bundle of small fixes from a clean-install QA pass, covering edge cases that only surface when Pipe Pay is activated on a fresh WooCommerce store with no historical orders, no prior settings, and no configured AI provider.',
+            'No changes to the customer payment flow. If you&rsquo;re an existing merchant whose Pipe Pay install has been live for a while, this release is essentially a no-op for you.',
+            'Recommended update for new installs; safe to defer for established installs.',
+        ),
+    ),
+    array(
+        'date'    => 'May 29, 2026',
+        'version' => 'v1.9.13',
+        'title'   => 'Cancel-order button reliability',
+        'notes'   => array(
+            'The &ldquo;Cancel order&rdquo; button on the customer payment page now works reliably in the small number of cases where it would previously fail silently and leave the order stranded in Awaiting Proof.',
+            'Root cause was a missing WooCommerce cart and session initialization in the cancel-handler path - on stores using the WC Block Checkout, the cancel handler ran in an `admin-post.php` context where neither cart nor session existed yet, so the order-status transition no-op&rsquo;d. The cancel button now initializes both before transitioning.',
+            'Recommended update for everyone - the broken case was rare but the failure mode (stranded order, no customer feedback) was poor UX.',
+        ),
+    ),
+    array(
+        'date'    => 'May 28, 2026',
+        'version' => 'v1.9.9',
+        'title'   => 'Reliability and polish',
+        'notes'   => array(
+            'Tighter safeguards around order total handling for $0 and refunded orders, so the gateway only takes the &ldquo;skip payment verification&rdquo; path when a customer genuinely owes nothing.',
+            'Mobile customers tapping &ldquo;Open Venmo&rdquo; on a business-profile order now also get the amount and order number pre-filled, matching what desktop QR-scanners already got.',
+            'Visual polish on the customer payment page: QR sizing on narrow screens, clearer fallback when a customer&rsquo;s device can&rsquo;t render the QR.',
+            'Recommended update for everyone.',
+        ),
+    ),
+    array(
+        'date'    => 'May 22, 2026',
+        'version' => 'v1.9.7',
+        'title'   => 'Venmo Business: scan-to-pay with order memo',
+        'notes'   => array(
+            'Venmo Business profiles now show a per-order QR code on the customer payment page. Customers scan with their phone camera and Venmo opens with your handle, the order amount, and the order number pre-filled in the memo field. No more &ldquo;what was the order number again?&rdquo; follow-ups in your DMs.',
+            'A hint right under the QR reminds customers to scan with their phone camera, not Venmo&rsquo;s in-app scanner - Venmo&rsquo;s native scanner routes to the profile page without the prefill.',
+            'The &ldquo;Open Venmo&rdquo; button stays in place as a fallback for customers who are already on their phone (where camera-scanning your own screen is awkward).',
+            'Personal Venmo profiles keep using the QR you upload yourself in the gateway settings - that flow is unchanged.',
+            'No setting to flip on the merchant side. If you have a Venmo Business profile configured and the order has a non-zero total, the QR appears automatically.',
+        ),
+    ),
+    array(
+        'date'    => 'May 15, 2026',
+        'version' => 'v1.9.6',
+        'title'   => 'Instant activation for $0 orders',
+        'notes'   => array(
+            'Free trial signups and any other zero-dollar orders (coupon-comped, 100%-off promos) now complete on the spot. The customer gets the standard order confirmation right away - no screenshot upload step, no waiting room, no proof-of-payment review for an order where nothing is owed.',
+            'Paid orders continue through the normal payment-verification path unchanged. Stores running trial signups or fully-discounted promos as a Pipe Pay product will see immediate UX improvement; stores selling only paid orders will see no behavior change.',
+        ),
+    ),
+    array(
         'date'    => 'May 9, 2026',
         'version' => 'v1.8.1',
         'title'   => 'License integrity (continued)',

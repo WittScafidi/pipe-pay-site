@@ -344,7 +344,7 @@ Start your 7-day free trial. No card required.
 - Email field placeholder: `you@yourstore.com`
 - Required-field marker: `*`
 - Subscribe success: `Got it. You'll get an email when we ship updates.`
-- Subscribe error: `That email didn't go through. Try again, or email us at wittscafidi@gmail.com.`
+- Subscribe error: `That email didn't go through. Try again, or email us at support@pipepay.app.`
 - Generic form error: `Something didn't work. Refresh the page and try again, or contact support.`
 
 **Trust strip (under hero, repeated in pricing page footer):**

@@ -35,7 +35,7 @@ if ( ! defined( 'ABSPATH' ) ) { exit; }
             Pipe Pay is an independent software tool for WooCommerce merchants. We are not affiliated with, endorsed by, or sponsored by Cash App, Block Inc., Zelle, Early Warning Services, Venmo, PayPal Holdings, Chime, or any payment service mentioned on this site. All product names, logos, and brands referenced are property of their respective owners and are used for identification purposes only.
         </p>
         <div class="pp-footer-ledger">
-            <strong>&copy; <?php echo esc_html( wp_date( 'Y' ) ); ?> Pipe Pay</strong>
+            <strong>&copy; <?php echo esc_html( wp_date( 'Y' ) ); ?> Silver Bazaar, LLC</strong>
             <span class="pp-footer-ledger__sep">/</span>
             <span>Independent software</span>
             <span class="pp-footer-ledger__sep">/</span>

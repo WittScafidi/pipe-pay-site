@@ -3,10 +3,8 @@
  * Template for the Privacy Policy page (slug: privacy).
  *
  * v1 of this content was published 2026-05-11 alongside the v1.8.11 plugin
- * ship. Pipe Pay is currently operated as a sole proprietorship by Witt
- * Scafidi (US). The "Pipe Pay" trademark and entity are pending LLC formation
- * per CLAUDE.md; once filed, update the legal name + entity references below
- * AND notify customers via the email cadence.
+ * ship. Pipe Pay is operated by Silver Bazaar, LLC (US). The operator
+ * constants below are the source of truth for the rendered policy header.
  *
  * Update protocol: bump the "Last updated" date when material changes ship.
  * Sub-processor list is intentionally a SEPARATE page (/sub-processors/) so
@@ -17,10 +15,10 @@
 if ( ! defined( 'ABSPATH' ) ) { exit; }
 get_header();
 
-$last_updated  = 'May 11, 2026';
-$contact_email = 'wittscafidi@gmail.com';
-$operator_name = 'Witt Scafidi'; // TODO: update to legal entity name when LLC is filed
-$jurisdiction  = 'United States (sole proprietor based in New York)'; // TODO: update on LLC formation
+$last_updated  = 'May 25, 2026';
+$contact_email = 'privacy@pipepay.app';
+$operator_name = 'Silver Bazaar, LLC';
+$jurisdiction  = 'United States';
 ?>
 
 <section class="pp-page-hero">
@@ -52,7 +50,7 @@ $jurisdiction  = 'United States (sole proprietor based in New York)'; // TODO: u
             <ul>
                 <li><strong>Identity:</strong> your name and email address. Required to issue the license, deliver download links, send renewal reminders, and provide support.</li>
                 <li><strong>Billing address:</strong> required for invoicing and to comply with sales-tax obligations in the jurisdictions where the buyer is based.</li>
-                <li><strong>Payment information:</strong> processed by our payment processor (currently <strong>Stripe</strong>; see <a href="<?php echo esc_url( home_url( '/sub-processors/' ) ); ?>">Sub-processors</a>). We do not store full card numbers; the processor returns a transaction ID we keep for accounting reconciliation.</li>
+                <li><strong>Payment information:</strong> license payments on pipepay.app run through Pipe Pay itself (we dogfood our own checkout). We do not accept credit-card payments, so no third-party card processor receives your billing data &mdash; you pay us directly through whichever P2P app you choose at checkout (Venmo, Cash App, PayPal, or Zelle). The payment-confirmation screenshot you upload is stored on our server for accounting reconciliation and deleted per the retention schedule below. See <a href="<?php echo esc_url( home_url( '/sub-processors/' ) ); ?>">Sub-processors</a> for the full picture.</li>
             </ul>
 
             <h3>While you use the plugin (server-side)</h3>

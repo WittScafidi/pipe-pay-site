@@ -43,6 +43,7 @@ if ( function_exists( 'WC' ) && WC()->cart && ! WC()->cart->is_empty() ) {
             the_content();
         endwhile;
         ?>
+        <p class="pp-checkout-consent">By placing this order you agree to our <a href="<?php echo esc_url( home_url( '/terms' ) ); ?>">Terms of Service</a> and <a href="<?php echo esc_url( home_url( '/privacy' ) ); ?>">Privacy Policy</a>. License sales are subject to our <a href="<?php echo esc_url( home_url( '/refund-policy' ) ); ?>">Refund Policy</a>.</p>
     </div>
 </section>
 

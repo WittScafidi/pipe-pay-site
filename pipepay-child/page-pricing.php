@@ -22,68 +22,118 @@ $buy_single      = home_url( '/checkout/?add-to-cart=34' );
 $buy_five        = home_url( '/checkout/?add-to-cart=35' );
 $buy_unlim       = home_url( '/checkout/?add-to-cart=36' );
 $refund_url      = home_url( '/refund-policy' );
+
+// Monthly Stripe Price IDs come from wp-config.php constants so the plugin config and
+// both pricing templates flip to live mode with one wp-config edit. Fallbacks are the
+// test-mode IDs. Wired to hidden WC products 526/527/528 via the pipepay-stripe-subs
+// plugin: /wp-json/pipepay-stripe-subs/v1/checkout.
+$monthly_price_single = defined( 'PIPEPAY_STRIPE_PRICE_SINGLE' ) ? PIPEPAY_STRIPE_PRICE_SINGLE : 'price_1TgPw3GFSkcp1uiX7linrCwn';
+$monthly_price_five   = defined( 'PIPEPAY_STRIPE_PRICE_FIVE' ) ? PIPEPAY_STRIPE_PRICE_FIVE : 'price_1TgPw5GFSkcp1uiXU49mFdS3';
+$monthly_price_unlim  = defined( 'PIPEPAY_STRIPE_PRICE_UNLIM' ) ? PIPEPAY_STRIPE_PRICE_UNLIM : 'price_1TgPwAGFSkcp1uiXF9Tasn8m';
+// Yearly auto-renew Price IDs (the CARD lane for annual tiers). The WC checkout
+// add-to-cart links below are the payment-app lane (manual renewal).
+$annual_price_single = defined( 'PIPEPAY_STRIPE_PRICE_SINGLE_YR' ) ? PIPEPAY_STRIPE_PRICE_SINGLE_YR : '';
+$annual_price_five   = defined( 'PIPEPAY_STRIPE_PRICE_FIVE_YR' ) ? PIPEPAY_STRIPE_PRICE_FIVE_YR : '';
+$annual_price_unlim  = defined( 'PIPEPAY_STRIPE_PRICE_UNLIM_YR' ) ? PIPEPAY_STRIPE_PRICE_UNLIM_YR : '';
 ?>
 
 <section class="pp-page-hero">
     <div class="pp-container">
         <span class="pp-page-hero__kicker">Pricing</span>
-        <h1 class="pp-page-title">Three tiers, all with a 7-day free trial.</h1>
-        <p class="pp-page-hero__sub">Pick the license size that matches the number of WooCommerce stores you run. Every tier ships the same features. Cancel any time before day eight and you won't be charged.</p>
+        <h1 class="pp-page-title">Three tiers. Pay monthly or annual.</h1>
+        <p class="pp-page-hero__sub">Pick the license size that matches the number of WooCommerce stores you run. Annual saves up to 35% and includes a 7-day free trial. Monthly is cancel-anytime, no trial — pay only for what you use.</p>
     </div>
 </section>
 
 <!-- ============== PRICING CARDS ============== -->
 <section id="tiers" class="pp-section pp-section--tight pp-pricing">
     <div class="pp-container">
+        <div class="pp-billing-toggle" role="group" aria-label="Choose billing period">
+            <button type="button" class="pp-billing-toggle__btn pp-billing-toggle__btn--active" aria-pressed="true" data-billing="annual">Annual <span class="pp-billing-toggle__save">save up to 35%</span></button>
+            <button type="button" class="pp-billing-toggle__btn" aria-pressed="false" data-billing="monthly">Monthly</button>
+        </div>
+        <p class="pp-billing-toggle__note" data-billing-show="annual">Annual includes a 7-day free trial. Cancel before day 8 and you won't be charged.</p>
+        <p class="pp-billing-toggle__note" data-billing-show="monthly" hidden>Monthly is cancel-anytime in your Stripe billing portal. No trial; pay only for what you use.</p>
+
         <div class="pp-pricing-grid">
             <div class="pp-pricing-card">
                 <svg class="pp-tier-illustration" viewBox="0 0 120 80" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false"><rect x="22" y="12" width="76" height="56" rx="7" fill="#fff" stroke="#1336a8" stroke-width="2"/><circle cx="30" cy="22" r="2" fill="#1336a8"/><circle cx="38" cy="22" r="2" fill="#1336a8" opacity="0.45"/><circle cx="46" cy="22" r="2" fill="#1336a8" opacity="0.22"/><line x1="22" y1="30" x2="98" y2="30" stroke="#1336a8" stroke-width="1" opacity="0.18"/><circle cx="60" cy="48" r="11" fill="#1336a8"/><path d="M54.5 48 l4 4 l7.5 -8" stroke="#fff" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
                 <h3>Single Site</h3>
                 <p class="pp-price-detail">For one WooCommerce store.</p>
-                <div class="pp-price">$299<small></small></div>
-                <div class="pp-price-period">per year</div>
+                <div data-billing-show="annual">
+                    <div class="pp-price">$299<small></small></div>
+                    <div class="pp-price-period">per year</div>
+                </div>
+                <div data-billing-show="monthly" hidden>
+                    <div class="pp-price">$35<small></small></div>
+                    <div class="pp-price-period">per month, cancel anytime</div>
+                </div>
                 <ul class="pp-pricing-features">
                     <li>1 site activation</li>
-                    <li>1 year of plugin updates</li>
-                    <li>1 year of email support</li>
-                    <li>7-day free trial, no card required</li>
+                    <li>Plugin updates included</li>
+                    <li>Email support included</li>
+                    <li data-billing-show="annual">7-day free trial, no card required</li>
+                    <li data-billing-show="monthly" hidden>Cancel anytime in your billing portal</li>
                 </ul>
-                <a class="pp-btn pp-btn--secondary" href="<?php echo esc_url( $trial_intent_single ); ?>">Start 7-day trial</a>
-                <a class="pp-btn pp-btn--ghost" href="<?php echo esc_url( $buy_single ); ?>">Buy now - skip the trial</a>
+                <a class="pp-btn pp-btn--secondary" data-billing-show="annual" href="<?php echo esc_url( $trial_intent_single ); ?>">Start 7-day trial</a>
+                <button type="button" class="pp-btn pp-btn--ghost pp-monthly-cta" data-billing-show="annual" data-price-id="<?php echo esc_attr( $annual_price_single ); ?>">Buy now &mdash; $299/yr, auto-renews</button>
+                <p class="pp-cta-skip" data-billing-show="annual"><a href="<?php echo esc_url( $buy_single ); ?>">or pay with a payment app (renew manually)</a></p>
+                <button type="button" class="pp-btn pp-btn--secondary pp-monthly-cta" data-billing-show="monthly" data-price-id="<?php echo esc_attr( $monthly_price_single ); ?>" hidden>Subscribe monthly &mdash; $35/mo</button>
             </div>
             <div class="pp-pricing-card pp-pricing-card--featured">
                 <span class="pp-pricing-ribbon">Most Popular</span>
                 <svg class="pp-tier-illustration" viewBox="0 0 120 80" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false"><g fill="#fff" stroke="#1336a8" stroke-width="1.6"><rect x="15" y="12" width="26" height="22" rx="3"/><rect x="47" y="12" width="26" height="22" rx="3"/><rect x="79" y="12" width="26" height="22" rx="3"/><rect x="31" y="42" width="26" height="22" rx="3"/><rect x="63" y="42" width="26" height="22" rx="3"/></g><g fill="#1336a8"><circle cx="20" cy="17" r="1.3"/><circle cx="52" cy="17" r="1.3"/><circle cx="84" cy="17" r="1.3"/><circle cx="36" cy="47" r="1.3"/><circle cx="68" cy="47" r="1.3"/></g><g stroke="#1336a8" stroke-width="1.4" stroke-linecap="round" opacity="0.45"><line x1="19" y1="26" x2="37" y2="26"/><line x1="51" y1="26" x2="69" y2="26"/><line x1="83" y1="26" x2="101" y2="26"/><line x1="35" y1="56" x2="53" y2="56"/><line x1="67" y1="56" x2="85" y2="56"/></g></svg>
                 <h3>5 Sites</h3>
                 <p class="pp-price-detail">For agencies or multi-store owners.</p>
-                <div class="pp-price">$599<small></small></div>
-                <div class="pp-price-period">per year</div>
+                <div data-billing-show="annual">
+                    <div class="pp-price">$499<small></small></div>
+                    <div class="pp-price-period">per year</div>
+                </div>
+                <div data-billing-show="monthly" hidden>
+                    <div class="pp-price">$65<small></small></div>
+                    <div class="pp-price-period">per month, cancel anytime</div>
+                </div>
                 <ul class="pp-pricing-features">
                     <li>Up to 5 site activations</li>
-                    <li>1 year of plugin updates</li>
-                    <li>1 year of email support</li>
-                    <li>7-day free trial, no card required</li>
+                    <li>Plugin updates included</li>
+                    <li>Email support included</li>
+                    <li>Remove &ldquo;Powered by Pipe Pay&rdquo; from your customer payment page</li>
+                    <li data-billing-show="annual">7-day free trial, no card required</li>
+                    <li data-billing-show="monthly" hidden>Cancel anytime in your billing portal</li>
                 </ul>
-                <a class="pp-btn pp-btn--primary" href="<?php echo esc_url( $trial_intent_five ); ?>">Start 7-day trial</a>
-                <a class="pp-btn pp-btn--ghost" href="<?php echo esc_url( $buy_five ); ?>">Buy now - skip the trial</a>
+                <a class="pp-btn pp-btn--primary" data-billing-show="annual" href="<?php echo esc_url( $trial_intent_five ); ?>">Start 7-day trial</a>
+                <button type="button" class="pp-btn pp-btn--ghost pp-monthly-cta" data-billing-show="annual" data-price-id="<?php echo esc_attr( $annual_price_five ); ?>">Buy now &mdash; $499/yr, auto-renews</button>
+                <p class="pp-cta-skip" data-billing-show="annual"><a href="<?php echo esc_url( $buy_five ); ?>">or pay with a payment app (renew manually)</a></p>
+                <button type="button" class="pp-btn pp-btn--primary pp-monthly-cta" data-billing-show="monthly" data-price-id="<?php echo esc_attr( $monthly_price_five ); ?>" hidden>Subscribe monthly &mdash; $65/mo</button>
             </div>
             <div class="pp-pricing-card">
                 <svg class="pp-tier-illustration" viewBox="0 0 120 80" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false"><path d="M22 40 C22 22, 48 22, 60 40 C72 58, 98 58, 98 40 C98 22, 72 22, 60 40 C48 58, 22 58, 22 40 Z" fill="none" stroke="#1336a8" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/><rect x="29" y="35" width="12" height="10" rx="2" fill="#1336a8"/><rect x="79" y="35" width="12" height="10" rx="2" fill="#1336a8"/></svg>
                 <h3>Unlimited Sites</h3>
                 <p class="pp-price-detail">No activation cap. Run it everywhere.</p>
-                <div class="pp-price">$1,199<small></small></div>
-                <div class="pp-price-period">per year</div>
+                <div data-billing-show="annual">
+                    <div class="pp-price">$999<small></small></div>
+                    <div class="pp-price-period">per year</div>
+                </div>
+                <div data-billing-show="monthly" hidden>
+                    <div class="pp-price">$129<small></small></div>
+                    <div class="pp-price-period">per month, cancel anytime</div>
+                </div>
                 <ul class="pp-pricing-features">
                     <li>Unlimited site activations</li>
-                    <li>1 year of plugin updates</li>
-                    <li>1 year of email support</li>
-                    <li>7-day free trial, no card required</li>
+                    <li>Plugin updates included</li>
+                    <li>Email support included</li>
+                    <li>Remove &ldquo;Powered by Pipe Pay&rdquo; from your customer payment page</li>
+                    <li data-billing-show="annual">7-day free trial, no card required</li>
+                    <li data-billing-show="monthly" hidden>Cancel anytime in your billing portal</li>
                 </ul>
-                <a class="pp-btn pp-btn--secondary" href="<?php echo esc_url( $trial_intent_unlim ); ?>">Start 7-day trial</a>
-                <a class="pp-btn pp-btn--ghost" href="<?php echo esc_url( $buy_unlim ); ?>">Buy now - skip the trial</a>
+                <a class="pp-btn pp-btn--secondary" data-billing-show="annual" href="<?php echo esc_url( $trial_intent_unlim ); ?>">Start 7-day trial</a>
+                <button type="button" class="pp-btn pp-btn--ghost pp-monthly-cta" data-billing-show="annual" data-price-id="<?php echo esc_attr( $annual_price_unlim ); ?>">Buy now &mdash; $999/yr, auto-renews</button>
+                <p class="pp-cta-skip" data-billing-show="annual"><a href="<?php echo esc_url( $buy_unlim ); ?>">or pay with a payment app (renew manually)</a></p>
+                <button type="button" class="pp-btn pp-btn--secondary pp-monthly-cta" data-billing-show="monthly" data-price-id="<?php echo esc_attr( $monthly_price_unlim ); ?>" hidden>Subscribe monthly &mdash; $129/mo</button>
             </div>
         </div>
-        <p class="pp-pricing-fineprint">Each license includes 1 year of plugin updates and support. Renew annually to keep receiving WooCommerce-compatibility patches, security updates, and support - without renewal, your install falls behind each WP and WC release and eventually needs an update you can no longer get. Cancel anytime before the trial ends and you won't be charged. Once your trial converts to a paid license, all sales are final, no refunds. The 7-day trial is your evaluation window.</p>
+        <p class="pp-pricing-fineprint" data-billing-show="annual">Each annual license includes 1 year of plugin updates and support. Renew annually to keep receiving WooCommerce-compatibility patches, security updates, and support &mdash; without renewal, your install falls behind each WP and WC release and eventually needs an update you can no longer get. Cancel anytime before the trial ends and you won't be charged. Once your trial converts to a paid license, all sales are final, no refunds. The 7-day trial is your evaluation window.</p>
+        <p class="pp-pricing-fineprint" data-billing-show="monthly" hidden>Monthly subscriptions include plugin updates and support for as long as the subscription is active. Cancel anytime in your billing portal &mdash; your license stays active until the end of the current billing period, then expires. Annual saves up to 35% if you're committing to a full year; monthly is best for testing the waters or short-term needs. Monthly charges are non-refundable; cancel before the next billing date to avoid the next charge.</p>
     </div>
 </section>
 
@@ -152,6 +202,10 @@ $refund_url      = home_url( '/refund-policy' );
                     'a' => 'The payment part is identical. The figuring-out-who-paid part isn\'t. Pipe Pay captures the screenshot at checkout, verifies it with AI, and only surfaces the orders that actually need your attention. The manual workflow you\'re doing now scales linearly with order volume; this one doesn\'t.',
                 ),
                 array(
+                    'q' => 'Can I pay monthly instead of annual?',
+                    'a' => 'Yes. Monthly billing is $35/mo for Single Site, $65/mo for 5 Sites, or $129/mo for Unlimited. Charges run through Stripe; cancel any time from your billing portal and the license stays active until the end of the current billing period. Annual is cheaper if you\'re committing to a year (you save up to 35%) and includes the 7-day free trial. Monthly is the better fit for testing the waters or covering a short-term season &mdash; no trial, no commitment past the next charge.',
+                ),
+                array(
                     'q' => 'Can I use my existing Venmo, Cash App, PayPal, and Zelle accounts?',
                     'a' => 'Yes. Pipe Pay connects to the accounts you already have. We don\'t open new accounts and we don\'t move money on your behalf.',
                 ),
@@ -181,7 +235,7 @@ $refund_url      = home_url( '/refund-policy' );
                 ),
                 array(
                     'q' => 'What happens if my license expires?',
-                    'a' => 'Your license unlocks 1 year of plugin updates and support; renew annually to keep both flowing. Without an active license, you stop receiving WooCommerce-compatibility patches, security updates, and access to support - over time, as WP and WC release new versions, your install will fall behind and eventually need an update you can no longer get. Existing orders, settings, and historical data stay intact, and renewing at any time restores updates and support immediately. We recommend renewing before your term ends so the transition is seamless.',
+                    'a' => 'When your license ends &mdash; an annual term not renewed, or a subscription cancelled at the end of its billing period &mdash; plugin updates and support pause immediately. Annual licenses renewed manually (payment-app purchases) then get a <strong>30-day grace period</strong> during which the gateway keeps accepting orders; after that, Pipe Pay stops appearing at your checkout until you renew. Card-paid subscriptions (monthly or annual) stop at the end of the period you paid for. Orders already in progress always finish normally, and your orders, settings, and history stay intact &mdash; renewing at any time restores checkout, updates, and support, picking up exactly where you left off.',
                 ),
                 array(
                     'q' => 'Does it work with WooCommerce Subscriptions?',
@@ -235,5 +289,7 @@ $refund_url      = home_url( '/refund-policy' );
         <p class="pp-cta-skip pp-cta-skip--inverse"><a href="#tiers">or skip the trial - pick a tier and buy now &uarr;</a></p>
     </div>
 </section>
+
+<?php get_template_part( 'partials/billing-toggle-assets' ); ?>
 
 <?php get_footer(); ?>

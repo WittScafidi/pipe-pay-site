@@ -274,6 +274,34 @@ HTML,
 
 <h2>Partial refunds</h2>
 <p>Same flow: send the customer a partial-amount payment in your P2P app, then record a partial refund in WooCommerce. WooCommerce keeps a running total per order so multiple partial refunds add up correctly. The order status only flips to <em>Refunded</em> when the cumulative refund equals the original total.</p>
+
+<h2>Customer-initiated disputes</h2>
+<p>A dispute is different from a refund: the customer raises it with the payment platform (Venmo, PayPal, their bank), not with you. P2P rails handle disputes very differently from card payments, and the customer's protection depends on which method they used and whether they sent the payment via a business or personal route.</p>
+
+<h3>Venmo Business and Cash App for Business</h3>
+<p>Both have a buyer-protection program for goods marked as purchases (not transfers to friends). The customer can open a dispute in the app within a fixed window (Venmo: 180 days, Cash App: typically 60 days). The platform notifies you, freezes the disputed amount, and asks for evidence within ~10 days. <strong>Your evidence:</strong> the WooCommerce order record (timestamp, line items, customer email), the screenshot they uploaded, the AI verification result and confidence score, and any post-order communication. Pipe Pay keeps all of this together on the order detail page, so a single export of the order page is usually sufficient.</p>
+
+<h3>PayPal Goods &amp; Services</h3>
+<p>Buyer protection is the strongest here. The customer can open a dispute through PayPal's Resolution Center for up to 180 days. PayPal mediates. Same evidence package as above. PayPal sides with the buyer in roughly 60% of cases by default, so the more documentation you provide up front the better. Mention specifically in your evidence that Pipe Pay independently verified the payment screenshot at the time of order and store that confidence score.</p>
+
+<h3>Personal Venmo, Cash App, PayPal Friends &amp; Family, Zelle</h3>
+<p>Personal rails do not have buyer protection. The customer's only recourse is to ask their bank to reverse the underlying ACH transfer, which banks typically refuse for P2P-to-P2P transfers because no fraud or unauthorized access occurred. Zelle is the most protective from the merchant's side - bank reversals are rare. Personal Venmo and Cash App reversals require the customer to file a fraud claim, which they would have to misrepresent since the transfer was authorized. This is one of the structural reasons P2P rails work for merchants in high-risk verticals.</p>
+
+<h3>If a dispute is filed: what to do</h3>
+<ol>
+    <li><strong>Don't issue a refund first.</strong> If you refund and then lose the dispute, you pay twice. Respond to the dispute with evidence; if the platform sides with you, the freeze is released. If they side with the buyer, the disputed amount is returned to the customer automatically.</li>
+    <li><strong>Pull the order's Pipe Pay verification record.</strong> WP Admin -> WooCommerce -> Orders -> [order]. The right sidebar shows the AI verification result, confidence score, extracted amount and recipient, and the screenshot the customer uploaded. Right-click -> Print -> Save as PDF gives you a single-file evidence package.</li>
+    <li><strong>Reply within the platform's evidence window.</strong> Most platforms give you 7-10 days. Late responses are typically auto-resolved against the merchant.</li>
+    <li><strong>If you lose the dispute, mark the order refunded in WooCommerce.</strong> Same flow as the refund section above. The funds are already reversed; the WC status just needs to reflect reality.</li>
+</ol>
+
+<h3>Reducing dispute risk up front</h3>
+<p>Three practical defenses, none of which are Pipe Pay-specific:</p>
+<ul>
+    <li><strong>Clear payment instructions on the checkout page.</strong> The customer should know before they hit Place Order that they're paying via Venmo / Cash App / etc. and uploading a screenshot. Pipe Pay's post-checkout page handles this, but consider adding a one-sentence reminder in your shipping or fulfillment emails.</li>
+    <li><strong>Same-day fulfillment for digital goods, traceable shipping for physical.</strong> "Item never arrived" is the most common dispute reason. Same-day or fast fulfillment cuts this category in half. For physical goods, always use a tracking-enabled carrier even on small orders.</li>
+    <li><strong>Reply to support requests fast.</strong> Customers who feel ignored escalate to disputes. Pipe Pay's order confirmation includes your support email; respond within 24 hours and most "almost-disputes" resolve as refunds or replacements without the platform ever being involved.</li>
+</ul>
 HTML,
         'topics' => array(
             'Venmo and Cash App business profiles: in-app refund button, settlement timing.',
@@ -281,6 +309,9 @@ HTML,
             'Marking an order refunded in WooCommerce after the money is sent.',
             'Customer notification email: what Pipe Pay sends, what it does not.',
             'Partial refunds and how to record them.',
+            'Customer-initiated disputes via Venmo / Cash App / PayPal: evidence and response procedure.',
+            'Why personal P2P rails have no buyer-protection program (and what that means for your dispute risk).',
+            'Reducing dispute risk up front: clear payment instructions, fast fulfillment, responsive support.',
         ),
     ),
 
@@ -343,8 +374,8 @@ HTML,
 <h2>Site limits per tier</h2>
 <ul>
     <li><strong>Single Site</strong> ($299/year): 1 activation. One site URL at a time.</li>
-    <li><strong>5 Sites</strong> ($599/year): up to 5 activations, any combination of staging and production sites.</li>
-    <li><strong>Unlimited Sites</strong> ($1,199/year): no activation cap. Run it on as many sites as you want.</li>
+    <li><strong>5 Sites</strong> ($499/year): up to 5 activations, any combination of staging and production sites.</li>
+    <li><strong>Unlimited Sites</strong> ($999/year): no activation cap. Run it on as many sites as you want.</li>
 </ul>
 <p>The activation count is enforced server-side at <code>pipepay.app</code>. Trying to activate beyond your tier returns a clear error rather than silently allowing it.</p>
 
@@ -356,11 +387,11 @@ HTML,
 </ul>
 
 <h2>Renewal</h2>
-<p>You will receive renewal notices from <code>pipepay.app</code> as your annual term approaches expiration. Each email includes a one-click renewal link that takes you straight to checkout with the same tier preselected. Renewal is the same price as the original purchase; we do not auto-bill.</p>
+<p>How renewal works depends on how you paid. Licenses bought by <strong>card</strong> are subscriptions that auto-renew through Stripe - cancel anytime from your billing portal. Licenses bought with a <strong>payment app</strong> (Venmo, Cash App, PayPal, Zelle) never auto-bill: you will receive renewal notices from <code>pipepay.app</code> as your annual term approaches expiration, each with a one-click renewal link that takes you straight to checkout with the same tier preselected, at the same price as the original purchase.</p>
 
 <h2>If the license expires</h2>
-<p>Your license unlocks 1 year of plugin updates and support, and we strongly recommend renewing before your term ends so the transition is seamless. Without an active license you stop receiving WooCommerce-compatibility patches, security updates, and access to support - over time, as WordPress and WooCommerce release new versions, your install will fall behind and eventually need an update you can no longer get.</p>
-<p>The plugin's license-check piggybacks on WordPress's standard plugin update check (typically every ~12 hours). Existing data, settings, and historical orders all stay intact during a lapse. Renewing at any time restores updates and support on the next check; there is no data migration or reinstall step.</p>
+<p>Plugin updates and support pause as soon as the license expires. For manually-renewed (payment-app) licenses there is then a <strong>30-day grace period</strong> during which the gateway keeps accepting orders; after that, Pipe Pay stops appearing at your checkout until you renew. Card-paid subscriptions stop offering Pipe Pay at checkout when the paid period ends. In both cases, orders already in progress always finish normally - the payment-proof upload, AI verification, and your approval queue keep working so no customer is ever stranded mid-purchase.</p>
+<p>Renewing restores checkout, updates, and support: automatically within 24 hours, or immediately if you open <em>WP Admin &rarr; Pipe Pay &rarr; License</em> and click Activate. Existing data, settings, and historical orders all stay intact during a lapse; there is no data migration or reinstall step.</p>
 
 <h2>Reactivating after a long lapse</h2>
 <p>If your license has been expired for months and you renew, the plugin treats it like a fresh activation. Your settings, P2P handles, AI provider key, and historical order data all remain in the database; nothing is wiped during a lapse.</p>

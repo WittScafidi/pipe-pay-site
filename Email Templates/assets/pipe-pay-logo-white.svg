@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Pipe Pay logo — dark mode variant (white on transparent).
+  Mirrors the structure of the light variant. Inner coin face is transparent
+  (fill="none") so whatever dark bg shows through reads as the coin face.
+  White $ sits on top, visible against any dark background.
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 280 80" width="280" height="80" role="img" aria-label="Pipe Pay">
+  <g transform="translate(8, 8)">
+    <rect x="2"  y="26" width="8" height="12" fill="#ffffff"/>
+    <rect x="9"  y="22" width="3" height="20" fill="#ffffff"/>
+    <rect x="54" y="26" width="8" height="12" fill="#ffffff"/>
+    <rect x="52" y="22" width="3" height="20" fill="#ffffff"/>
+    <path d="M 12 32 L 32 14" stroke="#ffffff" stroke-width="1.6" fill="none" stroke-linecap="round"/>
+    <path d="M 12 32 L 22 32" stroke="#ffffff" stroke-width="1.6" fill="none" stroke-linecap="round"/>
+    <path d="M 12 32 L 32 50" stroke="#ffffff" stroke-width="1.6" fill="none" stroke-linecap="round"/>
+    <path d="M 52 32 L 32 14" stroke="#ffffff" stroke-width="1.6" fill="none" stroke-linecap="round"/>
+    <path d="M 52 32 L 42 32" stroke="#ffffff" stroke-width="1.6" fill="none" stroke-linecap="round"/>
+    <path d="M 52 32 L 32 50" stroke="#ffffff" stroke-width="1.6" fill="none" stroke-linecap="round"/>
+    <circle cx="12" cy="32" r="1.8" fill="#ffffff"/>
+    <circle cx="52" cy="32" r="1.8" fill="#ffffff"/>
+    <circle cx="32" cy="32" r="10.5" fill="#ffffff"/>
+    <circle cx="32" cy="32" r="8.8"  fill="none"/>
+    <text x="32" y="38" text-anchor="middle" font-family="'Manrope', 'Inter', Arial, Helvetica, sans-serif" font-size="17" font-weight="900" fill="#ffffff">$</text>
+  </g>
+  <text x="92" y="52" font-family="'Manrope', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="36" font-weight="700" letter-spacing="-1" fill="#ffffff">Pipe Pay</text>
+</svg>

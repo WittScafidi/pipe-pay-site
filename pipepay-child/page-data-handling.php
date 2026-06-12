@@ -10,7 +10,7 @@
  */
 if ( ! defined( 'ABSPATH' ) ) { exit; }
 get_header();
-$last_updated = 'May 11, 2026';
+$last_updated = 'May 25, 2026';
 ?>
 
 <section class="pp-page-hero">
@@ -130,10 +130,10 @@ handling, see pipepay.app/privacy.</code></pre>
                 <li>The screenshot file is deleted when the order is deleted, AND would have aged out anyway at 90 days.</li>
                 <li>If the order was previously analyzed by an AI provider, that provider may have temporary logs; consult <a href="<?php echo esc_url( home_url( '/sub-processors/' ) ); ?>">their privacy policy</a> for retention details. Pipe Pay does not have a path to delete data from the AI provider's side — that has to go through the provider directly with the customer's API key.</li>
             </ol>
-            <p>To delete your own license data from Pipe Pay's license server (e.g., you've stopped using Pipe Pay and want us to purge your records), email <a href="mailto:wittscafidi@gmail.com?subject=Privacy%20Request%20-%20License%20Deletion">wittscafidi@gmail.com</a> with "Privacy Request - License Deletion" in the subject and we'll process it within 30 days. See <a href="<?php echo esc_url( home_url( '/privacy/' ) ); ?>">our privacy policy</a> for what specifically gets purged.</p>
+            <p>To delete your own license data from Pipe Pay's license server (e.g., you've stopped using Pipe Pay and want us to purge your records), email <a href="mailto:privacy@pipepay.app?subject=Privacy%20Request%20-%20License%20Deletion">privacy@pipepay.app</a> with "Privacy Request - License Deletion" in the subject and we'll process it within 30 days. See <a href="<?php echo esc_url( home_url( '/privacy/' ) ); ?>">our privacy policy</a> for what specifically gets purged.</p>
 
             <h2>Questions</h2>
-            <p>Email <a href="mailto:wittscafidi@gmail.com">wittscafidi@gmail.com</a>. Subject line: "Pipe Pay data handling — [your question]". You'll get a real answer within one business day.</p>
+            <p>Email <a href="mailto:privacy@pipepay.app">privacy@pipepay.app</a>. Subject line: "Pipe Pay data handling — [your question]". You'll get a real answer within one business day.</p>
 
         </article>
     </div>

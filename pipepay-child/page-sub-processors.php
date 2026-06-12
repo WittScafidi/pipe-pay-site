@@ -14,7 +14,7 @@
  */
 if ( ! defined( 'ABSPATH' ) ) { exit; }
 get_header();
-$last_updated = 'May 11, 2026';
+$last_updated = 'May 25, 2026';
 ?>
 
 <section class="pp-page-hero">
@@ -38,11 +38,10 @@ $last_updated = 'May 11, 2026';
             <h2>Pipe Pay's own sub-processors</h2>
 
             <div class="pp-subproc-block">
-                <h3>Stripe</h3>
-                <p class="pp-subproc-meta"><strong>Purpose:</strong> Processes credit-card payments when you buy a Pipe Pay license.</p>
-                <p class="pp-subproc-meta"><strong>Data received:</strong> Your name, email, billing address, and card details. We do not see your card number; Stripe returns only a transaction ID we keep for accounting.</p>
-                <p class="pp-subproc-meta"><strong>Processing location:</strong> United States. Stripe is certified under the EU-US Data Privacy Framework.</p>
-                <p class="pp-subproc-meta"><strong>Privacy policy:</strong> <a href="https://stripe.com/privacy" target="_blank" rel="noopener">stripe.com/privacy</a></p>
+                <h3>No third-party payment processor</h3>
+                <p class="pp-subproc-meta"><strong>Why this is not a sub-processor:</strong> license payments on pipepay.app run through Pipe Pay itself (we dogfood our own checkout). We do not accept credit-card payments, so no third-party card processor (Stripe, Braintree, Adyen, or otherwise) receives your billing data.</p>
+                <p class="pp-subproc-meta"><strong>How payment actually flows:</strong> at checkout you choose a P2P method (Venmo, Cash App, PayPal, or Zelle) and pay us directly through that app. The contractual relationship for the payment itself is between you and the P2P provider you chose, not between you and a card network. Pipe Pay observes and reconciles those payments; it never holds, routes, or transmits the funds.</p>
+                <p class="pp-subproc-meta"><strong>If this ever changes:</strong> adding a card processor to pipepay.app would be a substantive change to this list, and active license-holders would be notified by email before the change takes effect.</p>
             </div>
 
             <div class="pp-subproc-block">
@@ -92,7 +91,7 @@ $last_updated = 'May 11, 2026';
 
             <h2>When this list changes</h2>
             <p>Substantive additions or changes (a new sub-processor, a new data category to an existing one) are notified to active license-holders by email before the change takes effect. The "Last updated" date at the top of this page tracks every change.</p>
-            <p>If you'd like to be notified of changes whether or not you currently hold a license, email <a href="mailto:wittscafidi@gmail.com?subject=Subscribe%20to%20sub-processor%20updates">wittscafidi@gmail.com</a> with "Subscribe to sub-processor updates" in the subject.</p>
+            <p>If you'd like to be notified of changes whether or not you currently hold a license, email <a href="mailto:privacy@pipepay.app?subject=Subscribe%20to%20sub-processor%20updates">privacy@pipepay.app</a> with "Subscribe to sub-processor updates" in the subject.</p>
 
         </article>
     </div>

@@ -26,6 +26,18 @@ $trial_intent_unlim  = home_url( '/checkout/?add-to-cart=38&intent=36' );
 $buy_single      = home_url( '/checkout/?add-to-cart=34' );
 $buy_five        = home_url( '/checkout/?add-to-cart=35' );
 $buy_unlim       = home_url( '/checkout/?add-to-cart=36' );
+// Monthly Stripe Price IDs come from wp-config.php constants so the plugin config and
+// both pricing templates flip to live mode with one wp-config edit. Fallbacks are the
+// test-mode IDs. Wired to hidden WC products 526/527/528 via the pipepay-stripe-subs
+// plugin: /wp-json/pipepay-stripe-subs/v1/checkout.
+$monthly_price_single = defined( 'PIPEPAY_STRIPE_PRICE_SINGLE' ) ? PIPEPAY_STRIPE_PRICE_SINGLE : 'price_1TgPw3GFSkcp1uiX7linrCwn';
+$monthly_price_five   = defined( 'PIPEPAY_STRIPE_PRICE_FIVE' ) ? PIPEPAY_STRIPE_PRICE_FIVE : 'price_1TgPw5GFSkcp1uiXU49mFdS3';
+$monthly_price_unlim  = defined( 'PIPEPAY_STRIPE_PRICE_UNLIM' ) ? PIPEPAY_STRIPE_PRICE_UNLIM : 'price_1TgPwAGFSkcp1uiXF9Tasn8m';
+// Yearly auto-renew Price IDs (the CARD lane for annual tiers). The WC checkout
+// add-to-cart links below are the payment-app lane (manual renewal).
+$annual_price_single = defined( 'PIPEPAY_STRIPE_PRICE_SINGLE_YR' ) ? PIPEPAY_STRIPE_PRICE_SINGLE_YR : '';
+$annual_price_five   = defined( 'PIPEPAY_STRIPE_PRICE_FIVE_YR' ) ? PIPEPAY_STRIPE_PRICE_FIVE_YR : '';
+$annual_price_unlim  = defined( 'PIPEPAY_STRIPE_PRICE_UNLIM_YR' ) ? PIPEPAY_STRIPE_PRICE_UNLIM_YR : '';
 $pricing_url     = home_url( '/pricing' );
 
 $docs_url        = home_url( '/docs' );
@@ -51,15 +63,10 @@ $changelog_url   = home_url( '/changelog' );
 
 <div class="pp-scroll-progress" aria-hidden="true"></div>
 
-<div class="pp-release-bar" role="status" aria-label="Latest release">
-    <div class="pp-container">
-        <span class="pp-release-bar__pulse" aria-hidden="true"></span>
-        <span class="pp-release-bar__label">Shipped</span>
-        <span class="pp-release-bar__version">v<?php echo esc_html( PIPEPAY_SITE_VERSION ); ?></span>
-        <span class="pp-release-bar__msg">Handle-only payment mode &middot; methods now work with a payment handle alone, no QR upload required</span>
-        <a class="pp-release-bar__link" href="<?php echo esc_url( $changelog_url ); ?>">read the changelog &rarr;</a>
-    </div>
-</div>
+<?php /* Release bar removed 2026-06-04 — stale per-release callout was
+        harder to keep in sync than it was worth. Latest version info is
+        still discoverable via the /changelog/ page link in the footer
+        and the in-product update notices. */ ?>
 
 <header class="pp-header">
     <div class="pp-header-inner">
@@ -79,6 +86,13 @@ $changelog_url   = home_url( '/changelog' );
             <a href="<?php echo esc_url( home_url( '/changelog' ) ); ?>">Changelog</a>
             <a href="<?php echo esc_url( home_url( '/contact' ) ); ?>">Contact</a>
             <a href="<?php echo esc_url( home_url( '/my-account' ) ); ?>"><?php echo is_user_logged_in() ? 'Account' : 'Sign in'; ?></a>
+            <?php
+            /* Conditional Cart link — see header.php for rationale. */
+            if ( function_exists( 'WC' ) && WC()->cart && WC()->cart->get_cart_contents_count() > 0 ) :
+                $pp_cart_count = WC()->cart->get_cart_contents_count();
+            ?>
+            <a class="pp-nav-cart" href="<?php echo esc_url( wc_get_cart_url() ); ?>">Cart <span class="pp-nav-cart__count"><?php echo esc_html( $pp_cart_count ); ?></span></a>
+            <?php endif; ?>
             <a class="pp-btn pp-btn--primary" href="<?php echo esc_url( $checkout_url ); ?>">Start free trial</a>
         </nav>
     </div>
@@ -105,7 +119,6 @@ $changelog_url   = home_url( '/changelog' );
         </div>
 
         <div class="pp-hero-mock-col">
-            <p class="pp-hero-mock-label">Preview &middot; what your customer sees on the payment page</p>
             <div class="pp-hero-mock">
                 <span class="pp-hero-mock-badge" aria-hidden="true">DEMO</span>
                 <div class="pp-mock-browser" aria-hidden="true">
@@ -121,8 +134,8 @@ $changelog_url   = home_url( '/changelog' );
 
                 <div class="pp-pay">
                     <header class="pp-pay__head">
-                        <h3 class="pp-pay__title">Complete your payment</h3>
-                        <p class="pp-pay__order">Order #1247 &middot; <strong>$87.50</strong></p>
+                        <h3 class="pp-pay__title">Order summary</h3>
+                        <p class="pp-pay__order">Example order &middot; <strong>$87.50</strong></p>
                     </header>
 
                     <div class="pp-pay__qr-wrap">
@@ -157,18 +170,19 @@ $changelog_url   = home_url( '/changelog' );
                     </div>
 
                     <button type="button" class="pp-pay__handle">
-                        <span class="pp-pay__handle-label">Pay</span>
-                        <span class="pp-pay__handle-value">@your-handle</span>
+                        <span class="pp-pay__handle-label">Store handle</span>
+                        <span class="pp-pay__handle-value">@example-store</span>
                         <svg class="pp-pay__handle-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
                     </button>
 
                     <a class="pp-pay__cta" href="#" onclick="return false;" aria-disabled="true" tabindex="-1">
-                        Open Venmo
+                        Open the payment app
                         <span aria-hidden="true">&rarr;</span>
                     </a>
 
                     <p class="pp-pay__alts-head">Or pay with:</p>
                     <div class="pp-pay__alts">
+                        <button type="button" class="pp-pay__alt" disabled tabindex="-1"><span class="pp-pay__alt-mark pp-pay__alt-mark--venmo">V</span>Venmo</button>
                         <button type="button" class="pp-pay__alt" disabled tabindex="-1"><span class="pp-pay__alt-mark pp-pay__alt-mark--cash">$</span>Cash App</button>
                         <button type="button" class="pp-pay__alt" disabled tabindex="-1"><span class="pp-pay__alt-mark pp-pay__alt-mark--paypal">P</span>PayPal</button>
                         <button type="button" class="pp-pay__alt" disabled tabindex="-1"><span class="pp-pay__alt-mark pp-pay__alt-mark--zelle">Z</span>Zelle</button>
@@ -176,8 +190,8 @@ $changelog_url   = home_url( '/changelog' );
 
                     <p class="pp-pay__steps-head">What your customer does next:</p>
                     <ol class="pp-pay__steps">
-                        <li><span class="pp-pay__step-num">1</span>Opens Venmo</li>
-                        <li><span class="pp-pay__step-num">2</span>Sends $87.50 to your store's handle</li>
+                        <li><span class="pp-pay__step-num">1</span>Opens their payment app</li>
+                        <li><span class="pp-pay__step-num">2</span>Pays your store in their app</li>
                         <li><span class="pp-pay__step-num">3</span>Screenshots the confirmation</li>
                         <li><span class="pp-pay__step-num">4</span>Uploads it on your store</li>
                     </ol>
@@ -185,8 +199,8 @@ $changelog_url   = home_url( '/changelog' );
 
                 <footer class="pp-pay__sticky">
                     <div class="pp-pay__sticky-text">
-                        <strong>Upload your payment screenshot</strong>
-                        <span>to complete this order</span>
+                        <strong>Payment screenshot upload</strong>
+                        <span>shown on your store&rsquo;s checkout</span>
                     </div>
                     <div class="pp-pay__dropzone">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
@@ -212,21 +226,35 @@ $changelog_url   = home_url( '/changelog' );
                 <span class="pp-persona__icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/><path d="M12 8v4"/><path d="M12 16h.01"/></svg></span>
                 <span class="pp-persona__tag">Underserved by major processors</span>
                 <p class="pp-persona__quote">"My processor doesn't fit my business - and the alternatives that do want four to eight percent plus a personal guarantee."</p>
-                <p class="pp-persona__body">Your customers pay you directly through Venmo, Cash App, PayPal, or Zelle - the apps they already use. The plugin handles the workflow that comes after: capturing the payment screenshot, verifying the amount and recipient, and moving the order through your existing WooCommerce admin. Use multiple P2P apps so a single account's weekly receive limit doesn't cap your daily volume.</p>
+                <ul class="pp-persona__list">
+                    <li><strong>Customers pay you directly</strong> through Venmo, Cash App, PayPal, or Zelle &mdash; apps they already use.</li>
+                    <li><strong>The plugin handles the rest:</strong> captures the screenshot, verifies the amount + recipient, moves the order through WC admin.</li>
+                    <li><strong>Run multiple P2P apps in parallel</strong> so one account's weekly receive limit doesn't cap your daily volume.</li>
+                </ul>
             </article>
 
             <article class="pp-persona">
                 <span class="pp-persona__icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5"/><path d="M9 18h6"/><path d="M10 22h4"/></svg></span>
                 <span class="pp-persona__tag">Validating an idea</span>
                 <p class="pp-persona__quote">"I don't have an LLC yet. I want to know if this thing works before I file paperwork, get an EIN, and hand my SSN to a payment processor."</p>
-                <p class="pp-persona__body">Pipe Pay is the fastest legal path to a working checkout. No business entity required. No merchant account application. No tax ID handed to a processor for a two-week verification. Use the Venmo and Cash App accounts you already have, install on a basic WordPress site, and you're live the same afternoon. Validate the idea on real customers; incorporate once there's revenue to justify it.</p>
+                <ul class="pp-persona__list">
+                    <li><strong>No business entity required.</strong></li>
+                    <li><strong>No merchant account application.</strong></li>
+                    <li><strong>No tax ID handed to a processor</strong> for a two-week verification.</li>
+                    <li><strong>Use the Venmo and Cash App accounts you already have.</strong> Install on a basic WP site; live the same afternoon. Incorporate once revenue justifies it.</li>
+                </ul>
             </article>
 
             <article class="pp-persona">
                 <span class="pp-persona__icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"/><path d="M3 5v14a2 2 0 0 0 2 2h16v-5"/><path d="M18 12a2 2 0 0 0 0 4h4v-4z"/></svg></span>
                 <span class="pp-persona__tag">Tired of paying fees</span>
                 <p class="pp-persona__quote">"I'm bleeding fourteen and a half thousand a year in Stripe fees on $500K of orders. For what, a dashboard?"</p>
-                <p class="pp-persona__body">$299 a year, flat. Zero per-transaction fees on the plugin side. Personal Venmo, Cash App, and PayPal Friends &amp; Family take 0%. Business profiles take 1.9% to 2.75% - still under Stripe. Pipe Pay pays for itself the moment you cross about $10,300 in annual card volume. Every dollar saved on fees from there forward is yours.</p>
+                <ul class="pp-persona__list">
+                    <li><strong>$299/year, flat.</strong> Zero per-transaction fees on the plugin side.</li>
+                    <li><strong>Personal Venmo / Cash App / PayPal F&amp;F:</strong> 0% fees.</li>
+                    <li><strong>Business profiles:</strong> 1.9-2.75% &mdash; still under Stripe.</li>
+                    <li><strong>Breaks even at ~$10,300 in annual card volume.</strong> Every dollar saved from there is yours.</li>
+                </ul>
             </article>
         </div>
     </div>
@@ -268,7 +296,6 @@ $changelog_url   = home_url( '/changelog' );
         </div>
 
         <div class="pp-how-mock-wrap">
-            <p class="pp-flow-label">Demo &middot; the customer's view at each step (sample data, not a live page)</p>
             <ol class="pp-flow" aria-label="End-to-end customer flow demo">
                 <!-- Step 1: WooCommerce checkout, Pipe Pay as the only payment method.
                      Shows order summary + contact + payment method + Place order to look
@@ -343,14 +370,14 @@ $changelog_url   = home_url( '/changelog' );
 
                             <!-- Numbered instructions for the active method -->
                             <ol class="pp-flow__steps">
-                                <li>Send $87.50 to <code>@your-handle</code></li>
-                                <li>Add memo <code>#1247</code></li>
-                                <li>Screenshot the receipt</li>
+                                <li>Pays the store&rsquo;s handle in their app</li>
+                                <li>Adds the order number as the memo</li>
+                                <li>Screenshots the receipt</li>
                             </ol>
 
                             <!-- Open Venmo CTA, colored to match Venmo brand -->
-                            <a class="pp-flow__open-btn" style="background:#008CFF;" aria-hidden="true">
-                                Open Venmo
+                            <a class="pp-flow__open-btn" style="background:#1336a8;" aria-hidden="true">
+                                Open the app
                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
                             </a>
                         </div>
@@ -396,16 +423,16 @@ $changelog_url   = home_url( '/changelog' );
                             </div>
 
                             <ol class="pp-flow__steps">
-                                <li>Send $87.50 to <code>@your-handle</code></li>
-                                <li>Add memo <code>#1247</code></li>
-                                <li>Screenshot the receipt</li>
+                                <li>Pays the store&rsquo;s handle in their app</li>
+                                <li>Adds the order number as the memo</li>
+                                <li>Screenshots the receipt</li>
                             </ol>
 
                             <!-- Open Venmo CTA - same as step 2; the customer
                                  can re-open the app any time if they need to
                                  re-pay or check the transaction. -->
-                            <a class="pp-flow__open-btn" style="background:#008CFF;" aria-hidden="true">
-                                Open Venmo
+                            <a class="pp-flow__open-btn" style="background:#1336a8;" aria-hidden="true">
+                                Open the app
                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
                             </a>
                         </div>
@@ -540,59 +567,99 @@ $changelog_url   = home_url( '/changelog' );
 <section class="pp-section pp-section--alt pp-pricing" id="pricing">
     <div class="pp-container">
         <div class="pp-section-head pp-section-head--center">
-            <h2>Simple pricing. Annual licenses with a 7-day free trial.</h2>
-            <p class="pp-subhead" style="margin-left:auto;margin-right:auto;">Every tier includes the same features. The license you pick controls the number of sites, nothing else.</p>
+            <h2>Simple pricing. Pay annual or monthly.</h2>
+            <p class="pp-subhead" style="margin-left:auto;margin-right:auto;">Every tier includes the same features. The license you pick controls the number of sites, nothing else. Annual saves up to 35% and includes a 7-day free trial. Monthly is cancel-anytime.</p>
         </div>
+
+        <div class="pp-billing-toggle" role="group" aria-label="Choose billing period">
+            <button type="button" class="pp-billing-toggle__btn pp-billing-toggle__btn--active" aria-pressed="true" data-billing="annual">Annual <span class="pp-billing-toggle__save">save up to 35%</span></button>
+            <button type="button" class="pp-billing-toggle__btn" aria-pressed="false" data-billing="monthly">Monthly</button>
+        </div>
+        <p class="pp-billing-toggle__note" data-billing-show="annual">Annual includes a 7-day free trial. Cancel before day 8 and you won't be charged.</p>
+        <p class="pp-billing-toggle__note" data-billing-show="monthly" hidden>Monthly is cancel-anytime in your Stripe billing portal. No trial; pay only for what you use.</p>
+
         <div class="pp-pricing-grid">
             <div class="pp-pricing-card">
                 <svg class="pp-tier-illustration" viewBox="0 0 120 80" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false"><rect x="22" y="12" width="76" height="56" rx="7" fill="#fff" stroke="#1336a8" stroke-width="2"/><circle cx="30" cy="22" r="2" fill="#1336a8"/><circle cx="38" cy="22" r="2" fill="#1336a8" opacity="0.45"/><circle cx="46" cy="22" r="2" fill="#1336a8" opacity="0.22"/><line x1="22" y1="30" x2="98" y2="30" stroke="#1336a8" stroke-width="1" opacity="0.18"/><circle cx="60" cy="48" r="11" fill="#1336a8"/><path d="M54.5 48 l4 4 l7.5 -8" stroke="#fff" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
                 <h3>Single Site</h3>
                 <p class="pp-price-detail">For one WooCommerce store.</p>
-                <div class="pp-price">$299<small></small></div>
-                <div class="pp-price-period">per year</div>
+                <div data-billing-show="annual">
+                    <div class="pp-price">$299<small></small></div>
+                    <div class="pp-price-period">per year</div>
+                </div>
+                <div data-billing-show="monthly" hidden>
+                    <div class="pp-price">$35<small></small></div>
+                    <div class="pp-price-period">per month, cancel anytime</div>
+                </div>
                 <ul class="pp-pricing-features">
                     <li>1 site activation</li>
-                    <li>1 year of plugin updates</li>
-                    <li>1 year of email support</li>
-                    <li>7-day free trial, no card required</li>
+                    <li>Plugin updates included</li>
+                    <li>Email support included</li>
+                    <li data-billing-show="annual">7-day free trial, no card required</li>
+                    <li data-billing-show="monthly" hidden>Cancel anytime in your billing portal</li>
                 </ul>
-                <a class="pp-btn pp-btn--secondary" href="<?php echo esc_url( $trial_intent_single ); ?>">Start 7-day trial</a>
-                <a class="pp-btn pp-btn--ghost" href="<?php echo esc_url( $buy_single ); ?>">Buy now - skip the trial</a>
+                <a class="pp-btn pp-btn--secondary" data-billing-show="annual" href="<?php echo esc_url( $trial_intent_single ); ?>">Start 7-day trial</a>
+                <button type="button" class="pp-btn pp-btn--ghost pp-monthly-cta" data-billing-show="annual" data-price-id="<?php echo esc_attr( $annual_price_single ); ?>">Buy now &mdash; $299/yr, auto-renews</button>
+                <p class="pp-cta-skip" data-billing-show="annual"><a href="<?php echo esc_url( $buy_single ); ?>">or pay with a payment app (renew manually)</a></p>
+                <button type="button" class="pp-btn pp-btn--secondary pp-monthly-cta" data-billing-show="monthly" data-price-id="<?php echo esc_attr( $monthly_price_single ); ?>" hidden>Subscribe monthly &mdash; $35/mo</button>
             </div>
             <div class="pp-pricing-card pp-pricing-card--featured">
                 <span class="pp-pricing-ribbon">Most Popular</span>
                 <svg class="pp-tier-illustration" viewBox="0 0 120 80" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false"><g fill="#fff" stroke="#1336a8" stroke-width="1.6"><rect x="15" y="12" width="26" height="22" rx="3"/><rect x="47" y="12" width="26" height="22" rx="3"/><rect x="79" y="12" width="26" height="22" rx="3"/><rect x="31" y="42" width="26" height="22" rx="3"/><rect x="63" y="42" width="26" height="22" rx="3"/></g><g fill="#1336a8"><circle cx="20" cy="17" r="1.3"/><circle cx="52" cy="17" r="1.3"/><circle cx="84" cy="17" r="1.3"/><circle cx="36" cy="47" r="1.3"/><circle cx="68" cy="47" r="1.3"/></g><g stroke="#1336a8" stroke-width="1.4" stroke-linecap="round" opacity="0.45"><line x1="19" y1="26" x2="37" y2="26"/><line x1="51" y1="26" x2="69" y2="26"/><line x1="83" y1="26" x2="101" y2="26"/><line x1="35" y1="56" x2="53" y2="56"/><line x1="67" y1="56" x2="85" y2="56"/></g></svg>
                 <h3>5 Sites</h3>
                 <p class="pp-price-detail">For agencies or multi-store owners.</p>
-                <div class="pp-price">$599<small></small></div>
-                <div class="pp-price-period">per year</div>
+                <div data-billing-show="annual">
+                    <div class="pp-price">$499<small></small></div>
+                    <div class="pp-price-period">per year</div>
+                </div>
+                <div data-billing-show="monthly" hidden>
+                    <div class="pp-price">$65<small></small></div>
+                    <div class="pp-price-period">per month, cancel anytime</div>
+                </div>
                 <ul class="pp-pricing-features">
                     <li>Up to 5 site activations</li>
-                    <li>1 year of plugin updates</li>
-                    <li>1 year of email support</li>
-                    <li>7-day free trial, no card required</li>
+                    <li>Plugin updates included</li>
+                    <li>Email support included</li>
+                    <li>Remove &ldquo;Powered by Pipe Pay&rdquo; from your customer payment page</li>
+                    <li data-billing-show="annual">7-day free trial, no card required</li>
+                    <li data-billing-show="monthly" hidden>Cancel anytime in your billing portal</li>
                 </ul>
-                <a class="pp-btn pp-btn--primary" href="<?php echo esc_url( $trial_intent_five ); ?>">Start 7-day trial</a>
-                <a class="pp-btn pp-btn--ghost" href="<?php echo esc_url( $buy_five ); ?>">Buy now - skip the trial</a>
+                <a class="pp-btn pp-btn--primary" data-billing-show="annual" href="<?php echo esc_url( $trial_intent_five ); ?>">Start 7-day trial</a>
+                <button type="button" class="pp-btn pp-btn--ghost pp-monthly-cta" data-billing-show="annual" data-price-id="<?php echo esc_attr( $annual_price_five ); ?>">Buy now &mdash; $499/yr, auto-renews</button>
+                <p class="pp-cta-skip" data-billing-show="annual"><a href="<?php echo esc_url( $buy_five ); ?>">or pay with a payment app (renew manually)</a></p>
+                <button type="button" class="pp-btn pp-btn--primary pp-monthly-cta" data-billing-show="monthly" data-price-id="<?php echo esc_attr( $monthly_price_five ); ?>" hidden>Subscribe monthly &mdash; $65/mo</button>
             </div>
             <div class="pp-pricing-card">
                 <svg class="pp-tier-illustration" viewBox="0 0 120 80" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false"><path d="M22 40 C22 22, 48 22, 60 40 C72 58, 98 58, 98 40 C98 22, 72 22, 60 40 C48 58, 22 58, 22 40 Z" fill="none" stroke="#1336a8" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/><rect x="29" y="35" width="12" height="10" rx="2" fill="#1336a8"/><rect x="79" y="35" width="12" height="10" rx="2" fill="#1336a8"/></svg>
                 <h3>Unlimited Sites</h3>
                 <p class="pp-price-detail">No activation cap. Run it everywhere.</p>
-                <div class="pp-price">$1,199<small></small></div>
-                <div class="pp-price-period">per year</div>
+                <div data-billing-show="annual">
+                    <div class="pp-price">$999<small></small></div>
+                    <div class="pp-price-period">per year</div>
+                </div>
+                <div data-billing-show="monthly" hidden>
+                    <div class="pp-price">$129<small></small></div>
+                    <div class="pp-price-period">per month, cancel anytime</div>
+                </div>
                 <ul class="pp-pricing-features">
                     <li>Unlimited site activations</li>
-                    <li>1 year of plugin updates</li>
-                    <li>1 year of email support</li>
-                    <li>7-day free trial, no card required</li>
+                    <li>Plugin updates included</li>
+                    <li>Email support included</li>
+                    <li>Remove &ldquo;Powered by Pipe Pay&rdquo; from your customer payment page</li>
+                    <li data-billing-show="annual">7-day free trial, no card required</li>
+                    <li data-billing-show="monthly" hidden>Cancel anytime in your billing portal</li>
                 </ul>
-                <a class="pp-btn pp-btn--secondary" href="<?php echo esc_url( $trial_intent_unlim ); ?>">Start 7-day trial</a>
-                <a class="pp-btn pp-btn--ghost" href="<?php echo esc_url( $buy_unlim ); ?>">Buy now - skip the trial</a>
+                <a class="pp-btn pp-btn--secondary" data-billing-show="annual" href="<?php echo esc_url( $trial_intent_unlim ); ?>">Start 7-day trial</a>
+                <button type="button" class="pp-btn pp-btn--ghost pp-monthly-cta" data-billing-show="annual" data-price-id="<?php echo esc_attr( $annual_price_unlim ); ?>">Buy now &mdash; $999/yr, auto-renews</button>
+                <p class="pp-cta-skip" data-billing-show="annual"><a href="<?php echo esc_url( $buy_unlim ); ?>">or pay with a payment app (renew manually)</a></p>
+                <button type="button" class="pp-btn pp-btn--secondary pp-monthly-cta" data-billing-show="monthly" data-price-id="<?php echo esc_attr( $monthly_price_unlim ); ?>" hidden>Subscribe monthly &mdash; $129/mo</button>
             </div>
         </div>
-        <p class="pp-pricing-fineprint">Each license includes 1 year of plugin updates and support. Renew annually to keep receiving WooCommerce-compatibility patches, security updates, and support - without renewal, your install falls behind each WP and WC release and eventually needs an update you can no longer get. Cancel anytime before the trial ends and you won't be charged. Once your trial converts to a paid license, all sales are final, no refunds. The 7-day trial is your evaluation window.</p>
+        <p class="pp-pricing-fineprint" data-billing-show="annual">Each annual license includes 1 year of plugin updates and support. Renew annually to keep receiving WooCommerce-compatibility patches, security updates, and support &mdash; without renewal, your install falls behind each WP and WC release and eventually needs an update you can no longer get. Cancel anytime before the trial ends and you won't be charged. Once your trial converts to a paid license, all sales are final, no refunds. The 7-day trial is your evaluation window.</p>
+        <p class="pp-pricing-fineprint" data-billing-show="monthly" hidden>Monthly subscriptions include plugin updates and support for as long as the subscription is active. Cancel anytime in your billing portal &mdash; your license stays active until the end of the current billing period, then expires. Annual saves up to 35% if you're committing to a full year; monthly is best for testing the waters or short-term needs. Monthly charges are non-refundable; cancel before the next billing date to avoid the next charge.</p>
     </div>
+
+    <?php get_template_part( 'partials/billing-toggle-assets' ); ?>
 </section>
 
 <!-- ============== Ship log strip ============== -->
@@ -604,24 +671,24 @@ $changelog_url   = home_url( '/changelog' );
         </div>
         <ul class="pp-shiplog__list">
             <li>
+                <span class="pp-shiplog__date">May 29, 2026</span>
+                <span class="pp-shiplog__ver">v1.9.9</span>
+                <span class="pp-shiplog__note"><strong>Reliability and polish.</strong> Tighter safeguards around order total handling for $0 and refunded orders. Mobile customers tapping &ldquo;Open Venmo&rdquo; on a business profile now get the amount and order number pre-filled, matching what desktop QR-scanners already got. Visual polish on the customer payment page. Recommended update for everyone.</span>
+            </li>
+            <li>
+                <span class="pp-shiplog__date">May 29, 2026</span>
+                <span class="pp-shiplog__ver">v1.9.7</span>
+                <span class="pp-shiplog__note"><strong>Venmo Business: scan-to-pay with order memo.</strong> Venmo Business profiles now show a per-order QR code on the customer payment page. Customers scan with their phone camera and Venmo opens with your handle, the order amount, and the order number pre-filled in the memo field. No more &ldquo;what was the order number again?&rdquo; follow-ups in your DMs. The on-page hint reminds customers to scan with their phone camera, not Venmo&rsquo;s in-app scanner. Personal Venmo profiles keep using the QR you upload yourself in the gateway settings.</span>
+            </li>
+            <li>
+                <span class="pp-shiplog__date">May 29, 2026</span>
+                <span class="pp-shiplog__ver">v1.9.6</span>
+                <span class="pp-shiplog__note"><strong>Instant activation for $0 orders.</strong> Free trial signups and any other zero-dollar orders (coupon-comped, 100%-off promos) now complete on the spot. The customer gets the standard order confirmation right away - no screenshot upload step, no waiting room, no proof-of-payment review for orders where nothing is owed. Paid orders continue through the normal payment-verification path unchanged.</span>
+            </li>
+            <li>
                 <span class="pp-shiplog__date">May 8, 2026</span>
                 <span class="pp-shiplog__ver">v1.7.4</span>
                 <span class="pp-shiplog__note"><strong>Handle-only payment mode.</strong> Methods can now be configured with just a payment handle, no QR code upload required. The customer payment page renders a clean &ldquo;Open Venmo&rdquo; / &ldquo;Open Cash App&rdquo; / &ldquo;Open PayPal&rdquo; deep-link callout for these methods. Zelle gets a tailored bank-app instruction since Zelle has no universal deep link. A yellow admin notice on the gateway settings page suggests adding a QR for any method that doesn&rsquo;t have one, with a one-click hide-for-30-days option for merchants who prefer handle-only.</span>
-            </li>
-            <li>
-                <span class="pp-shiplog__date">May 8, 2026</span>
-                <span class="pp-shiplog__ver">v1.7.0</span>
-                <span class="pp-shiplog__note"><strong>License integrity + Awaiting Approval status.</strong> Stronger verification of license-server responses (no customer-visible behavior change). Manual-review orders now land in a dedicated &ldquo;Awaiting Approval&rdquo; status instead of generic on-hold, so the orders list immediately tells you which orders need your decision. Dedicated review-pending customer email with copy that matches the actual state.</span>
-            </li>
-            <li>
-                <span class="pp-shiplog__date">May 7, 2026</span>
-                <span class="pp-shiplog__ver">v1.6.5</span>
-                <span class="pp-shiplog__note"><strong>Reliability and hardening.</strong> Continued security and reliability improvements throughout the upload, license activation, and image-handling flows. PHP 8.0 minimum (stores on PHP 7.4 see an admin notice and remain inactive until upgraded). Recommended update for everyone.</span>
-            </li>
-            <li>
-                <span class="pp-shiplog__date">May 4, 2026</span>
-                <span class="pp-shiplog__ver">v1.6.0</span>
-                <span class="pp-shiplog__note"><strong>One-field license activation.</strong> Activate with just your license key - no product ID lookup. Tier upgrades (trial &rarr; paid, single &rarr; unlimited) flow seamlessly without re-installing the plugin.</span>
             </li>
         </ul>
     </div>
@@ -671,7 +738,7 @@ $changelog_url   = home_url( '/changelog' );
             Pipe Pay is an independent software tool for WooCommerce merchants. We are not affiliated with, endorsed by, or sponsored by Cash App, Block Inc., Zelle, Early Warning Services, Venmo, PayPal Holdings, Chime, or any payment service mentioned on this site. All product names, logos, and brands referenced are property of their respective owners and are used for identification purposes only.
         </p>
         <div class="pp-footer-ledger">
-            <strong>&copy; <?php echo esc_html( wp_date( 'Y' ) ); ?> Pipe Pay</strong>
+            <strong>&copy; <?php echo esc_html( wp_date( 'Y' ) ); ?> Silver Bazaar, LLC</strong>
             <span class="pp-footer-ledger__sep">/</span>
             <span>Independent software</span>
             <span class="pp-footer-ledger__sep">/</span>

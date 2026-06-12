@@ -7,7 +7,7 @@
 if ( ! defined( 'ABSPATH' ) ) { exit; }
 get_header();
 
-$contact_email = 'wittscafidi@gmail.com';
+$contact_email = 'support@pipepay.app';
 $mail_subject  = rawurlencode( 'Pipe Pay - ' );
 ?>
 
@@ -15,7 +15,7 @@ $mail_subject  = rawurlencode( 'Pipe Pay - ' );
     <div class="pp-container">
         <span class="pp-page-hero__kicker">Contact</span>
         <h1 class="pp-page-title">Get in touch.</h1>
-        <p class="pp-page-hero__sub">Pipe Pay is built and supported by one person. The fastest way to reach me is email. I read everything; expect a reply within one business day.</p>
+        <p class="pp-page-hero__sub">Pipe Pay is supported directly by the team behind it. The fastest way to reach us is email. We read everything; expect a reply within one business day.</p>
     </div>
 </section>
 
@@ -32,11 +32,11 @@ $mail_subject  = rawurlencode( 'Pipe Pay - ' );
         <div class="pp-contact-grid">
             <article class="pp-contact-block">
                 <h3>Pre-sales questions</h3>
-                <p>Wondering whether Pipe Pay fits your store? Tell me what you sell, which P2P methods you already accept, and roughly your daily order volume. I will tell you honestly whether it is a fit.</p>
+                <p>Wondering whether Pipe Pay fits your store? Tell us what you sell, which P2P methods you already accept, and roughly your daily order volume. We will tell you honestly whether it is a fit.</p>
             </article>
             <article class="pp-contact-block">
                 <h3>Trial &amp; license help</h3>
-                <p>Stuck on activation, license key, or wiring up an AI provider in Pipe Pay's settings? Email me with your store URL and the version of Pipe Pay you are running.</p>
+                <p>Stuck on activation, license key, or wiring up an AI provider in Pipe Pay's settings? Email us with your store URL and the version of Pipe Pay you are running.</p>
             </article>
             <article class="pp-contact-block">
                 <h3>Bug reports</h3>
@@ -44,7 +44,7 @@ $mail_subject  = rawurlencode( 'Pipe Pay - ' );
             </article>
             <article class="pp-contact-block">
                 <h3>Feature requests</h3>
-                <p>I am happy to hear them. I cannot promise to ship every request, and I will tell you so. The roadmap is short by design.</p>
+                <p>We are happy to hear them. We cannot promise to ship every request, and we will tell you so. The roadmap is short by design.</p>
             </article>
         </div>
 
@@ -54,7 +54,7 @@ $mail_subject  = rawurlencode( 'Pipe Pay - ' );
         </div>
 
         <div class="pp-contact-fineprint">
-            <p>For everything else, including legal, partnership, and security disclosure, please email and use a clear subject line. There is no on-call phone line; this is a small operation.</p>
+            <p>For everything else, including legal, partnership, and security disclosure, please email and use a clear subject line. There is no on-call phone line; this is a small team and we triage by inbox.</p>
         </div>
     </div>
 </section>

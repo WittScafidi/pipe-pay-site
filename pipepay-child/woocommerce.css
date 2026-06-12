@@ -51,6 +51,26 @@ body.woocommerce-page main .pp-container { max-width: 1140px; }
 body.woocommerce-checkout .pp-page-hero { padding-bottom: clamp(20px, 2vw, 32px); }
 body.woocommerce-checkout main .pp-checkout-page { padding-top: 16px; }
 
+/* Consent line under the WC checkout block on /checkout. Surfaces the
+ * Terms, Privacy, and Refund Policy links per the launch legal-pages
+ * spec. Discreet typography (small, muted) so it reads as required
+ * legal-fine-print rather than a primary CTA. */
+.pp-checkout-consent {
+    max-width: 720px;
+    margin: 32px auto 0;
+    text-align: center;
+    font-size: 13px;
+    line-height: 1.6;
+    color: var(--pp-text-muted);
+}
+.pp-checkout-consent a {
+    color: var(--pp-blue);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+    text-decoration-thickness: 1px;
+}
+.pp-checkout-consent a:hover { color: var(--pp-blue-dark); }
+
 /* WooCommerce buttons - match Pipe Pay button system */
 .woocommerce a.button,
 .woocommerce-page a.button,
@@ -262,7 +282,11 @@ body.woocommerce-checkout main .pp-checkout-page { padding-top: 16px; }
     font-size: 17px;
     font-weight: 700;
     color: var(--pp-text);
-    font-family: var(--pp-font-mono);
+    /* Sans-serif so "$1,199.00" renders tight. Geist Mono allocates a
+     * fixed-width cell for the comma and period, producing visible
+     * whitespace around each. proportional-nums in Manrope reads cleanly. */
+    font-family: var(--pp-font-sans);
+    font-variant-numeric: proportional-nums;
 }
 .woocommerce table.shop_table .product-name a {
     color: var(--pp-text);
@@ -274,8 +298,9 @@ body.woocommerce-checkout main .pp-checkout-page { padding-top: 16px; }
 .woocommerce table.shop_table .product-subtotal,
 .woocommerce table.shop_table .product-total,
 .woocommerce table.shop_table .order-total {
-    font-family: var(--pp-font-mono);
-    font-variant-numeric: tabular-nums;
+    /* Sans-serif for cart/order line-item amounts. See note above. */
+    font-family: var(--pp-font-sans);
+    font-variant-numeric: proportional-nums;
     font-weight: 600;
     color: var(--pp-text);
 }
@@ -321,8 +346,28 @@ body.woocommerce-checkout main .pp-checkout-page { padding-top: 16px; }
     color: var(--pp-text);
 }
 
-/* Single product page */
-.woocommerce div.product .product_title {
+/* Single product page.
+ * Hide WC's default product_title and 2-column gallery+summary layout.
+ * Our page hero already renders the product name, so showing it again
+ * inside the product body is redundant. The gallery column is hidden
+ * elsewhere because we have no product images yet; without removing the
+ * residual 2-column grid the summary stays trapped in a 48% column and
+ * the left half of the page renders empty. Force a single-column flow
+ * so the summary (price + add-to-cart + meta) spans the full width. */
+.woocommerce div.product .product_title { display: none; }
+.woocommerce div.product { display: block !important; }
+.woocommerce div.product .summary,
+.woocommerce div.product div.summary {
+    width: 100% !important;
+    float: none !important;
+    margin: 0 !important;
+}
+/* WC's "Category: Uncategorized" line is admin-leak — hide until products
+ * are properly categorized. Same for the SKU and tags lines. */
+.woocommerce div.product .product_meta .posted_in,
+.woocommerce div.product .product_meta .sku_wrapper,
+.woocommerce div.product .product_meta .tagged_as { display: none; }
+.woocommerce div.product .product_title--legacy-hero {
     font-size: clamp(28px, 3.6vw, 40px);
     font-weight: 700;
     letter-spacing: -0.02em;
@@ -332,8 +377,9 @@ body.woocommerce-checkout main .pp-checkout-page { padding-top: 16px; }
 }
 .woocommerce div.product p.price,
 .woocommerce div.product span.price {
-    font-family: var(--pp-font-mono);
-    font-variant-numeric: tabular-nums;
+    /* Sans-serif for the single-product page price display. */
+    font-family: var(--pp-font-sans);
+    font-variant-numeric: proportional-nums;
     font-size: 32px;
     font-weight: 700;
     color: var(--pp-blue);
@@ -411,8 +457,9 @@ body.woocommerce-checkout main .pp-checkout-page { padding-top: 16px; }
     letter-spacing: -0.012em;
 }
 .woocommerce ul.products li.product .price {
-    font-family: var(--pp-font-mono);
-    font-variant-numeric: tabular-nums;
+    /* Sans-serif for the shop catalog card price. */
+    font-family: var(--pp-font-sans);
+    font-variant-numeric: proportional-nums;
     font-size: 22px;
     font-weight: 700;
     color: var(--pp-blue);
@@ -750,30 +797,104 @@ body.woocommerce-account .woocommerce > .u-columns {
     min-height: 0 !important;
 }
 
-/* Address book (dashboard "Billing/Shipping address" cards) */
+/* Address book (/my-account/edit-address/ — billing/shipping address cards).
+ *
+ * Two fixes the previous CSS was missing:
+ *
+ * 1) Title row: WC outputs `<header class="woocommerce-Address-title">
+ *    <h3>Billing address</h3><a class="edit">Edit Billing address</a>
+ *    </header>`. With `justify-content: space-between` but no flex sizing
+ *    and no gap, the title and the edit link each wrapped onto two lines
+ *    independently ("Billing | Edit Billing / address | address"). The
+ *    h3 now takes the remaining space; the edit link stays single-line
+ *    by sizing to its content and aligning to the right.
+ *
+ * 2) Card layout: WC wraps each address in a floated `.u-column1` /
+ *    `.u-column2` div (`float: left; width: 47%`). Our grid was set on
+ *    `.woocommerce-Addresses` but the floats inside still controlled
+ *    placement, throwing the cards into broken positions. The reset
+ *    below restores them as grid items. */
 .woocommerce-account .woocommerce-Addresses {
     display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 20px;
+    grid-template-columns: 1fr;
+    gap: 16px;
+    max-width: 640px;
     margin-bottom: 24px;
+}
+.woocommerce-account .woocommerce-Addresses .u-column1,
+.woocommerce-account .woocommerce-Addresses .u-column2,
+.woocommerce-account .woocommerce-Addresses .col-1,
+.woocommerce-account .woocommerce-Addresses .col-2 {
+    /* Neutralize WC's float-based column system. Even though we're stacked
+     * single-column now, the floats still need killing or WC's default
+     * `width: 47%; float: left` collapses each card to half-width. The
+     * `!important` is unavoidable because WC's base stylesheet wins
+     * specificity on `.col2-set .u-column1`-style selectors. */
+    float: none !important;
+    width: 100% !important;
+    min-width: 0;
+    margin: 0;
 }
 .woocommerce-account .woocommerce-Address {
     background: var(--pp-bg-alt);
     border: 1px solid var(--pp-border);
     border-radius: var(--pp-radius-lg);
     padding: 20px 22px;
+    min-width: 0;
 }
-.woocommerce-account .woocommerce-Address-title { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 12px; }
+.woocommerce-account .woocommerce-Address-title {
+    display: flex;
+    align-items: baseline;
+    /* margin-left: auto on .edit (below) pushes it to the right edge, so
+     * the H2 sits flush left and the edit link sits flush right with
+     * whatever space is between. No `justify-content: space-between`
+     * needed; no `gap` either — see below. */
+    justify-content: flex-start;
+    /* CRITICAL: gap MUST be 0 here. WC's PHP template puts whitespace
+     * (tabs, newlines) directly inside the <header>, between the <h2>
+     * and the <a class="edit">. Per the Flexbox spec, those whitespace
+     * runs become anonymous flex items. With any non-zero `gap`, Chrome
+     * adds the gap BETWEEN the leading whitespace anonymous item and
+     * the H2 — which is what showed up as a phantom left-indent on the
+     * "Billing address" / "Shipping address" titles. Confirmed via
+     * DevTools: offsetLeft = headerLeft + gap, exactly. */
+    gap: 0;
+    margin: 0 0 12px;
+    padding: 0;
+    flex-wrap: nowrap;
+}
 .woocommerce-account .woocommerce-Address-title h2,
-.woocommerce-account .woocommerce-Address-title h3 { margin: 0; font-size: 16px; font-weight: 600; }
+.woocommerce-account .woocommerce-Address-title h3 {
+    margin: 0;
+    padding: 0;
+    text-indent: 0;
+    font-size: 16px;
+    font-weight: 600;
+    flex: 0 1 auto;
+    min-width: 0;
+    text-align: left;
+}
+.woocommerce-account .woocommerce-Address-title .edit {
+    /* Sized to content, single-line, pushed to the right edge by auto
+     * left margin (rather than relying on space-between on the parent). */
+    flex: 0 0 auto;
+    margin-left: auto;
+    white-space: nowrap;
+    font-size: 13px;
+    font-weight: 500;
+}
 .woocommerce-account .woocommerce-Address address {
     font-style: normal;
     color: var(--pp-text-muted);
     line-height: 1.6;
     font-size: 14px;
+    margin: 0;
 }
+/* Mobile rule no longer needed — the layout is already single-column.
+ * Just remove the max-width cap on mobile so cards span the full content
+ * area at narrow widths. */
 @media (max-width: 720px) {
-    .woocommerce-account .woocommerce-Addresses { grid-template-columns: 1fr; }
+    .woocommerce-account .woocommerce-Addresses { max-width: none; }
 }
 
 /* Single-order detail view (after clicking "View" on an order row) */
@@ -881,7 +1002,20 @@ p.demo_store { display: none !important; }
     font-variant-numeric: tabular-nums;
 }
 
-/* Order received page (post-purchase confirmation) */
+/* Order received page (post-purchase confirmation).
+ *
+ * Layout history: grid with `repeat(auto-fit, minmax(N, 1fr))` collapsed
+ * the row whenever email needed >1 track and the container couldn't
+ * hold N + 1 tracks at the minmax floor (Total wrapped to row 2). Switched
+ * to flexbox so cells get a proportional share of the actual container
+ * width rather than fighting a fixed track minimum. Email gets `flex: 2`,
+ * everything else `flex: 1` — at any non-mobile container width the
+ * email cell ends up ~2× as wide as Order/Date/Total, which is enough
+ * for any reasonable address without wrap.
+ *
+ * Stays single-row down to the mobile breakpoint at the bottom of this
+ * file (max-width: 760px), where each `<li>` flips to full-width with
+ * a bottom-border separator instead of a right-border. */
 .woocommerce ul.order_details {
     background: var(--pp-bg-alt);
     border: 1px solid var(--pp-border);
@@ -889,9 +1023,12 @@ p.demo_store { display: none !important; }
     padding: 20px 24px;
     margin: 0 0 24px;
     list-style: none;
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    display: flex;
+    flex-wrap: wrap;
     gap: 16px;
+}
+.woocommerce ul.order_details li.woocommerce-order-overview__email {
+    flex: 2 1 0;
 }
 .woocommerce ul.order_details li {
     border-right: 1px solid var(--pp-border);
@@ -901,6 +1038,12 @@ p.demo_store { display: none !important; }
     color: var(--pp-text-muted);
     text-transform: uppercase;
     letter-spacing: 0.08em;
+    /* Flexbox children default to `min-width: auto` (= intrinsic min-content
+     * = the longest unbreakable word). Without `min-width: 0` the email
+     * cell would refuse to shrink below the literal email width and push
+     * neighbors out. With it, `flex: 1` actually distributes proportionally. */
+    flex: 1 1 0;
+    min-width: 0;
 }
 .woocommerce ul.order_details li:last-child { border-right: 0; }
 .woocommerce ul.order_details li strong {
@@ -912,7 +1055,24 @@ p.demo_store { display: none !important; }
     text-transform: none;
     letter-spacing: 0;
     margin-top: 4px;
+    overflow-wrap: anywhere;
 }
+
+/* Order-received page: the WCAM "Related licenses" h2 sits inside a
+ * bare <header> wrapper and collapses tighter against its sibling
+ * table than WC core's "Downloads" h2 does.
+ *
+ * Important: the margin must go on the <header> itself, not on the
+ * h2 inside. Margin on the h2 collapses into the header (since the
+ * header has no padding/border) so the actual gap between the
+ * header element and its sibling table is unchanged. Targeting the
+ * header element directly works because the table is the header's
+ * NEXT SIBLING, not a child.
+ *
+ * Leaves font-size, weight, color, and inter-section spacing
+ * untouched — each plugin's stylesheet is the source of truth for
+ * its own heading typography; we only equalize the gap below. */
+.woocommerce-order header { margin-bottom: 1.25em; }
 
 /* ============== WooCommerce Block Checkout (Gutenberg) ============== */
 
@@ -951,13 +1111,12 @@ a.wc-block-components-button.outlined {
     color: var(--pp-blue) !important;
 }
 
-/* Block checkout order summary: hide tiny image thumbs (we have no product images) */
-.wc-block-components-order-summary-item__image,
-.wc-block-components-order-summary .wc-block-components-product-image,
-.wc-block-cart-item__image,
-.wc-block-components-order-summary-item img { display: none !important; }
-.wc-block-components-order-summary-item__description,
-.wc-block-components-order-summary-item__quantity { padding-left: 0; }
+/* Block checkout order summary: thumbnails are shown by default (license-card
+ * SVGs were added 2026-05-29). The prior version of this rule force-hid them
+ * with `display: none !important` because the products had no images; the
+ * sibling rule that zeroed `padding-left` on the description/quantity columns
+ * was the visual fallback for that hidden state. Both are removed now that
+ * the images render correctly. */
 
 /* Block checkout order summary container.
  * We used to add `border-top` on .wc-block-components-totals-wrapper, but
@@ -967,8 +1126,10 @@ a.wc-block-components-button.outlined {
 .wc-block-components-totals-item__label { font-weight: 500; color: var(--pp-text-muted); }
 .wc-block-components-totals-item__value,
 .wc-block-formatted-money-amount {
-    font-family: var(--pp-font-mono);
-    font-variant-numeric: tabular-nums;
+    /* Sans-serif for Block Checkout totals/amounts. Same rationale as
+     * the marketing price cards above — tight comma + period rendering. */
+    font-family: var(--pp-font-sans);
+    font-variant-numeric: proportional-nums;
     color: var(--pp-text);
 }
 
@@ -1074,9 +1235,15 @@ h2.wc-block-components-title {
     .woocommerce div.product form.cart { flex-direction: column; align-items: stretch; }
     .woocommerce div.product form.cart .button { max-width: none; }
     .woocommerce ul.order_details {
-        grid-template-columns: 1fr;
+        flex-direction: column;
     }
-    .woocommerce ul.order_details li { border-right: 0; border-bottom: 1px solid var(--pp-border); padding: 0 0 12px; }
+    .woocommerce ul.order_details li,
+    .woocommerce ul.order_details li.woocommerce-order-overview__email {
+        flex: 1 1 auto;
+        border-right: 0;
+        border-bottom: 1px solid var(--pp-border);
+        padding: 0 0 12px;
+    }
 }
 
 /* iOS Safari zooms the page in when a text input is focused if that input's
@@ -1109,3 +1276,177 @@ body.is-front-page .site-header,
 body.is-front-page .site-footer,
 body.is-front-page #masthead,
 body.is-front-page #colophon { display: none !important; }
+
+/* ============================================================
+ * Empty-cart "New in store" cross-sell product grid.
+ *
+ * The /cart page renders through theme's page.php (the default
+ * template), whose pp-prose--legal wrapper used to suppress the
+ * product images via display:none and didn't apply any product-
+ * card styling. Combined with WC's default block-button rendering
+ * (dark-gray pill background + Pipe Pay blue text inherited from
+ * the cart's link color) the section read as "broken UI" rather
+ * than a real product cross-sell.
+ *
+ * Restyle as proper Pipe Pay product cards: white card with
+ * 1px border, brand-blue Add-to-cart buttons, restored images,
+ * mono-numeric price, hover lift. The page.php template was also
+ * updated alongside this to skip pp-prose--legal for non-legal
+ * slugs (cart/checkout) so this CSS doesn't have to fight the
+ * legal-doc styling.
+ * ============================================================ */
+
+/* Restore product images that the prose wrapper / WC block styles hid. */
+.wp-block-woocommerce-empty-cart-block .wc-block-grid__product-image {
+    display: block !important;
+    max-width: 120px;
+    /* !important on margin-auto: WC ships a higher-specificity rule
+     * (.wc-block-grid__product .wc-block-grid__product-image-title with
+     * margin: 0 0 12px) that resolves the auto margins to 0, leaving the
+     * image left-aligned in the centered card. Forcing the auto wins. */
+    margin: 0 auto 12px !important;
+}
+.wp-block-woocommerce-empty-cart-block .wc-block-grid__product-image img {
+    display: block !important;
+    width: 100% !important;
+    height: auto !important;
+    max-width: 100%;
+}
+
+/* Grid: auto-fit responsive columns capped to ~3 across at typical widths. */
+.wp-block-woocommerce-empty-cart-block .wc-block-grid__products {
+    list-style: none !important;
+    padding: 0;
+    margin: 32px auto 0;
+    max-width: 920px;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 20px;
+}
+
+/* Card */
+.wp-block-woocommerce-empty-cart-block .wc-block-grid__product {
+    background: #fff;
+    border: 1px solid var(--pp-border);
+    border-radius: var(--pp-radius-lg);
+    padding: 24px 20px 20px;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    margin: 0;
+    list-style: none !important;
+    transition: border-color 160ms ease, box-shadow 160ms ease;
+    /* Override WC has-4-columns flex rule (.has-4-columns .wc-block-grid__product
+     * { flex: 1 0 25%; max-width: 25%; }) which would otherwise squish each LI
+     * to 25% of its 293px grid track = ~73px. With grid layout the children
+     * should fill their grid cell. */
+    flex: none !important;
+    flex-basis: auto !important;
+    width: auto !important;
+    max-width: none !important;
+}
+.wp-block-woocommerce-empty-cart-block .wc-block-grid__product:hover {
+    border-color: var(--pp-border-strong);
+    box-shadow: 0 4px 12px rgba(15, 23, 42, 0.06);
+}
+.wp-block-woocommerce-empty-cart-block .wc-block-grid__product::before { display: none; }
+
+.wp-block-woocommerce-empty-cart-block .wc-block-grid__product-link {
+    display: block;
+    text-decoration: none !important;
+    color: inherit !important;
+}
+
+.wp-block-woocommerce-empty-cart-block .wc-block-grid__product-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--pp-text) !important;
+    text-decoration: none !important;
+    margin: 0 0 10px;
+    line-height: 1.3;
+}
+
+.wp-block-woocommerce-empty-cart-block .wc-block-grid__product-price {
+    font-family: var(--pp-font-mono);
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--pp-blue);
+    margin: 0 0 16px;
+    display: block;
+}
+.wp-block-woocommerce-empty-cart-block .wc-block-grid__product-price ins,
+.wp-block-woocommerce-empty-cart-block .wc-block-grid__product-price .woocommerce-Price-amount {
+    text-decoration: none;
+    color: inherit;
+    background: transparent;
+}
+
+.wp-block-woocommerce-empty-cart-block .wc-block-grid__product-add-to-cart {
+    margin-top: auto;
+}
+
+/* Add to cart button — solid Pipe Pay blue, white text. Replaces the
+ * default dark-gray pill that WC blocks ship with. Wide selector list
+ * because the same button surfaces under several different WC / Gutenberg
+ * theme class permutations. */
+.wp-block-woocommerce-empty-cart-block .wc-block-grid__product-add-to-cart .wp-block-button__link,
+.wp-block-woocommerce-empty-cart-block .wc-block-grid__product-add-to-cart .wp-element-button,
+.wp-block-woocommerce-empty-cart-block .add_to_cart_button,
+.wp-block-woocommerce-empty-cart-block a.add_to_cart_button,
+.wp-block-woocommerce-empty-cart-block .ajax_add_to_cart {
+    background: var(--pp-blue) !important;
+    background-color: var(--pp-blue) !important;
+    background-image: none !important;
+    color: #ffffff !important;
+    border: 1px solid var(--pp-blue) !important;
+    border-radius: var(--pp-radius) !important;
+    padding: 10px 22px !important;
+    font-size: 14px !important;
+    font-weight: 600 !important;
+    line-height: 1.2 !important;
+    text-decoration: none !important;
+    box-shadow: none !important;
+    text-shadow: none !important;
+    display: inline-block;
+    transition: background 140ms ease, border-color 140ms ease, filter 140ms ease;
+}
+.wp-block-woocommerce-empty-cart-block .wc-block-grid__product-add-to-cart .wp-block-button__link:hover,
+.wp-block-woocommerce-empty-cart-block .wc-block-grid__product-add-to-cart .wp-element-button:hover,
+.wp-block-woocommerce-empty-cart-block .add_to_cart_button:hover,
+.wp-block-woocommerce-empty-cart-block a.add_to_cart_button:hover,
+.wp-block-woocommerce-empty-cart-block .ajax_add_to_cart:hover {
+    background: var(--pp-blue-dark) !important;
+    background-color: var(--pp-blue-dark) !important;
+    border-color: var(--pp-blue-dark) !important;
+    color: #ffffff !important;
+}
+
+/* "New in store" heading */
+.wp-block-woocommerce-empty-cart-block h2.wp-block-heading,
+.wp-block-woocommerce-empty-cart-block h3.wp-block-heading {
+    text-align: center;
+    margin: 48px 0 24px;
+    font-size: clamp(20px, 2.4vw, 26px);
+    font-weight: 600;
+    color: var(--pp-text);
+}
+
+/* Empty-cart sad-face icon + "Your cart is currently empty!" line */
+.wp-block-woocommerce-empty-cart-block .wc-block-cart__empty-cart__title,
+.wp-block-woocommerce-empty-cart-block h2.wc-block-cart__empty-cart__title {
+    text-align: center;
+    font-size: clamp(18px, 2vw, 22px);
+    font-weight: 600;
+    margin: 16px auto 24px;
+    color: var(--pp-text);
+}
+
+/* "Save payment information to my account" checkbox under the Stripe card fields:
+   renders flush against the card form — give it breathing room. The checkout is the
+   BLOCK checkout, so the checkbox is WC Blocks core's save-card-info component
+   (rendered client-side by React); the classic-checkout selector
+   (.wc-stripe-save-source) is kept as a fallback in case the checkout type changes. */
+.wc-block-components-payment-methods__save-card-info,
+.wc-stripe-save-source {
+    margin-top: 20px !important;
+}
