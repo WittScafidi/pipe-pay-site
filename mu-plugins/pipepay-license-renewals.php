@@ -208,9 +208,14 @@ function pipepay_renewal_route_handler(): void {
 
     // Tier override (?tier=NN). Used by the Stage 4 picker for trial signups
     // without intent. Allow-list ensures only valid paid tiers can be selected.
+    // PAID renewals ignore overrides that differ from the license's own tier:
+    // the completion hook always extends the ORIGINAL license, so accepting a
+    // cheaper tier here would extend a 5-Sites license at the Single-Site
+    // price. Trials may pick any tier (that purchase is a NEW license).
     if ( $tier_override_raw && in_array( $tier_override_raw, PIPEPAY_RENEWAL_TIER_PRODUCT_IDS, true ) ) {
-        // Pass renewal-for-license only when this is a paid-tier renewal -
-        // trial->paid is a NEW license, not an extension of the trial.
+        if ( ! $is_trial && $tier_override_raw !== $license_product_id ) {
+            $tier_override_raw = $license_product_id;
+        }
         pipepay_renewal_redirect_to_checkout( $tier_override_raw, $is_trial ? '' : $key );
         return;
     }
@@ -349,6 +354,7 @@ function pipepay_renewal_render_tier_picker( string $key, string $token ): void 
                             <?php endforeach; ?>
                         </ul>
                         <a class="<?php echo esc_attr( $btn_class ); ?>" href="<?php echo esc_url( $continue_url ); ?>">Continue with <?php echo esc_html( $t['title'] ); ?></a>
+                        <p class="pp-cta-skip"><a href="<?php echo esc_url( home_url( '/pricing/' ) ); ?>">or pay by card with auto-renewal &rarr;</a></p>
                     </div>
                     <?php
                 }
@@ -489,7 +495,11 @@ function pipepay_license_cadence_run(): void {
         // meta pointing at the rows it manages; skip those while the sub is active.
         $stripe_backed_row = (int) get_user_meta( (int) $lic['user_id'], '_pipepay_stripe_api_resource_id_' . (int) $lic['product_id'], true );
         if ( $stripe_backed_row === (int) $lic['api_resource_id']
-            && 'active' === get_user_meta( (int) $lic['user_id'], '_pipepay_stripe_subscription_status', true ) ) {
+            && 'active' === get_user_meta( (int) $lic['user_id'], '_pipepay_stripe_subscription_status', true )
+            // Belt-and-braces vs a lost cancellation webhook: only trust the
+            // 'active' status while the last-known paid period is current
+            // (one day of slack for renewal-webhook timing).
+            && (int) get_user_meta( (int) $lic['user_id'], '_pipepay_stripe_period_end', true ) > ( $now - DAY_IN_SECONDS ) ) {
             continue;
         }
 
@@ -662,7 +672,7 @@ function pipepay_renewal_extend( $order_id ): void {
 
     $table = $wpdb->prefix . 'wc_am_api_resource';
     $row   = $wpdb->get_row( $wpdb->prepare(
-        "SELECT api_resource_id, access_expires FROM {$table} WHERE master_api_key = %s ORDER BY api_resource_id ASC LIMIT 1",
+        "SELECT api_resource_id, access_expires, order_id FROM {$table} WHERE master_api_key = %s ORDER BY api_resource_id ASC LIMIT 1",
         $license_key
     ) );
 
@@ -690,6 +700,17 @@ function pipepay_renewal_extend( $order_id ): void {
 
     $order->update_meta_data( '_pipepay_renewal_extended', gmdate( 'c' ) );
     $order->update_meta_data( '_pipepay_renewal_resource_id', (int) $row->api_resource_id );
+    // Pre-extension expiry, so a refund of this renewal order can reverse the
+    // extension (see pipepay_renewal_reverse_on_refund below).
+    $order->update_meta_data( '_pipepay_renewal_original_expires', (int) $row->access_expires );
+
+    // Year-1 cadence stamps live on the ORIGINAL license order and would
+    // otherwise suppress every year-2 reminder forever. Fresh year, fresh
+    // cadence.
+    foreach ( PIPEPAY_CADENCE_STAGES as $stage ) {
+        delete_post_meta( (int) $row->order_id, $stage['stamp'] );
+        delete_post_meta( (int) $row->order_id, $stage['stamp'] . '_fails' );
+    }
     $order->add_order_note( sprintf(
         'Pipe Pay renewal: extended license ...%s to %s (+365 days, same key).',
         substr( $license_key, -4 ),
@@ -722,13 +743,61 @@ function pipepay_renewal_cleanup_duplicate( $order_id ): void {
     // renewal order shares the original license's key, so the only safe filter is
     // the row id. The original row is keyed to its own (old) order and can never
     // match order_id = this renewal order; the exclusion is belt-and-braces.
+    $renewed_product_id = 0;
+    foreach ( $order->get_items() as $item ) {
+        $renewed_product_id = (int) $item->get_product_id();
+        break;
+    }
+
     $table   = $wpdb->prefix . 'wc_am_api_resource';
     $deleted = $wpdb->query( $wpdb->prepare(
-        "DELETE FROM {$table} WHERE order_id = %d AND api_resource_id != %d",
+        "DELETE FROM {$table} WHERE order_id = %d AND api_resource_id != %d AND product_id = %d",
         $order_id,
-        $original_resource_id
+        $original_resource_id,
+        $renewed_product_id
     ) );
     if ( $deleted ) {
         $order->add_order_note( "Pipe Pay renewal: removed $deleted duplicate license key(s) minted for this renewal order." );
     }
+}
+
+// ── Refund reversal (2026-06-12 review finding) ──────────────────────────────
+// A full refund of a renewal order must take back the +365-day extension.
+// Without this, the cleanup hook above has already removed the row WCAM's own
+// refund handler would have acted on, so the customer keeps the extended year
+// after getting their money back.
+
+add_action( 'woocommerce_order_status_refunded', 'pipepay_renewal_reverse_on_refund', 20 );
+
+function pipepay_renewal_reverse_on_refund( $order_id ): void {
+    global $wpdb;
+
+    $order = wc_get_order( $order_id );
+    if ( ! $order ) {
+        return;
+    }
+    $stamp = (string) $order->get_meta( '_pipepay_renewal_extended' );
+    if ( '' === $stamp || 'orphan' === $stamp || $order->get_meta( '_pipepay_renewal_reversed' ) ) {
+        return;
+    }
+    $resource_id      = (int) $order->get_meta( '_pipepay_renewal_resource_id' );
+    $original_expires = (int) $order->get_meta( '_pipepay_renewal_original_expires' );
+    if ( ! $resource_id || ! $original_expires ) {
+        return;
+    }
+
+    $wpdb->update(
+        $wpdb->prefix . 'wc_am_api_resource',
+        [ 'access_expires' => $original_expires ],
+        [ 'api_resource_id' => $resource_id ],
+        [ '%d' ],
+        [ '%d' ]
+    );
+
+    $order->update_meta_data( '_pipepay_renewal_reversed', gmdate( 'c' ) );
+    $order->add_order_note( sprintf(
+        'Pipe Pay renewal refund: extension reversed - license expiry restored to %s.',
+        gmdate( 'Y-m-d', $original_expires )
+    ) );
+    $order->save();
 }

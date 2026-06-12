@@ -30,6 +30,8 @@ if ( $plain_text ) :
     echo "If it lapses, auto-updates and support pause right away, and 30 days\n";
     echo "after expiry the gateway stops accepting new orders on your store\n";
     echo "until you renew. Renewing at any point restores everything.\n\n";
+    echo "Prefer a card? Auto-renewing card billing is available at\n";
+    echo "https://pipepay.app/pricing/ - pick your tier and use the Buy now button.\n\n";
     echo "Questions? Reply to this email or contact support@pipepay.app.\n\n";
     echo "- Pipe Pay\n";
     return;
@@ -44,6 +46,7 @@ pp_email_paragraph(
 pp_email_button( $renewal_url, 'Renew now &rarr;' );
 pp_email_paragraph( 'Your details are pre-filled — renewal takes about 30 seconds.' );
 pp_email_paragraph( 'If it lapses, auto-updates and support pause right away &mdash; and <strong>30 days after expiry, the gateway stops accepting new orders</strong> on your store until you renew. Renewing at any point restores everything.' );
+pp_email_paragraph( 'Prefer a card? <a href=\"https://pipepay.app/pricing/\" style=\"color:' . esc_attr( pp_email_brand_color() ) . ';text-decoration:underline;\">Auto-renewing card billing is available on the pricing page</a> &mdash; pick your tier and use the Buy now button.' );
 pp_email_signoff();
 
 if ( ! empty( $additional_content ) ) {

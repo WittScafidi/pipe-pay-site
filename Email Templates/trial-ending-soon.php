@@ -40,6 +40,8 @@ if ( $plain_text ) :
     echo "orders for a 30-day grace period, then stops offering Pipe Pay at\n";
     echo "checkout until you pick a paid tier. Updates and support pause as\n";
     echo "soon as the trial ends.\n\n";
+    echo "Prefer a card? Auto-renewing card billing is available at\n";
+    echo "https://pipepay.app/pricing/ - pick your tier and use the Buy now button.\n\n";
     echo "Questions? Reply to this email or contact support@pipepay.app.\n\n";
     echo "- Pipe Pay\n";
     return;
@@ -54,6 +56,7 @@ pp_email_paragraph(
 pp_email_button( $renewal_url, 'Pick a tier &rarr;' );
 pp_email_paragraph( 'No card required to start — you\'ll only be charged after you confirm. Your details are pre-filled so renewal takes about 30 seconds.' );
 pp_email_paragraph( 'If the trial ends without an upgrade, the gateway keeps accepting orders for a 30-day grace period, then stops offering Pipe Pay at checkout until you pick a paid tier. Auto-updates and support pause as soon as the trial ends.' );
+pp_email_paragraph( 'Prefer a card? <a href=\"https://pipepay.app/pricing/\" style=\"color:' . esc_attr( pp_email_brand_color() ) . ';text-decoration:underline;\">Auto-renewing card billing is available on the pricing page</a> &mdash; pick your tier and use the Buy now button.' );
 pp_email_signoff();
 
 if ( ! empty( $additional_content ) ) {

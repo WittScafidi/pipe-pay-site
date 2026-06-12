@@ -63,7 +63,7 @@ HTML,
 <ul>
     <li><strong>Claude</strong> (Anthropic). Strong vision, low hallucination rate on structured tasks. Cheapest at moderate volume.</li>
     <li><strong>OpenAI</strong> (GPT-4o family). Fastest. Slightly more permissive on borderline screenshots.</li>
-    <li><strong>OpenRouter.</strong> Gives you access to the above plus open-source models behind one key. Useful if you want to swap models cheaply.</li>
+    <li><strong>OpenRouter.</strong> Gives you access to the above plus additional models behind one key. Useful if you want to swap models cheaply.</li>
     <li><strong>Custom OpenAI-compatible endpoint.</strong> Point Pipe Pay at a self-hosted Llama, vLLM server, Together, or any OpenAI-compatible API. The data never leaves your infrastructure.</li>
 </ul>
 

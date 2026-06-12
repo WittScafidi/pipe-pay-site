@@ -35,6 +35,8 @@ if ( $plain_text ) :
     echo "After renewing, checkout restores on its own within 24 hours - or\n";
     echo "immediately if you open WP Admin -> Pipe Pay -> License and click\n";
     echo "Activate.\n\n";
+    echo "Prefer a card? Auto-renewing card billing is available at\n";
+    echo "https://pipepay.app/pricing/ - pick your tier and use the Buy now button.\n\n";
     echo "Or contact support@pipepay.app if you have questions about renewing\n";
     echo "or want to switch to a different tier.\n\n";
     echo "- Pipe Pay\n";
@@ -60,6 +62,7 @@ pp_email_paragraph( 'What this means:', 12 );
 
 pp_email_button( $renewal_url, 'Renew now &rarr;' );
 pp_email_paragraph( 'After renewing, checkout restores on its own within 24 hours &mdash; or immediately if you open WP&nbsp;Admin &rarr; Pipe&nbsp;Pay &rarr; License and click Activate.' );
+pp_email_paragraph( 'Prefer a card? <a href=\"https://pipepay.app/pricing/\" style=\"color:' . esc_attr( pp_email_brand_color() ) . ';text-decoration:underline;\">Auto-renewing card billing is available on the pricing page</a> &mdash; pick your tier and use the Buy now button.' );
 pp_email_paragraph( 'Or email <a href="mailto:support@pipepay.app" style="color:' . esc_attr( pp_email_brand_color() ) . ';text-decoration:underline;">support@pipepay.app</a> with any questions about renewing or switching tiers.' );
 
 if ( ! empty( $additional_content ) ) {

@@ -183,7 +183,7 @@ function pipepay_license_revalidate_handler( WP_REST_Request $request ): WP_REST
         "SELECT api_resource_id, master_api_key, product_id, access_expires, active
          FROM {$table}
          WHERE master_api_key = %s
-         ORDER BY api_resource_id ASC
+         ORDER BY (active = 1 AND access_expires > UNIX_TIMESTAMP()) DESC, access_expires DESC, api_resource_id ASC
          LIMIT 1",
         $api_key
     ), ARRAY_A );

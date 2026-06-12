@@ -575,7 +575,7 @@ $changelog_url   = home_url( '/changelog' );
             <button type="button" class="pp-billing-toggle__btn pp-billing-toggle__btn--active" aria-pressed="true" data-billing="annual">Annual <span class="pp-billing-toggle__save">save up to 35%</span></button>
             <button type="button" class="pp-billing-toggle__btn" aria-pressed="false" data-billing="monthly">Monthly</button>
         </div>
-        <p class="pp-billing-toggle__note" data-billing-show="annual">Annual includes a 7-day free trial. Cancel before day 8 and you won't be charged.</p>
+        <p class="pp-billing-toggle__note" data-billing-show="annual">The Start trial button gives you 7 days free, no card. The Buy now button charges today and auto-renews yearly.</p>
         <p class="pp-billing-toggle__note" data-billing-show="monthly" hidden>Monthly is cancel-anytime in your Stripe billing portal. No trial; pay only for what you use.</p>
 
         <div class="pp-pricing-grid">
