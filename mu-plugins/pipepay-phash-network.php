@@ -12,9 +12,13 @@
  * - The table stores (hash, store_bucket, first_seen) and NOTHING else. No IPs,
  *   no site URLs, no license keys, no PII. store_bucket is a one-way HMAC of
  *   api_key|instance with a server-side pepper - it exists only so a store's own
- *   resubmissions don't self-flag and so per-store rate limits work. It cannot be
- *   reversed to a merchant. Nothing here is personal data under GDPR/CCPA, so the
- *   RTBF runbook does not need to touch this table.
+ *   resubmissions don't self-flag and so per-store rate limits work. It is one-way
+ *   given the pepper is held OUTSIDE the WP DB dump (PIPEPAY_PHASH_BUCKET_PEPPER
+ *   in wp-config); a DB-only snapshot cannot reverse the bucket to a merchant.
+ *   Back up the pepper to a location separate from the DB (e.g. .secrets/), and
+ *   never rotate without accepting that all existing buckets become orphaned.
+ *   Nothing here is personal data under GDPR/CCPA, so the RTBF runbook does not
+ *   need to touch this table.
  * - Security posture mirrors pipepay-license-revalidate.php: HTTPS required,
  *   shape validation BEFORE rate-limit accounting, opaque 404 for invalid keys,
  *   per-IP and per-bucket rate limits, Ed25519-signed responses (prefix phash-v1|,
@@ -61,10 +65,18 @@ function pipepay_phash_is_storable_hash( $hash ) {
 		&& 'ffffffffffffffff' !== $hash;
 }
 
-/** One-way per-store bucket. Pepper survives in wp-config if defined; falls back to auth salt. */
+/**
+ * One-way per-store bucket. Requires PIPEPAY_PHASH_BUCKET_PEPPER in wp-config —
+ * returns false if missing, and the gate translates that to a 503. The previous
+ * wp_salt( 'auth' ) fallback was removed because the WP auth salt is part of any
+ * full DB dump, which would let a DB-backup thief reverse buckets to merchants.
+ * The pepper must live OUTSIDE the DB (wp-config + a separate backup).
+ */
 function pipepay_phash_bucket( $api_key, $instance ) {
-	$pepper = defined( 'PIPEPAY_PHASH_BUCKET_PEPPER' ) ? PIPEPAY_PHASH_BUCKET_PEPPER : wp_salt( 'auth' );
-	return substr( hash_hmac( 'sha256', $api_key . '|' . $instance, $pepper ), 0, 32 );
+	if ( ! defined( 'PIPEPAY_PHASH_BUCKET_PEPPER' ) || '' === (string) PIPEPAY_PHASH_BUCKET_PEPPER ) {
+		return false;
+	}
+	return substr( hash_hmac( 'sha256', $api_key . '|' . $instance, PIPEPAY_PHASH_BUCKET_PEPPER ), 0, 32 );
 }
 
 /** True when the key belongs to a currently-entitled license (any product). */
@@ -240,6 +252,13 @@ function pipepay_phash_gate( WP_REST_Request $request, $bucket_cost = 1 ) {
 	}
 
 	$bucket = pipepay_phash_bucket( $api_key, $instance );
+	if ( false === $bucket ) {
+		// PIPEPAY_PHASH_BUCKET_PEPPER missing from wp-config — fail closed.
+		// Without the pepper the bucket would fall back to a DB-resident salt,
+		// breaking the load-bearing "pepper held outside DB" privacy posture.
+		pipepay_phash_log( $ip, $api_key, 503, 'bucket_pepper_missing' );
+		return new WP_REST_Response( array( 'success' => false, 'code' => 'service_unavailable' ), 503 );
+	}
 
 	// Per-bucket limit: charged at $bucket_cost so bulk calls count each hash
 	// against the store's daily quota, not just the request itself.
