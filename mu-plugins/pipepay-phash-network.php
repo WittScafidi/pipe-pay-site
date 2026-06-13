@@ -283,6 +283,13 @@ function pipepay_phash_handle_submit( WP_REST_Request $request ) {
 		$hash, $gate['bucket']
 	) );
 
+	// wpdb resets last_error per query, so the INSERT needs its own check —
+	// the post-SELECT check below would otherwise mask a failed INSERT.
+	if ( '' !== (string) $wpdb->last_error ) {
+		pipepay_phash_log( $ip, $api_key, 503, 'db_error: ' . $wpdb->last_error );
+		return new WP_REST_Response( array( 'success' => false, 'code' => 'service_unavailable' ), 503 );
+	}
+
 	// Seen on a DIFFERENT store's bucket?
 	$seen = (bool) $wpdb->get_var( $wpdb->prepare(
 		"SELECT 1 FROM {$table} WHERE hash = %s AND store_bucket != %s LIMIT 1",
