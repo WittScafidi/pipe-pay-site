@@ -228,14 +228,17 @@ add_action( 'wp_enqueue_scripts', function() {
     if ( $is_wc_page ) { return; }
 
     // Scripts
+    // NOTE: wc-order-attribution + sourcebuster-js (and their js-cookie dep) are
+    // deliberately NOT dequeued here. They are tiny (~6KB total) and MUST run on
+    // marketing pages (home/pricing) to capture first-touch UTM/referrer source.
+    // Dequeuing them broke source attribution entirely: every order logged as
+    // (direct)/typein because sourcebuster first ran on /checkout/ and saw only
+    // the internal /pricing/ referrer. The heavy WC bundle below stays dequeued.
     foreach ( array(
         'wc-add-to-cart',
         'wc-cart-fragments',
         'woocommerce',
-        'wc-order-attribution',
-        'sourcebuster-js',
         'jquery-blockui',
-        'js-cookie',
     ) as $h ) {
         wp_dequeue_script( $h );
         wp_deregister_script( $h );
@@ -253,6 +256,16 @@ add_action( 'wp_enqueue_scripts', function() {
         wp_deregister_style( $h );
     }
 }, 99 );
+
+// Order-attribution cookie lifetime. WooCommerce core defaults the Sourcebuster
+// first-touch cookie to 0.00001 months (~26 seconds), which discards source
+// attribution for anyone who lands now and converts later. Sourcebuster computes
+// expiry as (lifetime * 30 days), so 1 == 30 days. This keeps a visitor's
+// original source (e.g. a Reddit click) attached through the 7-day trial window
+// and typical multi-visit consideration before they convert.
+add_filter( 'wc_order_attribution_cookie_lifetime_months', function() {
+    return 1; // 30 days
+} );
 
 // Mobile hamburger toggle. Inline because the script is tiny and a separate
 // HTTP request costs more than the inline bytes.
