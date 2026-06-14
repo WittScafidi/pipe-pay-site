@@ -15,7 +15,7 @@
 if ( ! defined( 'ABSPATH' ) ) { exit; }
 get_header();
 
-$last_updated  = 'May 25, 2026';
+$last_updated  = 'June 14, 2026';
 $contact_email = 'privacy@pipepay.app';
 $operator_name = 'Silver Bazaar, LLC';
 $jurisdiction  = 'United States';
@@ -66,6 +66,9 @@ $jurisdiction  = 'United States';
 
             <h3>Anti-piracy fingerprinting</h3>
             <p>Each time you download the plugin zip from your <a href="<?php echo esc_url( home_url( '/my-account/' ) ); ?>">My Account</a> page, we embed a small marker file inside the zip identifying the download as yours. The marker contains your customer ID, order ID, plugin version, and a timestamp, signed cryptographically so it can't be forged. Its sole purpose is to identify the original downloader if a copy of the plugin appears on a piracy forum. We don't read the marker for anything else; it travels in the zip and lives only on your filesystem after extract.</p>
+
+            <h3>Cross-store screenshot fingerprints</h3>
+            <p>If you run the plugin with the cross-store fraud network enabled (the default, with a one-click opt-out in the gateway settings), your install sends us a <strong>64-bit one-way fingerprint</strong> of each customer payment screenshot so we can tell you whether the same screenshot has been used at a different Pipe Pay store. We receive <em>only</em> the fingerprint, your license key (for authentication), and your site fingerprint (so your own store's submissions don't flag themselves). We never receive the screenshot image, the amount, the payment handle, the customer's identity, or any other order data — a 64-bit fingerprint is one-way and carries no readable information. We store the fingerprint, a non-reversible token for your store, and a timestamp, and nothing that links a fingerprint back to a person. This data is therefore not personal data. Full technical detail is in the merchant <a href="<?php echo esc_url( home_url( '/data-handling/' ) ); ?>">Data Handling guide</a>.</p>
 
             <h3>Site analytics on this marketing website</h3>
             <p>This website (pipepay.app) is served through <strong>Cloudflare</strong> for caching and DDoS protection. Cloudflare may collect technical request data (IP, user agent, geographic region) for those purposes per their own privacy policy. We do not run third-party analytics scripts (no Google Analytics, no Mixpanel, no pixel trackers). The site sets a small number of essential cookies for the WordPress session and WooCommerce cart; we do not set any marketing or advertising cookies.</p>

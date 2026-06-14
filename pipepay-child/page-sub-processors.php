@@ -14,7 +14,7 @@
  */
 if ( ! defined( 'ABSPATH' ) ) { exit; }
 get_header();
-$last_updated = 'May 25, 2026';
+$last_updated = 'June 14, 2026';
 ?>
 
 <section class="pp-page-hero">
@@ -50,6 +50,21 @@ $last_updated = 'May 25, 2026';
                 <p class="pp-subproc-meta"><strong>Data received:</strong> Request metadata (your IP address, user agent, geographic region, request URL). Cloudflare does not see the contents of license-check responses because those are end-to-end signed by us with Ed25519 before being served through them.</p>
                 <p class="pp-subproc-meta"><strong>Processing location:</strong> Cloudflare global network; routes to the closest edge to the request origin.</p>
                 <p class="pp-subproc-meta"><strong>Privacy policy:</strong> <a href="https://www.cloudflare.com/privacypolicy/" target="_blank" rel="noopener">cloudflare.com/privacypolicy/</a></p>
+            </div>
+
+            <hr />
+
+            <h2>Cross-store fraud network (operated by Pipe Pay)</h2>
+            <p>This is the one place where data derived from your customers' payment screenshots reaches Pipe Pay's own servers. It sends a one-way fingerprint only — never the image — and it can be turned off in your gateway settings.</p>
+
+            <div class="pp-subproc-block">
+                <h3>Pipe Pay Screenshot Hash Network</h3>
+                <p class="pp-subproc-meta"><strong>Operated by:</strong> Pipe Pay itself (pipepay.app) — not a third party.</p>
+                <p class="pp-subproc-meta"><strong>Purpose:</strong> Cross-store duplicate-screenshot fraud detection. Your install submits a 64-bit one-way fingerprint of each payment screenshot; Pipe Pay reports whether the same screenshot has been seen at a <em>different</em> Pipe Pay store, and a match routes that order to manual review.</p>
+                <p class="pp-subproc-meta"><strong>Data received:</strong> The 64-bit fingerprint, your license key (authentication), and your site fingerprint (so your own store's submissions don't self-flag, and for rate-limiting). NEVER the screenshot image, the extracted amount or handle, the customer, or any order data. The fingerprint is one-way and not linkable to a person, so it is not personal data.</p>
+                <p class="pp-subproc-meta"><strong>Opt-out:</strong> On by default. <em>WooCommerce → Settings → Payments → Pipe Pay → Manage → uncheck "Cross-store fraud network."</em> With it off, no fingerprint leaves your server.</p>
+                <p class="pp-subproc-meta"><strong>Processing location:</strong> United States.</p>
+                <p class="pp-subproc-meta"><strong>Privacy policy:</strong> <a href="<?php echo esc_url( home_url( '/privacy/' ) ); ?>">pipepay.app/privacy</a></p>
             </div>
 
             <hr />
