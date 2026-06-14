@@ -1,13 +1,13 @@
 <?php
 /**
  * Plugin Name: Pipe Pay Screenshot Hash Network
- * Description: Cross-store duplicate-screenshot detection endpoint. Stores 64-bit
+ * Description: Cross-store duplicate-screenshot detection endpoint. Stores 256-bit
  * perceptual hashes of customer payment screenshots submitted by licensed Pipe Pay
  * installs and answers "has this exact hash been seen on a DIFFERENT store?".
- * Version: 1.0.0
+ * Version: 1.1.0
  *
  * PRIVACY / RTBF POSTURE (load-bearing - do not relax):
- * - The image NEVER reaches this server. A 64-bit dHash is a one-way fingerprint;
+ * - The image NEVER reaches this server. A 256-bit dHash is a one-way fingerprint;
  *   no amount, handle, face, or text can be reconstructed from it.
  * - The table stores (hash, store_bucket, first_seen) and NOTHING else. No IPs,
  *   no site URLs, no license keys, no PII. store_bucket is a one-way HMAC of
@@ -28,7 +28,7 @@
 
 defined( 'ABSPATH' ) || exit;
 
-define( 'PIPEPAY_PHASH_DB_VERSION', 1 );
+define( 'PIPEPAY_PHASH_DB_VERSION', 2 ); // v2: hash widened CHAR(16)->CHAR(64) for 256-bit dHash
 define( 'PIPEPAY_PHASH_IP_LIMIT', 120 );        // submits per hour per IP
 define( 'PIPEPAY_PHASH_BUCKET_LIMIT', 2000 );   // submits per day per store bucket
 define( 'PIPEPAY_PHASH_BULK_MAX', 200 );        // hashes per bulk (backfill) request
@@ -38,7 +38,8 @@ define( 'PIPEPAY_PHASH_BULK_MAX', 200 );        // hashes per bulk (backfill) re
  * pipepay-license-analytics.php).
  */
 function pipepay_phash_install_table() {
-	if ( (int) get_option( 'pipepay_phash_db_version' ) >= PIPEPAY_PHASH_DB_VERSION ) {
+	$installed = (int) get_option( 'pipepay_phash_db_version' );
+	if ( $installed >= PIPEPAY_PHASH_DB_VERSION ) {
 		return;
 	}
 	global $wpdb;
@@ -46,23 +47,42 @@ function pipepay_phash_install_table() {
 	$table = $wpdb->prefix . 'pipepay_screenshot_hashes';
 	dbDelta( "CREATE TABLE {$table} (
 		id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
-		hash CHAR(16) NOT NULL,
+		hash CHAR(64) NOT NULL,
 		store_bucket CHAR(32) NOT NULL,
 		first_seen DATETIME NOT NULL,
 		PRIMARY KEY  (id),
 		UNIQUE KEY hash_bucket (hash, store_bucket),
 		KEY hash (hash)
 	) {$wpdb->get_charset_collate()};" );
+
+	// v2 migration (256-bit upgrade): a table created at v1 has hash CHAR(16)
+	// holding 64-bit (16-hex) fingerprints. dbDelta does not reliably ALTER an
+	// existing narrower column, so widen it explicitly, then purge the legacy
+	// 16-hex rows — they can never exact-match a 256-bit (64-hex) hash, so they
+	// are dead weight, and starting the 256-bit network clean avoids confusion.
+	// Both statements are no-ops on a fresh v2 install (column already CHAR(64),
+	// table empty). Guarded to the v1->v2 transition only.
+	if ( $installed >= 1 && $installed < 2 ) {
+		$wpdb->query( "ALTER TABLE {$table} MODIFY hash CHAR(64) NOT NULL" );
+		// Purge legacy rows. NOT REGEXP '^[0-9a-f]{64}$' (rather than
+		// CHAR_LENGTH <> 64) so the predicate is correct even under the
+		// non-default PAD_CHAR_TO_FULL_LENGTH sql_mode, where a CHAR(64)
+		// column would report the old 16-hex value as 64 chars (space-padded)
+		// and a length check would miss it. The regexp matches the exact
+		// storable-hash shape and deletes everything else. At the v1->v2
+		// boundary every row is legacy 16-hex anyway.
+		$wpdb->query( "DELETE FROM {$table} WHERE hash NOT REGEXP '^[0-9a-f]{64}$'" );
+	}
+
 	update_option( 'pipepay_phash_db_version', PIPEPAY_PHASH_DB_VERSION );
 }
 add_action( 'plugins_loaded', 'pipepay_phash_install_table' );
 
-/** Valid lowercase 16-hex dHash, excluding the two degenerate values. */
+/** Valid lowercase 64-hex (256-bit) dHash, excluding all-zeros / all-f degenerates. */
 function pipepay_phash_is_storable_hash( $hash ) {
 	return is_string( $hash )
-		&& 1 === preg_match( '/^[0-9a-f]{16}$/', $hash )
-		&& '0000000000000000' !== $hash
-		&& 'ffffffffffffffff' !== $hash;
+		&& 1 === preg_match( '/^[0-9a-f]{64}$/', $hash )
+		&& 1 !== preg_match( '/^(?:0+|f+)$/', $hash );
 }
 
 /**
