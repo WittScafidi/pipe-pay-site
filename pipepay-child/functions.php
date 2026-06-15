@@ -200,6 +200,15 @@ add_filter( 'document_title_separator', function() {
     return '-';
 } );
 
+// Bing Webmaster Tools site verification (msvalidate.01). Claims the site in
+// Bing Webmaster Tools, which is the lever for clearing the Microsoft Defender
+// SmartScreen phishing flag on pipepay.app. Emitted in <head> on every page
+// (incl. the homepage, which calls wp_head() in front-page.php). A BingSiteAuth.xml
+// file with the same auth code is also deployed at the web root as a fallback.
+add_action( 'wp_head', function() {
+    echo '<meta name="msvalidate.01" content="08A0F9C24903860AD33D5908E3DE3B44" />' . "\n";
+}, 1 );
+
 // Brand favicon (the logo). Uses an SVG icon with the brand color baked in
 // (the inline header logo uses currentColor; a favicon has no CSS context so
 // we ship a self-colored copy). Apple touch icon points to the same SVG -
