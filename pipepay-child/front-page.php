@@ -113,95 +113,17 @@ $changelog_url   = home_url( '/changelog' );
         </div>
 
         <div class="pp-hero-mock-col">
-            <div class="pp-hero-mock">
-                <span class="pp-hero-mock-badge" aria-hidden="true">DEMO</span>
-                <div class="pp-mock-browser" aria-hidden="true">
-                <div class="pp-mock-chrome">
-                    <span class="pp-mock-dot pp-mock-dot--r"></span>
-                    <span class="pp-mock-dot pp-mock-dot--y"></span>
-                    <span class="pp-mock-dot pp-mock-dot--g"></span>
-                    <div class="pp-mock-url">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-                        <span>your-store.com/pipe-pay &middot; example</span>
-                    </div>
-                </div>
-
-                <div class="pp-pay">
-                    <header class="pp-pay__head">
-                        <h3 class="pp-pay__title">Order summary</h3>
-                        <p class="pp-pay__order">Example order &middot; <strong>$87.50</strong></p>
-                    </header>
-
-                    <div class="pp-pay__qr-wrap">
-                        <div class="pp-qr">
-                            <span class="pp-qr__finder pp-qr__finder--tl"></span>
-                            <span class="pp-qr__finder pp-qr__finder--tr"></span>
-                            <span class="pp-qr__finder pp-qr__finder--bl"></span>
-                            <?php
-                            // Pseudo-random but deterministic QR-ish dot pattern (avoiding the 7x7 finder squares).
-                            $qr_cells = array(
-                                array(8,1),array(9,2),array(8,3),array(9,4),array(8,5),
-                                array(11,1),array(13,1),array(15,1),array(11,3),array(14,3),
-                                array(0,8),array(2,8),array(3,8),array(5,8),array(7,8),
-                                array(8,8),array(10,8),array(12,8),array(13,8),array(15,8),
-                                array(8,9),array(8,11),array(8,13),array(8,15),
-                                array(0,9),array(1,10),array(2,11),array(3,12),array(4,13),array(5,14),array(6,15),
-                                array(10,9),array(11,10),array(12,11),array(13,12),array(14,13),array(15,14),array(16,15),
-                                array(9,11),array(11,11),array(13,11),array(15,11),
-                                array(10,13),array(12,13),array(14,13),array(16,13),
-                                array(0,11),array(2,11),array(4,11),
-                                array(0,13),array(3,13),array(5,13),
-                                array(11,15),array(13,15),array(15,15),
-                                array(2,9),array(4,9),array(6,9),
-                                array(11,5),array(13,5),array(15,5),
-                                array(11,7),array(13,7),array(15,7),
-                            );
-                            foreach ( $qr_cells as $c ) {
-                                printf( '<span class="pp-qr__cell" style="--x:%d;--y:%d"></span>', $c[0], $c[1] );
-                            }
-                            ?>
-                        </div>
-                    </div>
-
-                    <button type="button" class="pp-pay__handle">
-                        <span class="pp-pay__handle-label">Store handle</span>
-                        <span class="pp-pay__handle-value">@example-store</span>
-                        <svg class="pp-pay__handle-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
-                    </button>
-
-                    <a class="pp-pay__cta" href="#" onclick="return false;" aria-disabled="true" tabindex="-1">
-                        Open the payment app
-                        <span aria-hidden="true">&rarr;</span>
-                    </a>
-
-                    <p class="pp-pay__alts-head">Or pay with:</p>
-                    <div class="pp-pay__alts">
-                        <button type="button" class="pp-pay__alt" disabled tabindex="-1"><span class="pp-pay__alt-mark pp-pay__alt-mark--venmo">V</span>Venmo</button>
-                        <button type="button" class="pp-pay__alt" disabled tabindex="-1"><span class="pp-pay__alt-mark pp-pay__alt-mark--cash">$</span>Cash App</button>
-                        <button type="button" class="pp-pay__alt" disabled tabindex="-1"><span class="pp-pay__alt-mark pp-pay__alt-mark--paypal">P</span>PayPal</button>
-                        <button type="button" class="pp-pay__alt" disabled tabindex="-1"><span class="pp-pay__alt-mark pp-pay__alt-mark--zelle">Z</span>Zelle</button>
-                    </div>
-
-                    <p class="pp-pay__steps-head">What your customer does next:</p>
-                    <ol class="pp-pay__steps">
-                        <li><span class="pp-pay__step-num">1</span>Opens their payment app</li>
-                        <li><span class="pp-pay__step-num">2</span>Pays your store in their app</li>
-                        <li><span class="pp-pay__step-num">3</span>Screenshots the confirmation</li>
-                        <li><span class="pp-pay__step-num">4</span>Uploads it on your store</li>
-                    </ol>
-                </div>
-
-                <footer class="pp-pay__sticky">
-                    <div class="pp-pay__sticky-text">
-                        <strong>Payment screenshot upload</strong>
-                        <span>shown on your store&rsquo;s checkout</span>
-                    </div>
-                    <div class="pp-pay__dropzone">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-                        <span>Drop screenshot or click</span>
-                    </div>
-                </footer>
-                </div>
+            <p class="pp-hero-mock-label">Real screenshot from the Pipe Pay plugin</p>
+            <div class="pp-hero-mock pp-hero-mock--photo">
+                <!-- Real screenshot of the Pipe Pay payment page (same shot as flow step 2;
+                     iOS status bar cropped, pipepay.app Safari bar kept). The caption above
+                     ("Real screenshot from the Pipe Pay plugin") replaces the old DEMO badge:
+                     it frames this as product marketing rather than a live payment page, which
+                     keeps the phishing-classifier signal (see the v1.8.1 Cloudflare history)
+                     while reading as a positive authenticity cue. -->
+                <img src="<?php echo esc_url( content_url( '/uploads/pipe-pay/pipe-pay-flow-2-pay.png' ) ); ?>"
+                     alt="The Pipe Pay payment page on a phone: amount due, the order number to include in the payment note, and Venmo, Cash App, PayPal and Zelle buttons."
+                     width="660" height="1332" decoding="async" fetchpriority="high">
             </div>
         </div>
 
@@ -291,168 +213,54 @@ $changelog_url   = home_url( '/changelog' );
 
         <div class="pp-how-mock-wrap">
             <ol class="pp-flow" aria-label="End-to-end customer flow demo">
-                <!-- Step 1: WooCommerce checkout, Pipe Pay as the only payment method.
-                     Shows order summary + contact + payment method + Place order to look
-                     like a real checkout, not just a payment-radio cherry-pick. -->
+                <!-- Steps 1-4 are real screenshots of the live Pipe Pay flow, captured from
+                     one order (#600, $297 throughout) so the amounts stay consistent across
+                     the strip. iOS status bar cropped off; the pipepay.app Safari bar is kept
+                     on purpose. All four use the pp-flow__phone--photo treatment so the row is
+                     uniform; object-fit:contain keeps each full screen + URL bar visible.
+                     Source PNGs (cropped + web-sized) live in /uploads/pipe-pay/. -->
                 <li class="pp-flow__step">
-                    <div class="pp-flow__phone">
-                        <div class="pp-flow__screen pp-flow__screen--checkout">
-                            <div class="pp-flow__row pp-flow__row--head">Order summary</div>
-                            <div class="pp-flow__cart-line">
-                                <span>Premium widget</span>
-                                <span>$87.50</span>
-                            </div>
-                            <div class="pp-flow__cart-line pp-flow__cart-line--total">
-                                <span>Total</span>
-                                <span>$87.50</span>
-                            </div>
-                            <div class="pp-flow__row pp-flow__row--head pp-flow__row--head-spaced">Contact</div>
-                            <div class="pp-flow__field">your@email.com</div>
-                            <div class="pp-flow__row pp-flow__row--head pp-flow__row--head-spaced">Payment method</div>
-                            <div class="pp-flow__row pp-flow__row--option-selected">
-                                <span class="pp-flow__radio"></span>
-                                <span>Pipe Pay <small>Venmo, Cash App, PayPal, Zelle</small></span>
-                            </div>
-                            <div class="pp-flow__row pp-flow__row--cta">Place order</div>
+                    <div class="pp-flow__phone pp-flow__phone--photo">
+                        <div class="pp-flow__screen pp-flow__screen--photo">
+                            <img src="<?php echo esc_url( content_url( '/uploads/pipe-pay/pipe-pay-flow-1-checkout.png' ) ); ?>"
+                                 alt="Pipe Pay selected as the payment method at a WooCommerce checkout, with the order summary, total, and Place Order button."
+                                 width="660" height="1332" loading="lazy" decoding="async">
                         </div>
                     </div>
                     <div class="pp-flow__caption"><b>01.</b>Choose Pipe Pay at checkout</div>
                 </li>
 
-                <!-- Step 2: Customer payment page. Mirrors the real plugin layout
-                     (templates/pipe-pay-page.php): screenshot drop-zone at the
-                     top → order amount + # → QR → method buttons under the QR
-                     (pill-shaped, brand colors V/$/P/Z) → numbered instructions
-                     for the ACTIVE method → big brand-colored Open button. -->
                 <li class="pp-flow__step">
-                    <div class="pp-flow__phone">
-                        <div class="pp-flow__screen pp-flow__screen--pay">
-                            <!-- Screenshot drop-zone in its idle state. The real
-                                 plugin places this in the right column on desktop
-                                 / sticky bar on mobile; in the marketing mock we
-                                 lift it to the very top so visitors see the upload
-                                 step is part of the same page. Square box matches
-                                 the visual rhythm of a "drop file here" zone. -->
-                            <div class="pp-flow__upload-zone">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-                                <span class="pp-flow__upload-zone-label">Choose screenshot</span>
-                            </div>
-
-                            <!-- Order line: amount due + order number -->
-                            <div class="pp-flow__order-line">
-                                <span class="pp-flow__order-amount">$87.50</span>
-                                <span class="pp-flow__order-num">#1247</span>
-                            </div>
-
-                            <div class="pp-flow__qr-mini" aria-hidden="true"></div>
-
-                            <!-- Method buttons (under the QR per real product) -->
-                            <div class="pp-flow__methods" role="tablist" aria-label="Payment method">
-                                <span class="pp-flow__method pp-flow__method--active" role="tab" aria-selected="true">
-                                    <span class="pp-flow__method-icon" style="background:#008CFF;">V</span>
-                                </span>
-                                <span class="pp-flow__method" role="tab" aria-selected="false">
-                                    <span class="pp-flow__method-icon" style="background:#00D632;">$</span>
-                                </span>
-                                <span class="pp-flow__method" role="tab" aria-selected="false">
-                                    <span class="pp-flow__method-icon" style="background:#003087;">P</span>
-                                </span>
-                                <span class="pp-flow__method" role="tab" aria-selected="false">
-                                    <span class="pp-flow__method-icon" style="background:#6D1ED4;">Z</span>
-                                </span>
-                            </div>
-
-                            <!-- Numbered instructions for the active method -->
-                            <ol class="pp-flow__steps">
-                                <li>Pays the store&rsquo;s handle in their app</li>
-                                <li>Adds the order number as the memo</li>
-                                <li>Screenshots the receipt</li>
-                            </ol>
-
-                            <!-- Open Venmo CTA, colored to match Venmo brand -->
-                            <a class="pp-flow__open-btn" style="background:#1336a8;" aria-hidden="true">
-                                Open the app
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
-                            </a>
+                    <div class="pp-flow__phone pp-flow__phone--photo">
+                        <div class="pp-flow__screen pp-flow__screen--photo">
+                            <img src="<?php echo esc_url( content_url( '/uploads/pipe-pay/pipe-pay-flow-2-pay.png' ) ); ?>"
+                                 alt="The Pipe Pay payment page showing the amount due, the order number to include in the payment note, and Venmo, Cash App, PayPal and Zelle buttons."
+                                 width="660" height="1332" loading="lazy" decoding="async">
                         </div>
                     </div>
-                    <div class="pp-flow__caption"><b>02.</b>Pay through P2P app</div>
+                    <div class="pp-flow__caption"><b>02.</b>Pay through your P2P app</div>
                 </li>
 
-                <!-- Step 3: same payment-page layout as step 2, but the upload
-                     zone at the top is now in its submitting state - filename
-                     visible, spinner active. Customer paid, came back, picked
-                     their screenshot, and hit submit; payment context stays
-                     visible below since they haven't left the page. -->
                 <li class="pp-flow__step">
-                    <div class="pp-flow__phone">
-                        <div class="pp-flow__screen pp-flow__screen--pay">
-                            <!-- Upload zone in submitting state - square box,
-                                 spinner on top, filename underneath. -->
-                            <div class="pp-flow__upload-zone pp-flow__upload-zone--submitting">
-                                <span class="pp-flow__spinner" aria-hidden="true"></span>
-                                <span class="pp-flow__upload-zone-name">venmo-submission.png</span>
-                            </div>
-
-                            <div class="pp-flow__order-line">
-                                <span class="pp-flow__order-amount">$87.50</span>
-                                <span class="pp-flow__order-num">#1247</span>
-                            </div>
-
-                            <div class="pp-flow__qr-mini" aria-hidden="true"></div>
-
-                            <div class="pp-flow__methods" role="tablist" aria-label="Payment method">
-                                <span class="pp-flow__method pp-flow__method--active" role="tab" aria-selected="true">
-                                    <span class="pp-flow__method-icon" style="background:#008CFF;">V</span>
-                                </span>
-                                <span class="pp-flow__method" role="tab" aria-selected="false">
-                                    <span class="pp-flow__method-icon" style="background:#00D632;">$</span>
-                                </span>
-                                <span class="pp-flow__method" role="tab" aria-selected="false">
-                                    <span class="pp-flow__method-icon" style="background:#003087;">P</span>
-                                </span>
-                                <span class="pp-flow__method" role="tab" aria-selected="false">
-                                    <span class="pp-flow__method-icon" style="background:#6D1ED4;">Z</span>
-                                </span>
-                            </div>
-
-                            <ol class="pp-flow__steps">
-                                <li>Pays the store&rsquo;s handle in their app</li>
-                                <li>Adds the order number as the memo</li>
-                                <li>Screenshots the receipt</li>
-                            </ol>
-
-                            <!-- Open Venmo CTA - same as step 2; the customer
-                                 can re-open the app any time if they need to
-                                 re-pay or check the transaction. -->
-                            <a class="pp-flow__open-btn" style="background:#1336a8;" aria-hidden="true">
-                                Open the app
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
-                            </a>
+                    <div class="pp-flow__phone pp-flow__phone--photo">
+                        <div class="pp-flow__screen pp-flow__screen--photo">
+                            <img src="<?php echo esc_url( content_url( '/uploads/pipe-pay/pipe-pay-flow-3-upload.png' ) ); ?>"
+                                 alt="The customer uploading their payment screenshot on the Pipe Pay page, with the image attached and submitting."
+                                 width="660" height="1332" loading="lazy" decoding="async">
                         </div>
                     </div>
                     <div class="pp-flow__caption"><b>03.</b>Upload screenshot</div>
                 </li>
 
-                <!-- Step 4: Post-upload success state. Copy matches the actual plugin's
-                     success-state template (templates/pipe-pay-page.php): heading
-                     "Screenshot received" + sub "We have your payment screenshot and
-                     will process your order shortly." Deliberately makes NO mention
-                     of AI verification - customers shouldn't learn the verification
-                     internals. The merchant-facing caption below the phone retains
-                     the AI marketing hook because the homepage audience is merchants. -->
                 <li class="pp-flow__step">
-                    <div class="pp-flow__phone">
-                        <div class="pp-flow__screen pp-flow__screen--done">
-                            <div class="pp-flow__check" aria-hidden="true">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
-                            </div>
-                            <div class="pp-flow__done-title">Screenshot received</div>
-                            <div class="pp-flow__done-sub">We&rsquo;ll process your order shortly.</div>
-                            <div class="pp-flow__order-no">Order #1247</div>
+                    <div class="pp-flow__phone pp-flow__phone--photo">
+                        <div class="pp-flow__screen pp-flow__screen--photo">
+                            <img src="<?php echo esc_url( content_url( '/uploads/pipe-pay/pipe-pay-flow-4-confirmation.png' ) ); ?>"
+                                 alt="The Pipe Pay confirmation screen reading Screenshot received, with a View order confirmation button."
+                                 width="660" height="1332" loading="lazy" decoding="async">
                         </div>
                     </div>
-                    <div class="pp-flow__caption"><b>04.</b>AI handles most</div>
+                    <div class="pp-flow__caption"><b>04.</b>Order received</div>
                 </li>
             </ol>
         </div>

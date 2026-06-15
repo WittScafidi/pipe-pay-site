@@ -2,6 +2,29 @@
 
 > Self-hosted **WooCommerce** site for `pipepay.app`. The site sells Pipe Pay licenses through Pipe Pay itself (dogfood). First WordPress site on this OptiPlex (the rest are static Jekyll). Don't apply Jekyll deploy patterns here - content lives in the DB and uploads on disk.
 
+## Product snapshot (consumer-facing — for marketing)
+
+> Plain-English summary of what Pipe Pay does, written in the **public-copy voice** (see *Voice & copy rules* below: never say "open source"; keep the high-risk angle soft — "underserved by major processors," not "MATCH list" / "high-risk" / "Stripe terminated me"). Lift straight from here for landing pages, listings, and outreach.
+
+**One-liner:** Pipe Pay lets your WooCommerce store accept Venmo, Cash App, PayPal, and Zelle right at checkout — and uses AI to verify each payment, so you're not matching screenshots to orders by hand.
+
+**Who it's for:** WooCommerce stores that want to take payment apps directly — independent shops, stores underserved by the major card processors, and merchants tired of paying card fees on every sale.
+
+**How it works (what the customer sees):**
+1. At checkout they pick Pipe Pay and see your payment handle, a QR code, and a one-tap **Open Venmo / Cash App** button with the amount already filled in.
+2. They pay in their app, screenshot the confirmation, and upload it.
+3. Pipe Pay's AI checks the screenshot — right amount, right recipient, recent, completed, untampered — and the order moves forward.
+
+**What the merchant gets:**
+- **AI payment verification** — confirms the amount and the recipient handle, that the payment is *completed* (not pending or cancelled), and flags edited or photoshopped screenshots.
+- **One-click approval queue** — every payment lands in a Proofs queue with a plain-English AI summary; approve or reject in a click. Nothing is auto-rejected on an AI hiccup — it routes to manual review instead.
+- **Fraud protection that gets stronger as the network grows** — Pipe Pay catches the same screenshot being reused, both within your own store *and across the network of Pipe Pay stores*, so a fake payment image used at one shop gets flagged at the next. It compares a privacy-safe fingerprint, never the image itself.
+- **Hands-off order management** — automatic payment reminders (5 / 20 / 45 min) and auto-cancel of unpaid orders keep your order list clean.
+- **Multiple accounts per app** — spread receiving across several handles so a single account's weekly receive limit doesn't cap your daily volume.
+- **Your keys, your data** — verification runs on your own AI provider key, and payment screenshots stay on your store; they're never sent to us.
+
+**Pricing:** **$297 / $497 / $997 per year** (single site / 5 sites / unlimited), or **$35 / $65 / $129 per month** (cancel anytime). **7-day free trial.** AI verification runs on the merchant's own provider key (a few cents per order).
+
 ## Live URL
 - https://pipepay.app (apex)
 - https://www.pipepay.app (canonical 301 → apex)

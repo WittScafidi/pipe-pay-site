@@ -823,9 +823,11 @@ body.pipepay-home .pp-hero-h1 {
 }
 @media (min-width: 900px) {
     .pp-hero-mock-col > .pp-hero-mock-label {
-        margin: 0 0 12px;
-        max-width: 460px;
-        text-align: left;
+        /* Match the photo phone (max-width 320px, centered) so the caption sits
+           centered directly above it instead of left-aligned across the column. */
+        margin: 0 auto 12px;
+        max-width: 320px;
+        text-align: center;
     }
 }
 
@@ -872,6 +874,29 @@ body.pipepay-home .pp-hero-h1 {
 }
 @media (prefers-reduced-motion: reduce) {
     .pp-hero-mock { opacity: 1; animation: none; }
+}
+
+/* Photo variant of the hero mock: a real payment-page screenshot (flow step 2) in
+   a dark phone bezel that matches the how-it-works flow phones. Narrower than the
+   old CSS mock so the portrait phone isn't oversized; natural aspect, no cropping.
+   Inherits the base mock's shadow + subtle 3D tilt + rise animation. */
+.pp-hero-mock--photo {
+    max-width: 320px;
+    background: #1a1d24;
+    padding: 10px;
+    border-radius: 30px;
+}
+.pp-hero-mock--photo img {
+    display: block;
+    width: 100%;
+    height: auto;
+    border-radius: 20px;
+}
+@media (min-width: 900px) {
+    .pp-hero-mock-col > .pp-hero-mock--photo {
+        max-width: 320px;
+        margin: 0 auto;
+    }
 }
 
 /* ============== Mockup: customer payment page (hero) ============== */
@@ -1200,14 +1225,34 @@ body.pipepay-home .pp-flow-label {
     overflow: hidden;
 }
 .pp-flow__caption {
-    font-size: 13px; color: var(--pp-text-muted);
-    text-align: center; line-height: 1.4;
+    font-size: 16px; color: var(--pp-text);
+    text-align: center; line-height: 1.45;
 }
 .pp-flow__caption b {
     color: var(--pp-blue);
     margin-right: 6px;
     font-family: var(--pp-font-mono);
     font-weight: 700;
+}
+
+/* Real-screenshot variant for a flow step (e.g. step 1). Hides the speaker-notch
+   pseudo-element and removes screen padding so a cropped phone screenshot (iOS
+   status bar removed, pipepay.app Safari bar kept) fills the bezel. object-fit:
+   contain keeps the whole card + URL bar visible; the small white side margins
+   (screenshot is ~1:2.02 vs the 9/16 frame) read as screen padding. */
+.pp-flow__phone--photo::before { display: none; }
+.pp-flow__screen--photo {
+    display: block;
+    padding: 0;
+    background: #fff;
+}
+.pp-flow__screen--photo img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    object-position: center;
+    display: block;
+    border-radius: inherit;
 }
 
 .pp-flow__row {
@@ -2786,6 +2831,10 @@ body.pipepay-home .pp-pricing-fineprint {
     .pp-wpadmin__head { flex-direction: column; align-items: flex-start; }
     .pp-wpadmin__tabs { margin-left: 0; }
     .pp-wpadmin__filters { flex-direction: column; align-items: stretch; }
+    /* In the column layout flex-basis maps to the main axis (height), so the
+       row-layout `flex: 1 1 280px` would stretch the search box to ~280px TALL.
+       Reset to auto height; align-items:stretch already gives it full width. */
+    .pp-wpadmin__search { flex: 0 0 auto; }
     .pp-wpadmin__table { display: block; overflow-x: auto; }
     .pp-footer-links a { padding: 0 8px; font-size: 13px; }
     .pp-footer-changelog { width: 100%; justify-content: center; }
