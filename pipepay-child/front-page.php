@@ -104,7 +104,6 @@ $changelog_url   = home_url( '/changelog' );
                 <span class="pp-hero-h1__line">without chasing payments by hand.</span>
             </h1>
             <p class="pp-hero-sub">A WordPress plugin that captures customer payment screenshots from the P2P app they used and verifies them with AI, so the only orders you touch are the ones flagged for your review. Works with Venmo, Cash App, PayPal, and Zelle.</p>
-            <p class="pp-hero-anchor">For WooCommerce store owners. Pipe Pay is a $297/year verification tool that installs on your own store; it is not a payment processor, money transmitter, or financial institution and does not hold or transmit customer funds.</p>
             <div class="pp-hero-ctas">
                 <a class="pp-btn pp-btn--inverse pp-btn--lg" href="<?php echo esc_url( $checkout_url ); ?>">Start 7-day free trial &rarr;</a>
                 <a class="pp-btn pp-btn--ghost-light pp-btn--lg" href="#how">How it works &darr;</a>
