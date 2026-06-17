@@ -15,7 +15,7 @@
  * - Yahoo Mail (webmail): yes
  * - Thunderbird: yes
  * - Gmail (web/iOS/Android): ignores prefers-color-scheme, falls back to the
- *   blue <img> default — Gmail web/app renders message body on light bg even
+ *   blue <img> default – Gmail web/app renders message body on light bg even
  *   in user-selected dark mode, so blue logo on light bg still reads well.
  *
  * Override of WC core template version 10.7.0.
@@ -33,7 +33,7 @@ $email_improvements_enabled = FeaturesUtil::feature_is_enabled( 'email_improveme
 $store_name                 = $store_name ?? get_bloginfo( 'name', 'display' );
 $header_image_url           = apply_filters( 'woocommerce_email_header_image_url', home_url() );
 
-// Pipe Pay logo — simple styled text wordmark. No images. Renders perfectly in
+// Pipe Pay logo – simple styled text wordmark. No images. Renders perfectly in
 // every email client, sharp on every display, no font-loading races, no SVG
 // rasterization issues, no <picture> source-media quirks. Brand color via
 // inline style; dark-mode swap handled via @media (prefers-color-scheme: dark)

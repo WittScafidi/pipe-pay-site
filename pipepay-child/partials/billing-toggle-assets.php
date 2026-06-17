@@ -1,7 +1,7 @@
 <?php
 /**
  * Shared CSS + JS for the Annual/Monthly billing toggle on the homepage and /pricing.
- * Single source of truth — both templates include this after their pricing section.
+ * Single source of truth – both templates include this after their pricing section.
  *
  * Expects the including template to render:
  *   .pp-billing-toggle[role=group] > button[data-billing][aria-pressed]
@@ -12,7 +12,7 @@
 if ( ! defined( 'ABSPATH' ) ) { exit; }
 ?>
 <style>
-/* `hidden` defaults to display:none but loses specificity vs .pp-btn — force it. */
+/* `hidden` defaults to display:none but loses specificity vs .pp-btn – force it. */
 .pp-pricing [hidden]{ display:none !important; }
 .pp-billing-toggle{
     display:inline-flex;

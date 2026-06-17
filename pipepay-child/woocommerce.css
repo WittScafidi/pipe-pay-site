@@ -362,7 +362,7 @@ body.woocommerce-checkout main .pp-checkout-page { padding-top: 16px; }
     float: none !important;
     margin: 0 !important;
 }
-/* WC's "Category: Uncategorized" line is admin-leak — hide until products
+/* WC's "Category: Uncategorized" line is admin-leak – hide until products
  * are properly categorized. Same for the SKU and tags lines. */
 .woocommerce div.product .product_meta .posted_in,
 .woocommerce div.product .product_meta .sku_wrapper,
@@ -797,7 +797,7 @@ body.woocommerce-account .woocommerce > .u-columns {
     min-height: 0 !important;
 }
 
-/* Address book (/my-account/edit-address/ — billing/shipping address cards).
+/* Address book (/my-account/edit-address/ – billing/shipping address cards).
  *
  * Two fixes the previous CSS was missing:
  *
@@ -848,14 +848,14 @@ body.woocommerce-account .woocommerce > .u-columns {
     /* margin-left: auto on .edit (below) pushes it to the right edge, so
      * the H2 sits flush left and the edit link sits flush right with
      * whatever space is between. No `justify-content: space-between`
-     * needed; no `gap` either — see below. */
+     * needed; no `gap` either – see below. */
     justify-content: flex-start;
     /* CRITICAL: gap MUST be 0 here. WC's PHP template puts whitespace
      * (tabs, newlines) directly inside the <header>, between the <h2>
      * and the <a class="edit">. Per the Flexbox spec, those whitespace
      * runs become anonymous flex items. With any non-zero `gap`, Chrome
      * adds the gap BETWEEN the leading whitespace anonymous item and
-     * the H2 — which is what showed up as a phantom left-indent on the
+     * the H2 – which is what showed up as a phantom left-indent on the
      * "Billing address" / "Shipping address" titles. Confirmed via
      * DevTools: offsetLeft = headerLeft + gap, exactly. */
     gap: 0;
@@ -890,7 +890,7 @@ body.woocommerce-account .woocommerce > .u-columns {
     font-size: 14px;
     margin: 0;
 }
-/* Mobile rule no longer needed — the layout is already single-column.
+/* Mobile rule no longer needed – the layout is already single-column.
  * Just remove the max-width cap on mobile so cards span the full content
  * area at narrow widths. */
 @media (max-width: 720px) {
@@ -1009,7 +1009,7 @@ p.demo_store { display: none !important; }
  * hold N + 1 tracks at the minmax floor (Total wrapped to row 2). Switched
  * to flexbox so cells get a proportional share of the actual container
  * width rather than fighting a fixed track minimum. Email gets `flex: 2`,
- * everything else `flex: 1` — at any non-mobile container width the
+ * everything else `flex: 1` – at any non-mobile container width the
  * email cell ends up ~2× as wide as Order/Date/Total, which is enough
  * for any reasonable address without wrap.
  *
@@ -1070,7 +1070,7 @@ p.demo_store { display: none !important; }
  * NEXT SIBLING, not a child.
  *
  * Leaves font-size, weight, color, and inter-section spacing
- * untouched — each plugin's stylesheet is the source of truth for
+ * untouched – each plugin's stylesheet is the source of truth for
  * its own heading typography; we only equalize the gap below. */
 .woocommerce-order header { margin-bottom: 1.25em; }
 
@@ -1127,7 +1127,7 @@ a.wc-block-components-button.outlined {
 .wc-block-components-totals-item__value,
 .wc-block-formatted-money-amount {
     /* Sans-serif for Block Checkout totals/amounts. Same rationale as
-     * the marketing price cards above — tight comma + period rendering. */
+     * the marketing price cards above – tight comma + period rendering. */
     font-family: var(--pp-font-sans);
     font-variant-numeric: proportional-nums;
     color: var(--pp-text);
@@ -1385,7 +1385,7 @@ body.is-front-page #colophon { display: none !important; }
     margin-top: auto;
 }
 
-/* Add to cart button — solid Pipe Pay blue, white text. Replaces the
+/* Add to cart button – solid Pipe Pay blue, white text. Replaces the
  * default dark-gray pill that WC blocks ship with. Wide selector list
  * because the same button surfaces under several different WC / Gutenberg
  * theme class permutations. */
@@ -1442,7 +1442,7 @@ body.is-front-page #colophon { display: none !important; }
 }
 
 /* "Save payment information to my account" checkbox under the Stripe card fields:
-   renders flush against the card form — give it breathing room. The checkout is the
+   renders flush against the card form – give it breathing room. The checkout is the
    BLOCK checkout, so the checkbox is WC Blocks core's save-card-info component
    (rendered client-side by React); the classic-checkout selector
    (.wc-stripe-save-source) is kept as a fallback in case the checkout type changes. */

@@ -50,7 +50,7 @@ $jurisdiction  = 'United States';
             <ul>
                 <li><strong>Identity:</strong> your name and email address. Required to issue the license, deliver download links, send renewal reminders, and provide support.</li>
                 <li><strong>Billing address:</strong> required for invoicing and to comply with sales-tax obligations in the jurisdictions where the buyer is based.</li>
-                <li><strong>Payment information:</strong> license payments on pipepay.app run through Pipe Pay itself (we dogfood our own checkout). We do not accept credit-card payments, so no third-party card processor receives your billing data &mdash; you pay us directly through whichever P2P app you choose at checkout (Venmo, Cash App, PayPal, or Zelle). The payment-confirmation screenshot you upload is stored on our server for accounting reconciliation and deleted per the retention schedule below. See <a href="<?php echo esc_url( home_url( '/sub-processors/' ) ); ?>">Sub-processors</a> for the full picture.</li>
+                <li><strong>Payment information:</strong> license payments on pipepay.app run through Pipe Pay itself (we dogfood our own checkout). We do not accept credit-card payments, so no third-party card processor receives your billing data &ndash; you pay us directly through whichever P2P app you choose at checkout (Venmo, Cash App, PayPal, or Zelle). The payment-confirmation screenshot you upload is stored on our server for accounting reconciliation and deleted per the retention schedule below. See <a href="<?php echo esc_url( home_url( '/sub-processors/' ) ); ?>">Sub-processors</a> for the full picture.</li>
             </ul>
 
             <h3>While you use the plugin (server-side)</h3>
@@ -68,7 +68,7 @@ $jurisdiction  = 'United States';
             <p>Each time you download the plugin zip from your <a href="<?php echo esc_url( home_url( '/my-account/' ) ); ?>">My Account</a> page, we embed a small marker file inside the zip identifying the download as yours. The marker contains your customer ID, order ID, plugin version, and a timestamp, signed cryptographically so it can't be forged. Its sole purpose is to identify the original downloader if a copy of the plugin appears on a piracy forum. We don't read the marker for anything else; it travels in the zip and lives only on your filesystem after extract.</p>
 
             <h3>Cross-store screenshot fingerprints</h3>
-            <p>If you run the plugin with the cross-store fraud network enabled (the default, with a one-click opt-out in the gateway settings), your install sends us a <strong>64-bit one-way fingerprint</strong> of each customer payment screenshot so we can tell you whether the same screenshot has been used at a different Pipe Pay store. We receive <em>only</em> the fingerprint, your license key (for authentication), and your site fingerprint (so your own store's submissions don't flag themselves). We never receive the screenshot image, the amount, the payment handle, the customer's identity, or any other order data — a 64-bit fingerprint is one-way and carries no readable information. We store the fingerprint, a non-reversible token for your store, and a timestamp, and nothing that links a fingerprint back to a person. This data is therefore not personal data. Full technical detail is in the merchant <a href="<?php echo esc_url( home_url( '/data-handling/' ) ); ?>">Data Handling guide</a>.</p>
+            <p>If you run the plugin with the cross-store fraud network enabled (the default, with a one-click opt-out in the gateway settings), your install sends us a <strong>64-bit one-way fingerprint</strong> of each customer payment screenshot so we can tell you whether the same screenshot has been used at a different Pipe Pay store. We receive <em>only</em> the fingerprint, your license key (for authentication), and your site fingerprint (so your own store's submissions don't flag themselves). We never receive the screenshot image, the amount, the payment handle, the customer's identity, or any other order data – a 64-bit fingerprint is one-way and carries no readable information. We store the fingerprint, a non-reversible token for your store, and a timestamp, and nothing that links a fingerprint back to a person. This data is therefore not personal data. Full technical detail is in the merchant <a href="<?php echo esc_url( home_url( '/data-handling/' ) ); ?>">Data Handling guide</a>.</p>
 
             <h3>Site analytics on this marketing website</h3>
             <p>This website (pipepay.app) is served through <strong>Cloudflare</strong> for caching and DDoS protection. Cloudflare may collect technical request data (IP, user agent, geographic region) for those purposes per their own privacy policy. We do not run third-party analytics scripts (no Google Analytics, no Mixpanel, no pixel trackers). The site sets a small number of essential cookies for the WordPress session and WooCommerce cart; we do not set any marketing or advertising cookies.</p>
@@ -82,7 +82,7 @@ $jurisdiction  = 'United States';
             </ul>
 
             <h2>Who sees your data</h2>
-            <p>We do not sell or rent your data. We use third-party processors only where genuinely necessary — see <a href="<?php echo esc_url( home_url( '/sub-processors/' ) ); ?>">the Sub-processors page</a> for the current list and what each one receives.</p>
+            <p>We do not sell or rent your data. We use third-party processors only where genuinely necessary – see <a href="<?php echo esc_url( home_url( '/sub-processors/' ) ); ?>">the Sub-processors page</a> for the current list and what each one receives.</p>
 
             <h2>Retention</h2>
             <ul>
@@ -98,7 +98,7 @@ $jurisdiction  = 'United States';
             <ul>
                 <li><strong>Access</strong> the personal data we hold about you.</li>
                 <li><strong>Correct</strong> inaccurate data.</li>
-                <li><strong>Delete</strong> your data (the "right to be forgotten") — see the <strong>Data Deletion</strong> section below.</li>
+                <li><strong>Delete</strong> your data (the "right to be forgotten") – see the <strong>Data Deletion</strong> section below.</li>
                 <li><strong>Receive a copy</strong> of your data in a portable format.</li>
                 <li><strong>Object</strong> to processing, including any future change that introduces marketing emails.</li>
                 <li><strong>Lodge a complaint</strong> with a supervisory authority (in the EU, your local data protection authority).</li>
@@ -111,11 +111,11 @@ $jurisdiction  = 'United States';
                 <li>Your license record in our API Manager is purged. Auto-update and license revalidation will stop functioning for any installs using that license.</li>
                 <li>Your WooCommerce purchase order on pipepay.app is anonymized (the order line items remain for our tax records as required by law, but identifying customer information is replaced with a tombstone marker).</li>
                 <li>Your entries in our daily revalidation log are deleted.</li>
-                <li>Your entries in any revocation log (if applicable) remain, but are anonymized to the same tombstone marker — we keep revocation events as a security audit trail but they are no longer linkable to you.</li>
+                <li>Your entries in any revocation log (if applicable) remain, but are anonymized to the same tombstone marker – we keep revocation events as a security audit trail but they are no longer linkable to you.</li>
                 <li>Web server access logs containing your IP address age out per the standard 7-day rotation; we do not selectively delete from them.</li>
             </ol>
             <p>We will tell you when each step is complete. Backups containing your data are not selectively edited; they expire on the standard 30-day rotation, after which no copy of your data remains.</p>
-            <p>If you are an end-customer of a store running Pipe Pay (not a Pipe Pay license holder), the data Pipe Pay knows about you is limited to what your merchant chose to send through their AI provider (if they use AI verification). To request deletion of order or screenshot data on the merchant's store, contact the merchant directly — they're the data controller for that data, not us.</p>
+            <p>If you are an end-customer of a store running Pipe Pay (not a Pipe Pay license holder), the data Pipe Pay knows about you is limited to what your merchant chose to send through their AI provider (if they use AI verification). To request deletion of order or screenshot data on the merchant's store, contact the merchant directly – they're the data controller for that data, not us.</p>
 
             <h2>Children's data</h2>
             <p>Pipe Pay is a business-to-business product. We do not knowingly collect data from anyone under 16. If you believe a minor's data has reached us, email us and we will delete it immediately.</p>

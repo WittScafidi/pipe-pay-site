@@ -1,6 +1,6 @@
 <?php
 /**
- * Blog index — the page set as "Posts page" in Settings → Reading (slug: blog).
+ * Blog index – the page set as "Posts page" in Settings → Reading (slug: blog).
  * Branded listing of posts; matches the docs/changelog page-hero + card-grid style.
  */
 if ( ! defined( 'ABSPATH' ) ) { exit; }
@@ -11,7 +11,7 @@ get_header();
 	<div class="pp-container">
 		<span class="pp-page-hero__kicker">Blog</span>
 		<h1 class="pp-page-title">The Pipe Pay blog</h1>
-		<p class="pp-page-hero__sub">Guides for WooCommerce store owners taking Venmo, Cash App, PayPal, and Zelle &mdash; and for merchants underserved by the major processors.</p>
+		<p class="pp-page-hero__sub">Guides for WooCommerce store owners taking Venmo, Cash App, PayPal, and Zelle &ndash; and for merchants underserved by the major processors.</p>
 	</div>
 </section>
 

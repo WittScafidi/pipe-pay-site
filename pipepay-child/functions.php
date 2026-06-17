@@ -397,7 +397,7 @@ add_action( 'woocommerce_add_to_cart', function ( $cart_item_key, $product_id ) 
 // Pre-insertion guard that runs INSIDE WC_Cart::add_to_cart(), BEFORE the
 // `sold_individually` "already in cart" duplicate check fires. Pipe Pay
 // tier products are sold_individually, so adding the SAME product twice
-// produces a "You cannot add another ..." error notice — even though the
+// produces a "You cannot add another ..." error notice – even though the
 // customer-intent ("I want this tier") is clear and idempotent.
 //
 // Hook choice matters: `woocommerce_add_cart_item_data` fires INSIDE
@@ -419,7 +419,7 @@ add_action( 'woocommerce_add_to_cart', function ( $cart_item_key, $product_id ) 
 // Pipe Pay product.
 //
 // Priority 9 so the trial-intent filter at priority 11 (below) still runs
-// after this on the cart_item_data array — they don't compete for the
+// after this on the cart_item_data array – they don't compete for the
 // same operation. Belt-and-braces: the post-insert action above also
 // covers any path that bypasses this filter.
 add_filter( 'woocommerce_add_cart_item_data', function( $cart_item_data, $product_id ) {
@@ -662,7 +662,7 @@ add_filter( 'robots_txt', function( $output, $public ) {
 // the site even though the layout is otherwise correct.
 //
 // Scoped to the four license SKUs (Single, 5, Unlimited, Trial). Does NOT
-// affect actual checkout totals or order receipts — those use
+// affect actual checkout totals or order receipts – those use
 // wc_format_price_range() / order->get_formatted_order_total() internally,
 // not the price-html filter, and we want those to show ".00" so the legal
 // total reads unambiguously to the customer + tax authorities.
@@ -682,7 +682,7 @@ add_filter( 'woocommerce_get_price_html', function( $price_html, $product ) {
  * License tiers, card lane vs payment-app lane: paying by CARD happens through
  * Stripe Checkout (the auto-renewing buttons on the pricing cards, via the
  * pipepay-stripe-subs bridge). The WC checkout is the payment-app lane (Venmo /
- * Cash App / PayPal / Zelle, manual renewal) — card gateways are removed here so
+ * Cash App / PayPal / Zelle, manual renewal) – card gateways are removed here so
  * a card buyer cannot end up with a one-time charge that never auto-renews.
  */
 add_filter( 'woocommerce_available_payment_gateways', function ( $gateways ) {

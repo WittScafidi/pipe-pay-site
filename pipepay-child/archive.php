@@ -1,6 +1,6 @@
 <?php
 /**
- * Blog archives — category, tag, author, date. Reuses the blog index grid.
+ * Blog archives – category, tag, author, date. Reuses the blog index grid.
  */
 if ( ! defined( 'ABSPATH' ) ) { exit; }
 get_header();

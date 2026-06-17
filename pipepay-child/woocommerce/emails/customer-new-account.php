@@ -1,6 +1,6 @@
 <?php
 /**
- * Customer new account email — Pipe Pay wrapper.
+ * Customer new account email – Pipe Pay wrapper.
  *
  * THIN SHIM. Delegates to `wp-content/email-templates/new-account.php`
  * (source of truth at `pipe-pay-site/Email Templates/new-account.php`).
