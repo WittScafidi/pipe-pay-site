@@ -88,13 +88,13 @@ HTML,
     <li>Visible signs of pixel-level editing around the amount or recipient fields.</li>
     <li>Screenshot timestamp is more than 30 minutes old or in the future.</li>
     <li>Transaction status reads "pending" or "cancelled."</li>
-    <li>The same screenshot was already used on a previous order at your store, or &ndash; if the cross-store fraud network is on &ndash; at another Pipe Pay store.</li>
+    <li>The same screenshot was already used on a previous order at your store, or - if the cross-store fraud network is on - at another Pipe Pay store.</li>
 </ul>
 <p>Capped orders skip auto-approval and require your manual review. This is intentional: a screenshot can look pristine and still be wrong.</p>
 
 <h2>Cross-store fraud network</h2>
-<p>Pipe Pay catches one fraud pattern the AI cannot see on its own: the same fake payment screenshot reused across many stores. The AI reads the image in front of it and (correctly) says it looks like a valid payment every time &ndash; it has no memory of other orders. Pipe Pay computes a 64-bit one-way fingerprint of each screenshot and, with the cross-store network enabled, checks it against fingerprints from <em>other</em> Pipe Pay stores; a match forces the order to manual review with a "Screenshot seen on another Pipe Pay store" badge.</p>
-<p>Only the fingerprint leaves your server &ndash; never the image, the amount, the handle, or any customer data &ndash; and the fingerprint cannot be reversed back into an image. The network is on by default; uncheck <em>Cross-store fraud network</em> in the gateway settings to disable it. Full data detail is in the merchant <a href="/data-handling/">Data Handling guide</a>.</p>
+<p>Pipe Pay catches one fraud pattern the AI cannot see on its own: the same fake payment screenshot reused across many stores. The AI reads the image in front of it and (correctly) says it looks like a valid payment every time - it has no memory of other orders. Pipe Pay computes a 64-bit one-way fingerprint of each screenshot and, with the cross-store network enabled, checks it against fingerprints from <em>other</em> Pipe Pay stores; a match forces the order to manual review with a "Screenshot seen on another Pipe Pay store" badge.</p>
+<p>Only the fingerprint leaves your server - never the image, the amount, the handle, or any customer data - and the fingerprint cannot be reversed back into an image. The network is on by default; uncheck <em>Cross-store fraud network</em> in the gateway settings to disable it. Full data detail is in the merchant <a href="/data-handling/">Data Handling guide</a>.</p>
 HTML,
         'topics' => array(
             'Choosing a provider: Claude, OpenAI, OpenRouter, or any OpenAI-compatible custom endpoint.',

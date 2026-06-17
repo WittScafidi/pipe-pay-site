@@ -57,7 +57,7 @@ $changelog_url   = home_url( '/changelog' );
 
 <div class="pp-scroll-progress" aria-hidden="true"></div>
 
-<?php /* Release bar removed 2026-06-04 – stale per-release callout was
+<?php /* Release bar removed 2026-06-04 - stale per-release callout was
         harder to keep in sync than it was worth. Latest version info is
         still discoverable via the /changelog/ page link in the footer
         and the in-product update notices. */ ?>
@@ -82,7 +82,7 @@ $changelog_url   = home_url( '/changelog' );
             <a href="<?php echo esc_url( home_url( '/contact' ) ); ?>">Contact</a>
             <a href="<?php echo esc_url( home_url( '/my-account' ) ); ?>"><?php echo is_user_logged_in() ? 'Account' : 'Sign in'; ?></a>
             <?php
-            /* Conditional Cart link – see header.php for rationale. */
+            /* Conditional Cart link - see header.php for rationale. */
             if ( function_exists( 'WC' ) && WC()->cart && WC()->cart->get_cart_contents_count() > 0 ) :
                 $pp_cart_count = WC()->cart->get_cart_contents_count();
             ?>
@@ -143,7 +143,7 @@ $changelog_url   = home_url( '/changelog' );
                 <span class="pp-persona__tag">Underserved by major processors</span>
                 <p class="pp-persona__quote">"My processor doesn't fit my business - and the alternatives that do want four to eight percent plus a personal guarantee."</p>
                 <ul class="pp-persona__list">
-                    <li><strong>Customers pay you directly</strong> through Venmo, Cash App, PayPal, or Zelle &ndash; apps they already use.</li>
+                    <li><strong>Customers pay you directly</strong> through Venmo, Cash App, PayPal, or Zelle - apps they already use.</li>
                     <li><strong>The plugin handles the rest:</strong> captures the screenshot, verifies the amount + recipient, moves the order through WC admin.</li>
                     <li><strong>Run multiple P2P apps in parallel</strong> so one account's weekly receive limit doesn't cap your daily volume.</li>
                 </ul>
@@ -168,7 +168,7 @@ $changelog_url   = home_url( '/changelog' );
                 <ul class="pp-persona__list">
                     <li><strong>$297/year, flat.</strong> Zero per-transaction fees on the plugin side.</li>
                     <li><strong>Personal Venmo / Cash App / PayPal F&amp;F:</strong> 0% fees.</li>
-                    <li><strong>Business profiles:</strong> 1.9-2.75% &ndash; still under Stripe.</li>
+                    <li><strong>Business profiles:</strong> 1.9-2.75% - still under Stripe.</li>
                     <li><strong>Breaks even at ~$10,200 in annual card volume.</strong> Every dollar saved from there is yours.</li>
                 </ul>
             </article>
@@ -377,7 +377,7 @@ $changelog_url   = home_url( '/changelog' );
             <button type="button" class="pp-billing-toggle__btn pp-billing-toggle__btn--active" aria-pressed="true" data-billing="annual">Annual <span class="pp-billing-toggle__save">save up to 35%</span></button>
             <button type="button" class="pp-billing-toggle__btn" aria-pressed="false" data-billing="monthly">Monthly</button>
         </div>
-        <p class="pp-billing-toggle__note" data-billing-show="annual">Annual includes a 7-day free trial. Buying now? Pay by card (auto-renews) or a payment app (renew manually) &ndash; choose at checkout.</p>
+        <p class="pp-billing-toggle__note" data-billing-show="annual">Annual includes a 7-day free trial. Buying now? Pay by card (auto-renews) or a payment app (renew manually) - choose at checkout.</p>
         <p class="pp-billing-toggle__note" data-billing-show="monthly" hidden>Monthly is cancel-anytime in your Stripe billing portal. No trial; pay only for what you use.</p>
 
         <div class="pp-pricing-grid">
@@ -402,7 +402,7 @@ $changelog_url   = home_url( '/changelog' );
                 </ul>
                 <a class="pp-btn pp-btn--secondary" data-billing-show="annual" href="<?php echo esc_url( $trial_intent_single ); ?>">Start 7-day trial</a>
                 <a class="pp-btn pp-btn--ghost" data-billing-show="annual" href="<?php echo esc_url( $buy_single ); ?>">Buy now - skip the trial</a>
-                <a class="pp-btn pp-btn--secondary" data-billing-show="monthly" href="<?php echo esc_url( $monthly_buy_single ); ?>" hidden>Subscribe monthly &ndash; $35/mo</a>
+                <a class="pp-btn pp-btn--secondary" data-billing-show="monthly" href="<?php echo esc_url( $monthly_buy_single ); ?>" hidden>Subscribe monthly - $35/mo</a>
             </div>
             <div class="pp-pricing-card pp-pricing-card--featured">
                 <span class="pp-pricing-ribbon">Most Popular</span>
@@ -427,7 +427,7 @@ $changelog_url   = home_url( '/changelog' );
                 </ul>
                 <a class="pp-btn pp-btn--primary" data-billing-show="annual" href="<?php echo esc_url( $trial_intent_five ); ?>">Start 7-day trial</a>
                 <a class="pp-btn pp-btn--ghost" data-billing-show="annual" href="<?php echo esc_url( $buy_five ); ?>">Buy now - skip the trial</a>
-                <a class="pp-btn pp-btn--primary" data-billing-show="monthly" href="<?php echo esc_url( $monthly_buy_five ); ?>" hidden>Subscribe monthly &ndash; $65/mo</a>
+                <a class="pp-btn pp-btn--primary" data-billing-show="monthly" href="<?php echo esc_url( $monthly_buy_five ); ?>" hidden>Subscribe monthly - $65/mo</a>
             </div>
             <div class="pp-pricing-card">
                 <svg class="pp-tier-illustration" viewBox="0 0 120 80" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false"><path d="M22 40 C22 22, 48 22, 60 40 C72 58, 98 58, 98 40 C98 22, 72 22, 60 40 C48 58, 22 58, 22 40 Z" fill="none" stroke="#1336a8" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/><rect x="29" y="35" width="12" height="10" rx="2" fill="#1336a8"/><rect x="79" y="35" width="12" height="10" rx="2" fill="#1336a8"/></svg>
@@ -451,11 +451,11 @@ $changelog_url   = home_url( '/changelog' );
                 </ul>
                 <a class="pp-btn pp-btn--secondary" data-billing-show="annual" href="<?php echo esc_url( $trial_intent_unlim ); ?>">Start 7-day trial</a>
                 <a class="pp-btn pp-btn--ghost" data-billing-show="annual" href="<?php echo esc_url( $buy_unlim ); ?>">Buy now - skip the trial</a>
-                <a class="pp-btn pp-btn--secondary" data-billing-show="monthly" href="<?php echo esc_url( $monthly_buy_unlim ); ?>" hidden>Subscribe monthly &ndash; $129/mo</a>
+                <a class="pp-btn pp-btn--secondary" data-billing-show="monthly" href="<?php echo esc_url( $monthly_buy_unlim ); ?>" hidden>Subscribe monthly - $129/mo</a>
             </div>
         </div>
-        <p class="pp-pricing-fineprint" data-billing-show="annual">Each annual license includes 1 year of plugin updates and support. Renew annually to keep receiving WooCommerce-compatibility patches, security updates, and support &ndash; without renewal, your install falls behind each WP and WC release and eventually needs an update you can no longer get. Cancel anytime before the trial ends and you won't be charged. Once your trial converts to a paid license, all sales are final, no refunds. The 7-day trial is your evaluation window.</p>
-        <p class="pp-pricing-fineprint" data-billing-show="monthly" hidden>Monthly subscriptions include plugin updates and support for as long as the subscription is active. Cancel anytime in your billing portal &ndash; your license stays active until the end of the current billing period, then expires. Annual saves up to 35% if you're committing to a full year; monthly is best for testing the waters or short-term needs. Monthly charges are non-refundable; cancel before the next billing date to avoid the next charge.</p>
+        <p class="pp-pricing-fineprint" data-billing-show="annual">Each annual license includes 1 year of plugin updates and support. Renew annually to keep receiving WooCommerce-compatibility patches, security updates, and support - without renewal, your install falls behind each WP and WC release and eventually needs an update you can no longer get. Cancel anytime before the trial ends and you won't be charged. Once your trial converts to a paid license, all sales are final, no refunds. The 7-day trial is your evaluation window.</p>
+        <p class="pp-pricing-fineprint" data-billing-show="monthly" hidden>Monthly subscriptions include plugin updates and support for as long as the subscription is active. Cancel anytime in your billing portal - your license stays active until the end of the current billing period, then expires. Annual saves up to 35% if you're committing to a full year; monthly is best for testing the waters or short-term needs. Monthly charges are non-refundable; cancel before the next billing date to avoid the next charge.</p>
     </div>
 
     <?php include __DIR__ . '/partials/billing-toggle-assets.php'; ?>

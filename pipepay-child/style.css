@@ -48,7 +48,7 @@ Text Domain: pipepay-child
      * .pp-pay__alt-mark) so each rail is visually distinct. White text
      * on all four for sufficient contrast at every WCAG AA threshold.
      * These are the official Venmo / Cash App / PayPal / Zelle brand
-     * colors – used as nominative-use identifiers for "this UI element
+     * colors - used as nominative-use identifiers for "this UI element
      * represents that method," NOT as theming for the Pipe Pay brand. */
     --pp-venmo:   #008CFF;
     --pp-cashapp: #00D632;
@@ -387,7 +387,7 @@ body.pipepay-home .pp-section--blue h4 { color: #fff; }
 .pp-cta-skip a:focus-visible { color: var(--pp-blue-dark); }
 /* !important needed to beat the homepage-global
  * `body.pipepay-home a:not(.pp-btn):not(.pp-logo):not(.button)` rule (specificity
- * 0,4,2), which otherwise forces these inverse skip links to brand-blue – invisible
+ * 0,4,2), which otherwise forces these inverse skip links to brand-blue - invisible
  * on the blue hero + final-CTA. Same escape-hatch pattern the Open-Venmo and
  * self-checkout CTAs use against the same global rule. */
 .pp-cta-skip.pp-cta-skip--inverse a {
@@ -544,7 +544,7 @@ body.pipepay-home .pp-section--blue h4 { color: #fff; }
 
 /* Conditional Cart link in the header nav, shown only when the cart has
  * items (see header.php + front-page.php). Visually quieter than the
- * primary CTA – it's an escape hatch to /cart, not a primary action. */
+ * primary CTA - it's an escape hatch to /cart, not a primary action. */
 .pp-nav-cart {
     display: inline-flex;
     align-items: center;
@@ -1161,7 +1161,7 @@ body.pipepay-home .pp-hero-h1 {
 .pp-how-card h3 { font-size: 17px; margin-bottom: 10px; line-height: 1.3; letter-spacing: -0.012em; }
 .pp-how-card p { font-size: 14px; color: var(--pp-text-muted); line-height: 1.6; }
 
-/* "Demo · the customer's view at each step" caption – lives OUTSIDE
+/* "Demo · the customer's view at each step" caption - lives OUTSIDE
  * the wrap card now, above it. Gap to the wrap below is the 28px
  * margin-bottom here. Selector prefixed with `body.pipepay-home` to
  * outrank the global p margin reset at line ~144. */
@@ -1181,7 +1181,7 @@ body.pipepay-home .pp-flow-label {
     background: var(--pp-bg);
     box-shadow: var(--pp-shadow-md);
     overflow: hidden;
-    /* No interior padding – the .pp-flow panel inside is flush to the
+    /* No interior padding - the .pp-flow panel inside is flush to the
      * wrap card's border. Earlier 56px-symmetric padding created
      * top/bottom white bands that visually didn't earn their space
      * (user feedback: "the white strips should not be there at all").
@@ -1191,7 +1191,7 @@ body.pipepay-home .pp-flow-label {
 
 /* Mockup: 4-step phone flow. Tinted background to differentiate the
  * card from the white section behind it. No hairline top/bottom
- * borders – the wrap card's own 1px border serves that purpose now
+ * borders - the wrap card's own 1px border serves that purpose now
  * that the white-band interior padding is gone. */
 .pp-flow {
     list-style: none;
@@ -2553,7 +2553,7 @@ body.pipepay-home .pp-how-more {
 }
 .pp-price {
     /* Sans-serif (Manrope), not Geist Mono. Geist Mono is monospace, so
-     * proportional-nums has no effect – the comma in "$1,199" still gets
+     * proportional-nums has no effect - the comma in "$1,199" still gets
      * a fixed-width cell as wide as a digit, producing visible "$1 , 199"
      * at 44px display size. The price card isn't a tabular column-aligned
      * comparison, so a proportional sans is correct. The prior fix
@@ -3018,7 +3018,7 @@ body.pipepay-home .pp-pricing-fineprint {
  * The default `.pp-page-hero` padding (`clamp(56px, 7vw, 96px)` top /
  * `clamp(40px, 5vw, 64px)` bottom) is sized for marketing pages where
  * the kicker + title + sub need air around them. On form-heavy WC pages
- * the user is trying to get to the form, not read chrome – that 96px
+ * the user is trying to get to the form, not read chrome - that 96px
  * top-cap reads as a dead band between the sticky header and the kicker.
  *
  * Compress hero padding + tighten the immediately-following section--tight
@@ -4105,7 +4105,7 @@ body.pipepay-home a.pp-doc-back { color: var(--pp-text-muted); }
     border-radius: 3px;
 }
 
-/* Sub-processor list – each provider in a bordered block for scannability. */
+/* Sub-processor list - each provider in a bordered block for scannability. */
 .pp-subproc-block {
     border: 1px solid var(--pp-border);
     border-radius: var(--pp-radius);
@@ -4163,7 +4163,7 @@ body.pipepay-home a.pp-doc-back { color: var(--pp-text-muted); }
 .pp-paste-block code { background: none; padding: 0; font-size: 13px; }
 
 /* ============================================================
-   Blog (index, archive, search, single) – added with the blog section
+   Blog (index, archive, search, single) - added with the blog section
    ============================================================ */
 .pp-blog-grid {
     display: grid;
@@ -4216,7 +4216,7 @@ body.pipepay-home a.pp-doc-back { color: var(--pp-text-muted); }
 /* Scoped under .pp-blog-grid (specificity 0,2,0) to beat the global
  * `body.pipepay-home h3` typography (0,1,2, = clamp(20px,2.2vw,26px) +
  * line-height 1.15 + margin 0 0 0.4em) that was forcing every card title to
- * 26px/1.15 – fine for short doc titles, cramped for long 3-line blog titles. */
+ * 26px/1.15 - fine for short doc titles, cramped for long 3-line blog titles. */
 .pp-blog-grid .pp-post-card__title {
     margin: 12px 22px 0;
     font-size: 20px;

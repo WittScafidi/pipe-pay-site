@@ -10,7 +10,7 @@ get_header();
  * Slug-aware kicker for pages that use this default template. Legal pages
  * get "Legal" to match /privacy and /sub-processors. WC's /cart page lands
  * here too (it's a regular WP page; /shop and /checkout use their own WC
- * templates). For any unmapped slug we fall back to "Pipe Pay" – that
+ * templates). For any unmapped slug we fall back to "Pipe Pay" - that
  * shouldn't happen in practice but is safe.
  *
  * The "Last updated" line at the bottom is only meaningful for legal pages

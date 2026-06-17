@@ -37,7 +37,7 @@ if ( ! defined( 'ABSPATH' ) ) { exit; }
             <a href="<?php echo esc_url( home_url( '/contact' ) ); ?>">Contact</a>
             <a href="<?php echo esc_url( home_url( '/my-account' ) ); ?>"><?php echo is_user_logged_in() ? 'Account' : 'Sign in'; ?></a>
             <?php
-            /* Conditional Cart link – only renders when WC is active AND there's
+            /* Conditional Cart link - only renders when WC is active AND there's
              * something in the cart. Lets users reach /cart to remove items
              * (otherwise the "View cart" hint in WC duplicate-add error notices
              * is a dead-end because the nav has no cart surface). */

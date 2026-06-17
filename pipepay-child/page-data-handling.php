@@ -31,11 +31,11 @@ $last_updated = 'June 14, 2026';
             <h2>The 30-second summary</h2>
             <p>Pipe Pay's plugin runs entirely on your WordPress server. Your customer's payment screenshot stays on your server (outside the web-accessible directory, only viewable by you in WP admin). The only data that leaves your server is:</p>
             <ol>
-                <li><strong>To Pipe Pay's license server (pipepay.app):</strong> your license key, a stable site fingerprint, your site URL, and the plugin version – once per day for the license check. No customer data, no order data, no screenshots.</li>
+                <li><strong>To Pipe Pay's license server (pipepay.app):</strong> your license key, a stable site fingerprint, your site URL, and the plugin version - once per day for the license check. No customer data, no order data, no screenshots.</li>
                 <li><strong>To your chosen AI provider</strong> (Claude / OpenAI / OpenRouter / a custom endpoint you configured): the screenshot image bytes and a structured prompt asking for a verification verdict. This uses <em>your</em> API key, set up by you in the plugin settings. We are not in the middle.</li>
                 <li><strong>To Pipe Pay's cross-store fraud network (pipepay.app):</strong> a 64-bit one-way fingerprint of the screenshot (never the image, never any text from it) so Pipe Pay can tell you whether the same screenshot was already used at a <em>different</em> Pipe Pay store. On by default; you can turn it off in the gateway settings (<em>Cross-store fraud network</em>). No image, no order data, no personal data.</li>
             </ol>
-            <p>Everything else – billing address, customer email, order line items, the screenshot itself – stays on your WordPress server, governed by your own WP/WC setup and your own privacy policy.</p>
+            <p>Everything else - billing address, customer email, order line items, the screenshot itself - stays on your WordPress server, governed by your own WP/WC setup and your own privacy policy.</p>
 
             <h2>Detailed data inventory</h2>
 
@@ -57,7 +57,7 @@ $last_updated = 'June 14, 2026';
                     </tr>
                     <tr>
                         <td>Perceptual fingerprint of the screenshot (64-bit dHash, ~16 hex chars)</td>
-                        <td>WC order meta. A copy of the fingerprint (and nothing else) is also sent to Pipe Pay's cross-store fraud network unless you disable it – see section 4.</td>
+                        <td>WC order meta. A copy of the fingerprint (and nothing else) is also sent to Pipe Pay's cross-store fraud network unless you disable it - see section 4.</td>
                         <td>Lifetime of the order. Used to detect re-use of the same screenshot across multiple orders on your store, and (via the network) across other Pipe Pay stores.</td>
                     </tr>
                     <tr>
@@ -85,7 +85,7 @@ $last_updated = 'June 14, 2026';
                 <li>A structured prompt asking the provider to read the amount, recipient handle, and payment-app context</li>
                 <li>Your configured API key (in HTTP headers)</li>
             </ul>
-            <p>The provider's response is parsed locally on your server. Pipe Pay does not see the screenshot bytes or the prompt – they go directly from your WordPress server to the provider over TLS.</p>
+            <p>The provider's response is parsed locally on your server. Pipe Pay does not see the screenshot bytes or the prompt - they go directly from your WordPress server to the provider over TLS.</p>
             <p>See <a href="<?php echo esc_url( home_url( '/sub-processors/' ) ); ?>">our sub-processors page</a> for the supported providers and their own privacy policies.</p>
 
             <h3>4. Data sent to Pipe Pay's cross-store fraud network</h3>
@@ -95,7 +95,7 @@ $last_updated = 'June 14, 2026';
                 <li>The 64-bit one-way fingerprint (16 hex characters)</li>
                 <li>Your license key (authentication) and your site fingerprint, used only to keep your own store's submissions from flagging themselves and to rate-limit abuse</li>
             </ul>
-            <p>What is <strong>not</strong> sent: the screenshot image, any text extracted from it (amount, handle, name), the order, the customer, or any other personal data. A 64-bit fingerprint is one-way – the original image cannot be reconstructed from it, and it contains no readable information. Pipe Pay stores only the fingerprint, a non-reversible token for your store, and a timestamp; it never receives or stores the image.</p>
+            <p>What is <strong>not</strong> sent: the screenshot image, any text extracted from it (amount, handle, name), the order, the customer, or any other personal data. A 64-bit fingerprint is one-way - the original image cannot be reconstructed from it, and it contains no readable information. Pipe Pay stores only the fingerprint, a non-reversible token for your store, and a timestamp; it never receives or stores the image.</p>
             <p><strong>Opt-out:</strong> this is on by default. To disable it, go to <em>WooCommerce → Settings → Payments → Pipe Pay → Manage</em> and uncheck <em>Cross-store fraud network</em>. With it off, no fingerprint leaves your server and the only fraud signal is within-your-own-store re-use (section 1).</p>
 
             <hr />
@@ -145,12 +145,12 @@ handling, see pipepay.app/privacy.</code></pre>
                 <li>Pipe Pay's order-meta data (verification verdict, dHash fingerprint, payment-method handle) deletes automatically with the order.</li>
                 <li>The screenshot file is deleted when the order is deleted, AND would have aged out anyway at 90 days.</li>
                 <li>The 64-bit fingerprint submitted to Pipe Pay's cross-store fraud network is not linked to the customer (it is just an anonymous hash) and is not personal data, so there is nothing customer-specific to delete there.</li>
-                <li>If the order was previously analyzed by an AI provider, that provider may have temporary logs; consult <a href="<?php echo esc_url( home_url( '/sub-processors/' ) ); ?>">their privacy policy</a> for retention details. Pipe Pay does not have a path to delete data from the AI provider's side – that has to go through the provider directly with the customer's API key.</li>
+                <li>If the order was previously analyzed by an AI provider, that provider may have temporary logs; consult <a href="<?php echo esc_url( home_url( '/sub-processors/' ) ); ?>">their privacy policy</a> for retention details. Pipe Pay does not have a path to delete data from the AI provider's side - that has to go through the provider directly with the customer's API key.</li>
             </ol>
             <p>To delete your own license data from Pipe Pay's license server (e.g., you've stopped using Pipe Pay and want us to purge your records), email <a href="mailto:privacy@pipepay.app?subject=Privacy%20Request%20-%20License%20Deletion">privacy@pipepay.app</a> with "Privacy Request - License Deletion" in the subject and we'll process it within 30 days. See <a href="<?php echo esc_url( home_url( '/privacy/' ) ); ?>">our privacy policy</a> for what specifically gets purged.</p>
 
             <h2>Questions</h2>
-            <p>Email <a href="mailto:privacy@pipepay.app">privacy@pipepay.app</a>. Subject line: "Pipe Pay data handling – [your question]". You'll get a real answer within one business day.</p>
+            <p>Email <a href="mailto:privacy@pipepay.app">privacy@pipepay.app</a>. Subject line: "Pipe Pay data handling - [your question]". You'll get a real answer within one business day.</p>
 
         </article>
     </div>

@@ -1,6 +1,6 @@
 <?php
 /**
- * Customer completed order email – Pipe Pay wrapper.
+ * Customer completed order email - Pipe Pay wrapper.
  *
  * THIS IS A THIN SHIM. The actual trial template body lives at
  * `wp-content/email-templates/free-trial.php` (source of truth at

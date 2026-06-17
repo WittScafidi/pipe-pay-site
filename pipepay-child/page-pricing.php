@@ -35,7 +35,7 @@ $monthly_buy_unlim  = home_url( '/checkout/?add-to-cart=528' );
     <div class="pp-container">
         <span class="pp-page-hero__kicker">Pricing</span>
         <h1 class="pp-page-title">Three tiers. Pay monthly or annual.</h1>
-        <p class="pp-page-hero__sub">Pick the license size that matches the number of WooCommerce stores you run. Annual saves up to 35% and includes a 7-day free trial. Monthly is cancel-anytime, no trial – pay only for what you use.</p>
+        <p class="pp-page-hero__sub">Pick the license size that matches the number of WooCommerce stores you run. Annual saves up to 35% and includes a 7-day free trial. Monthly is cancel-anytime, no trial - pay only for what you use.</p>
     </div>
 </section>
 
@@ -46,7 +46,7 @@ $monthly_buy_unlim  = home_url( '/checkout/?add-to-cart=528' );
             <button type="button" class="pp-billing-toggle__btn pp-billing-toggle__btn--active" aria-pressed="true" data-billing="annual">Annual <span class="pp-billing-toggle__save">save up to 35%</span></button>
             <button type="button" class="pp-billing-toggle__btn" aria-pressed="false" data-billing="monthly">Monthly</button>
         </div>
-        <p class="pp-billing-toggle__note" data-billing-show="annual">Annual includes a 7-day free trial. Buying now? Pay by card (auto-renews) or a payment app (renew manually) &ndash; choose at checkout.</p>
+        <p class="pp-billing-toggle__note" data-billing-show="annual">Annual includes a 7-day free trial. Buying now? Pay by card (auto-renews) or a payment app (renew manually) - choose at checkout.</p>
         <p class="pp-billing-toggle__note" data-billing-show="monthly" hidden>Monthly is cancel-anytime in your Stripe billing portal. No trial; pay only for what you use.</p>
 
         <div class="pp-pricing-grid">
@@ -71,7 +71,7 @@ $monthly_buy_unlim  = home_url( '/checkout/?add-to-cart=528' );
                 </ul>
                 <a class="pp-btn pp-btn--secondary" data-billing-show="annual" href="<?php echo esc_url( $trial_intent_single ); ?>">Start 7-day trial</a>
                 <a class="pp-btn pp-btn--ghost" data-billing-show="annual" href="<?php echo esc_url( $buy_single ); ?>">Buy now - skip the trial</a>
-                <a class="pp-btn pp-btn--secondary" data-billing-show="monthly" href="<?php echo esc_url( $monthly_buy_single ); ?>" hidden>Subscribe monthly &ndash; $35/mo</a>
+                <a class="pp-btn pp-btn--secondary" data-billing-show="monthly" href="<?php echo esc_url( $monthly_buy_single ); ?>" hidden>Subscribe monthly - $35/mo</a>
             </div>
             <div class="pp-pricing-card pp-pricing-card--featured">
                 <span class="pp-pricing-ribbon">Most Popular</span>
@@ -96,7 +96,7 @@ $monthly_buy_unlim  = home_url( '/checkout/?add-to-cart=528' );
                 </ul>
                 <a class="pp-btn pp-btn--primary" data-billing-show="annual" href="<?php echo esc_url( $trial_intent_five ); ?>">Start 7-day trial</a>
                 <a class="pp-btn pp-btn--ghost" data-billing-show="annual" href="<?php echo esc_url( $buy_five ); ?>">Buy now - skip the trial</a>
-                <a class="pp-btn pp-btn--primary" data-billing-show="monthly" href="<?php echo esc_url( $monthly_buy_five ); ?>" hidden>Subscribe monthly &ndash; $65/mo</a>
+                <a class="pp-btn pp-btn--primary" data-billing-show="monthly" href="<?php echo esc_url( $monthly_buy_five ); ?>" hidden>Subscribe monthly - $65/mo</a>
             </div>
             <div class="pp-pricing-card">
                 <svg class="pp-tier-illustration" viewBox="0 0 120 80" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false"><path d="M22 40 C22 22, 48 22, 60 40 C72 58, 98 58, 98 40 C98 22, 72 22, 60 40 C48 58, 22 58, 22 40 Z" fill="none" stroke="#1336a8" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/><rect x="29" y="35" width="12" height="10" rx="2" fill="#1336a8"/><rect x="79" y="35" width="12" height="10" rx="2" fill="#1336a8"/></svg>
@@ -120,11 +120,11 @@ $monthly_buy_unlim  = home_url( '/checkout/?add-to-cart=528' );
                 </ul>
                 <a class="pp-btn pp-btn--secondary" data-billing-show="annual" href="<?php echo esc_url( $trial_intent_unlim ); ?>">Start 7-day trial</a>
                 <a class="pp-btn pp-btn--ghost" data-billing-show="annual" href="<?php echo esc_url( $buy_unlim ); ?>">Buy now - skip the trial</a>
-                <a class="pp-btn pp-btn--secondary" data-billing-show="monthly" href="<?php echo esc_url( $monthly_buy_unlim ); ?>" hidden>Subscribe monthly &ndash; $129/mo</a>
+                <a class="pp-btn pp-btn--secondary" data-billing-show="monthly" href="<?php echo esc_url( $monthly_buy_unlim ); ?>" hidden>Subscribe monthly - $129/mo</a>
             </div>
         </div>
-        <p class="pp-pricing-fineprint" data-billing-show="annual">Each annual license includes 1 year of plugin updates and support. Renew annually to keep receiving WooCommerce-compatibility patches, security updates, and support &ndash; without renewal, your install falls behind each WP and WC release and eventually needs an update you can no longer get. Cancel anytime before the trial ends and you won't be charged. Once your trial converts to a paid license, all sales are final, no refunds. The 7-day trial is your evaluation window.</p>
-        <p class="pp-pricing-fineprint" data-billing-show="monthly" hidden>Monthly subscriptions include plugin updates and support for as long as the subscription is active. Cancel anytime in your billing portal &ndash; your license stays active until the end of the current billing period, then expires. Annual saves up to 35% if you're committing to a full year; monthly is best for testing the waters or short-term needs. Monthly charges are non-refundable; cancel before the next billing date to avoid the next charge.</p>
+        <p class="pp-pricing-fineprint" data-billing-show="annual">Each annual license includes 1 year of plugin updates and support. Renew annually to keep receiving WooCommerce-compatibility patches, security updates, and support - without renewal, your install falls behind each WP and WC release and eventually needs an update you can no longer get. Cancel anytime before the trial ends and you won't be charged. Once your trial converts to a paid license, all sales are final, no refunds. The 7-day trial is your evaluation window.</p>
+        <p class="pp-pricing-fineprint" data-billing-show="monthly" hidden>Monthly subscriptions include plugin updates and support for as long as the subscription is active. Cancel anytime in your billing portal - your license stays active until the end of the current billing period, then expires. Annual saves up to 35% if you're committing to a full year; monthly is best for testing the waters or short-term needs. Monthly charges are non-refundable; cancel before the next billing date to avoid the next charge.</p>
     </div>
 </section>
 
@@ -194,7 +194,7 @@ $monthly_buy_unlim  = home_url( '/checkout/?add-to-cart=528' );
                 ),
                 array(
                     'q' => 'Can I pay monthly instead of annual?',
-                    'a' => 'Yes. Monthly billing is $35/mo for Single Site, $65/mo for 5 Sites, or $129/mo for Unlimited. Charges run through Stripe; cancel any time from your billing portal and the license stays active until the end of the current billing period. Annual is cheaper if you\'re committing to a year (you save up to 35%) and includes the 7-day free trial. Monthly is the better fit for testing the waters or covering a short-term season &ndash; no trial, no commitment past the next charge.',
+                    'a' => 'Yes. Monthly billing is $35/mo for Single Site, $65/mo for 5 Sites, or $129/mo for Unlimited. Charges run through Stripe; cancel any time from your billing portal and the license stays active until the end of the current billing period. Annual is cheaper if you\'re committing to a year (you save up to 35%) and includes the 7-day free trial. Monthly is the better fit for testing the waters or covering a short-term season - no trial, no commitment past the next charge.',
                 ),
                 array(
                     'q' => 'Can I use my existing Venmo, Cash App, PayPal, and Zelle accounts?',
@@ -226,7 +226,7 @@ $monthly_buy_unlim  = home_url( '/checkout/?add-to-cart=528' );
                 ),
                 array(
                     'q' => 'What happens if my license expires?',
-                    'a' => 'When your license ends &ndash; an annual term not renewed, or a subscription cancelled at the end of its billing period &ndash; plugin updates and support pause immediately. Annual licenses renewed manually (payment-app purchases) then get a <strong>30-day grace period</strong> during which the gateway keeps accepting orders; after that, Pipe Pay stops appearing at your checkout until you renew. Card-paid subscriptions (monthly or annual) stop at the end of the period you paid for. Orders already in progress always finish normally, and your orders, settings, and history stay intact &ndash; renewing at any time restores checkout, updates, and support, picking up exactly where you left off.',
+                    'a' => 'When your license ends - an annual term not renewed, or a subscription cancelled at the end of its billing period - plugin updates and support pause immediately. Annual licenses renewed manually (payment-app purchases) then get a <strong>30-day grace period</strong> during which the gateway keeps accepting orders; after that, Pipe Pay stops appearing at your checkout until you renew. Card-paid subscriptions (monthly or annual) stop at the end of the period you paid for. Orders already in progress always finish normally, and your orders, settings, and history stay intact - renewing at any time restores checkout, updates, and support, picking up exactly where you left off.',
                 ),
                 array(
                     'q' => 'Does it work with WooCommerce Subscriptions?',
