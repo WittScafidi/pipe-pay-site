@@ -22,7 +22,7 @@ $docs = array(
 <p>Download the plugin zip from the email we sent you after purchase. In WordPress: <code>Plugins -> Add New -> Upload Plugin</code>, pick the zip, click <em>Install Now</em>, then <em>Activate</em>. Pipe Pay registers itself as a WooCommerce payment gateway during activation; if WooCommerce is not active you will see a notice and the gateway will not appear.</p>
 
 <h2>2. Activate your license</h2>
-<p>Go to <code>WooCommerce -> Settings -> Payments -> Pipe Pay -> Manage</code>. The first field on the page is the license key. Paste the key from your purchase email and save. The status indicator next to the field flips to <em>Active</em> within a second or two. If it does not, double-check that you are pasting the key for the same site you are activating on; the activation count is enforced per registered site.</p>
+<p>In the WordPress admin sidebar, open <code>Pipe Pay -> License</code>. Paste the license key from your purchase email into the single license-key field and click <em>Activate</em>. The page flips to show your tier and a <em>Deactivate</em> button within a second or two. If activation fails, double-check that you are pasting the key for the same site you are activating on; the activation count is enforced per registered site.</p>
 
 <h2>3. Add your P2P handles</h2>
 <p>On the same settings page, scroll to the <em>Payment methods</em> section and enable each rail you want to accept. For each one, paste the handle exactly as it appears in your P2P app:</p>
@@ -84,7 +84,7 @@ HTML,
 <p>Even on a clean-looking screenshot, Pipe Pay will cap confidence at <em>medium</em> if any of these signals trip:</p>
 <ul>
     <li>Recipient handle does not exactly match your configured handle.</li>
-    <li>Amount on the screenshot differs from the order total by any amount.</li>
+    <li>Amount on the screenshot differs from the order total by more than a cent.</li>
     <li>Visible signs of pixel-level editing around the amount or recipient fields.</li>
     <li>Screenshot timestamp is more than 30 minutes old or in the future.</li>
     <li>Transaction status reads "pending" or "cancelled."</li>
@@ -93,7 +93,7 @@ HTML,
 <p>Capped orders skip auto-approval and require your manual review. This is intentional: a screenshot can look pristine and still be wrong.</p>
 
 <h2>Cross-store fraud network</h2>
-<p>Pipe Pay catches one fraud pattern the AI cannot see on its own: the same fake payment screenshot reused across many stores. The AI reads the image in front of it and (correctly) says it looks like a valid payment every time - it has no memory of other orders. Pipe Pay computes a 64-bit one-way fingerprint of each screenshot and, with the cross-store network enabled, checks it against fingerprints from <em>other</em> Pipe Pay stores; a match forces the order to manual review with a "Screenshot seen on another Pipe Pay store" badge.</p>
+<p>Pipe Pay catches one fraud pattern the AI cannot see on its own: the same fake payment screenshot reused across many stores. The AI reads the image in front of it and (correctly) says it looks like a valid payment every time - it has no memory of other orders. Pipe Pay computes a 256-bit one-way fingerprint of each screenshot and, with the cross-store network enabled, checks it against fingerprints from <em>other</em> Pipe Pay stores; a match forces the order to manual review with a "Screenshot seen on another Pipe Pay store" badge.</p>
 <p>Only the fingerprint leaves your server - never the image, the amount, the handle, or any customer data - and the fingerprint cannot be reversed back into an image. The network is on by default; uncheck <em>Cross-store fraud network</em> in the gateway settings to disable it. Full data detail is in the merchant <a href="/data-handling/">Data Handling guide</a>.</p>
 HTML,
         'topics' => array(
@@ -112,10 +112,11 @@ HTML,
         'sub'    => 'Triage flagged proofs, approve and reject in bulk, re-run AI analysis, and read the confidence signals the AI is surfacing.',
         'body'   => <<<'HTML'
 <h2>The Proofs queue, at a glance</h2>
-<p>Open <code>WooCommerce -> Pipe Pay Proofs</code>. The queue has two tabs:</p>
+<p>Open <code>Pipe Pay Proofs</code> in the WordPress admin sidebar. The queue has three tabs:</p>
 <ul>
-    <li><strong>Pending.</strong> Orders waiting on your review. Anything the AI flagged with medium or low confidence, plus anything above your auto-approval cap.</li>
-    <li><strong>History.</strong> Everything that has been approved or rejected, oldest first when sorted by date. Useful for spot-checking the AI's auto-approvals after the fact.</li>
+    <li><strong>Pending Review.</strong> Orders waiting on your review. Anything the AI flagged with medium or low confidence, plus anything above your auto-approval cap.</li>
+    <li><strong>No screenshot.</strong> Orders where the customer placed the order but never uploaded a payment screenshot - the live ones still awaiting proof, plus recently auto-cancelled ones - each with recovery actions (mark paid, reopen, resend the payment link).</li>
+    <li><strong>History.</strong> Everything that has been approved or rejected. Useful for spot-checking the AI's auto-approvals after the fact.</li>
 </ul>
 <p>Each row shows a thumbnail of the screenshot, the order ID, amount, customer email, P2P method, AI confidence, and inline approve/reject buttons.</p>
 
@@ -128,10 +129,10 @@ HTML,
 
 <h2>Approve and reject</h2>
 <p>Click any row to open the full proof view: full-size screenshot, the AI's structured reasoning, the customer's order details, and a comment field. Use this view for anything ambiguous.</p>
-<p>For obvious cases, the inline buttons in the queue work without opening the row. Hold <kbd>Shift</kbd> and click multiple checkboxes to select a range; bulk-approve or bulk-reject from the action dropdown above the table.</p>
+<p>For obvious cases, the inline buttons in the queue work without opening the row. To act on several at once, tick the checkbox on each row (or the header checkbox to select the whole page), then choose Approve or Reject from the bulk-action dropdown above the table.</p>
 
-<h2>Re-run AI on a single proof</h2>
-<p>Inside the proof detail view, the <em>Re-run AI</em> button sends the screenshot to your provider again. Useful when the first call timed out, when the provider was rate-limited, or when you have changed providers and want a second opinion. Each re-run is a fresh API call and costs the usual provider fee.</p>
+<h2>Re-analyze a single proof</h2>
+<p>Inside the proof detail view, the <em>Re-analyze</em> button sends the screenshot to your provider again. Useful when the first call timed out, when the provider was rate-limited, or when you have changed providers and want a second opinion. Each re-run is a fresh API call and costs the usual provider fee.</p>
 
 <h2>What the AI's reasoning text contains</h2>
 <p>Pipe Pay asks the AI to return structured JSON with a per-check pass/fail and one-sentence rationale. You see all of that in the proof detail view. Example:</p>
@@ -154,7 +155,7 @@ overall_confidence: high
 <p>The customer never sees the AI's reasoning text or the confidence level; that lives only in your admin.</p>
 HTML,
         'topics' => array(
-            'Proofs queue layout: Pending vs History tabs.',
+            'Proofs queue layout: Pending Review, No-screenshot, and History tabs.',
             'Confidence levels (high, medium, low) and what each one means in practice.',
             'Approve and reject flow: keyboard shortcuts, bulk actions.',
             'Re-running AI analysis on a single proof.',
@@ -171,13 +172,13 @@ HTML,
 <h2>Per-method enable</h2>
 <p>Each P2P rail (Venmo, Cash App, PayPal, Zelle) has its own enable toggle on the settings page. Enabling a method requires a non-empty handle; saving with an empty handle re-disables the toggle and surfaces a notice. Disable any method you do not actually accept; customers will see only the enabled options on the payment page.</p>
 
-<h2>Personal vs business profiles for Venmo and Cash App</h2>
-<p>Venmo and Cash App differentiate personal and business profiles. The handle field accepts either, but the <em>Profile type</em> dropdown next to it changes downstream behavior:</p>
+<h2>Personal vs business profiles</h2>
+<p>Venmo has a <em>This is a Venmo business profile</em> checkbox next to its handle. Tick it if you receive on Venmo Business; leave it unchecked for a personal Venmo. The distinction matters for how you accept payment and for fees:</p>
 <ul>
     <li><strong>Personal profile.</strong> No fees on the receiving side, no in-app refund button. Acceptable for low volumes; risky over time because Venmo and Cash App both reserve the right to flag personal accounts that look like commercial activity.</li>
-    <li><strong>Business profile.</strong> 1.9% receiving fee on Venmo Business and 2.75% on Cash App for Business at the time of writing, plus the in-app refund button. Recommended for any meaningful volume.</li>
+    <li><strong>Business profile.</strong> A receiving fee applies (around 1.9% on Venmo Business and 2.75% on Cash App for Business at the time of writing), plus the in-app refund button. Recommended for any meaningful volume.</li>
 </ul>
-<p>PayPal handles only the email field; Friends and Family is implied for the rail. Zelle has no profile distinction in the app, so the field is just the email or phone number on file with your bank.</p>
+<p>Cash App, PayPal, and Zelle have no profile-type setting in Pipe Pay - just the handle (plus an optional QR). For PayPal, enter the email on your account; Friends and Family is implied for the rail. For Zelle, enter the email or phone number on file with your bank.</p>
 
 <h2>Multi-account rotation</h2>
 <p>For each enabled method you can add up to three handles. Rotation strategies:</p>
@@ -192,22 +193,24 @@ HTML,
 <p>Generate the QR codes inside the P2P app's own profile screen, not third-party tools. Apps periodically rotate their QR formats and a third-party-generated QR can stop working overnight.</p>
 
 <h2>Customer payment page branding</h2>
-<p>Three knobs:</p>
+<p>The customer-facing payment page is styled from the gateway settings:</p>
 <ul>
     <li><strong>Accent color.</strong> Default is Pipe Pay blue (<code>#1336a8</code>). Override with your brand color via the color picker. The customer-facing buttons and the order-amount accent use this color.</li>
-    <li><strong>Store logo.</strong> Upload via the standard WordPress media picker. Renders at the top of the customer payment page, scaled to 120px tall, with white space respected.</li>
-    <li><strong>Custom message.</strong> Optional one-line note shown above the payment instructions. Use it for things like "Send within 30 minutes to keep your order active" or "Use the order number in the payment note."</li>
+    <li><strong>Store logo.</strong> Upload via the standard WordPress media picker. Renders at the top of the customer payment page.</li>
+    <li><strong>Font family.</strong> Pick the typeface the payment page renders in.</li>
+    <li><strong>Upload-card text.</strong> Edit the upload-card heading, the sub-heading, and the submit-button label so the payment instructions read in your own voice.</li>
 </ul>
+<p>Advanced controls in the same section let you set the corner style, override the per-method button colors (Venmo, Cash App, PayPal, Zelle), add custom CSS, and hide the "powered by" line.</p>
 
 <h2>Payment-method label on WooCommerce checkout</h2>
 <p>The label customers see on WooCommerce's checkout page (not the post-checkout payment page) is editable from the same settings screen. Default is "Pipe Pay - pay with Venmo, Cash App, PayPal, or Zelle." Shorten or rebrand as needed; this is the line that competes for attention against any other gateways you have enabled.</p>
 HTML,
         'topics' => array(
             'Per-method enable / disable.',
-            'Personal vs business profiles for Venmo and Cash App.',
+            'Personal vs business profiles (the Venmo business-profile checkbox).',
             'Multi-account rotation: LRU vs round-robin selection.',
             'QR code upload (one per method, hidden on phone-sized screens).',
-            'Customer payment page branding: accent color, store logo, custom message.',
+            'Customer payment page branding: accent color, store logo, fonts, upload-card text.',
             'Payment-method label as it appears on WooCommerce checkout.',
         ),
     ),
@@ -350,11 +353,12 @@ HTML,
 <p>The deletion job runs daily via Action Scheduler. It removes both the file from disk and the database row that referenced it. Order metadata (amount, customer, AI confidence, AI reasoning) is retained on the order itself; only the screenshot file goes away.</p>
 
 <h2>Rate limits</h2>
-<p>Three rate-limit layers are on by default:</p>
+<p>Four rate-limit layers are on by default:</p>
 <ul>
     <li><strong>Per IP, per order.</strong> 10 valid uploads per hour, scoped to a single (IP, order) pair. Stops a single attacker spamming uploads against one order.</li>
     <li><strong>Per IP brute-force.</strong> 50 attempts per hour against unknown / invalid order keys before the IP is blocked at the endpoint. Stops enumeration of order keys.</li>
     <li><strong>Per order lifetime.</strong> 5 upload attempts per order. After the cap, the order can no longer accept uploads and the customer is asked to contact you.</li>
+    <li><strong>Per billing email.</strong> 8 successful uploads per 24 hours, keyed to the email on the order (Gmail aliases are normalized to one bucket so <code>user+1@gmail.com</code> and <code>u.s.e.r@gmail.com</code> count together). Stops one customer farming many orders.</li>
 </ul>
 HTML,
         'topics' => array(
@@ -364,7 +368,7 @@ HTML,
             'Custom storage volume via wp-config constant.',
             'Triple denial-file layer on every storage root.',
             'Auto-expiration: configuring retention from 0 to 10 years.',
-            'Per-IP per-order, per-IP brute-force, and per-order lifetime rate limits.',
+            'Per-IP per-order, per-IP brute-force, per-order lifetime, and per-billing-email rate limits.',
         ),
     ),
 
@@ -374,7 +378,7 @@ HTML,
         'sub'    => 'How license activation, deactivation, and renewal work, and what happens when a license lapses.',
         'body'   => <<<'HTML'
 <h2>First-time activation</h2>
-<p>Paste the license key into the first field of <code>WooCommerce -> Settings -> Payments -> Pipe Pay -> Manage</code> and save. The plugin calls back to <code>https://pipepay.app/?wc-api=wc-am-api</code>, which validates the key, registers your site URL against the activation count, and returns an <em>Active</em> status. If you do not see the active state within a few seconds, your firewall may be blocking outbound HTTPS to <code>pipepay.app</code>.</p>
+<p>Paste the license key into the single field on <code>Pipe Pay -> License</code> (in the WordPress admin sidebar) and click <em>Activate</em>. The plugin calls back to <code>https://pipepay.app/?wc-api=wc-am-api</code>, which validates the key, registers your site URL against the activation count, and returns an <em>Active</em> status. If you do not see the active state within a few seconds, your firewall may be blocking outbound HTTPS to <code>pipepay.app</code>.</p>
 
 <h2>Site limits per tier</h2>
 <ul>
@@ -387,8 +391,8 @@ HTML,
 <h2>Deactivating a license to free up a slot</h2>
 <p>If you are migrating between hosts or retiring a site, deactivate first so the slot is freed for a new activation. Two ways:</p>
 <ul>
-    <li>From the source site (preferred): <em>Settings -> Pipe Pay -> Deactivate license</em>. Sends a deactivation request to <code>pipepay.app</code>; the slot is freed immediately.</li>
-    <li>From your account on <code>pipepay.app</code>: log in, go to <em>My Account -> Licenses</em>, expand the license, and click <em>Deactivate</em> next to the site URL. Useful when the source site is already gone or unreachable.</li>
+    <li>From the source site (preferred): open <code>Pipe Pay -> License</code> and click <em>Deactivate</em>. Sends a deactivation request to <code>pipepay.app</code>; the slot is freed immediately.</li>
+    <li>If the source site is already gone or unreachable, email <a href="mailto:support@pipepay.app">support@pipepay.app</a> with your license key and we will free the slot for you.</li>
 </ul>
 
 <h2>Renewal</h2>
@@ -423,7 +427,7 @@ HTML,
     <li><strong>nginx:</strong> <code>client_max_body_size 32m;</code> in your server block.</li>
     <li><strong>Cloudflare:</strong> the free tier caps uploads at 100MB; you should not hit this with screenshots.</li>
 </ul>
-<p>If HEIC screenshots specifically fail, the Imagick PHP extension (with the HEIC delegate) is missing on your host. Pipe Pay rejects HEIC uploads with an inline error pointing the customer at common workarounds (re-saving as JPG/PNG on the phone, or switching the iPhone Camera setting from HEIC to JPG). <code>sudo apt install php-imagick</code> on Ubuntu and restart PHP-FPM - many shared hosts will need a support ticket to enable Imagick or its HEIC delegate.</p>
+<p>HEIC is handled when the Imagick PHP extension (with the HEIC delegate) is installed: Pipe Pay accepts the upload and converts it to JPEG automatically. If Imagick or its HEIC delegate is missing, the upload is refused with an inline error pointing the customer at common workarounds (re-saving as JPG/PNG on the phone, emailing the screenshot to themselves so Mail converts it, or switching the iPhone Camera setting from "High Efficiency" to "Most Compatible"). To add support: <code>sudo apt install php-imagick</code> on Ubuntu and restart PHP-FPM - many shared hosts will need a support ticket to enable Imagick or its HEIC delegate.</p>
 
 <h2>AI verification stalls</h2>
 <p>Symptom: customer uploads screenshot, but the order sits in <em>Awaiting Proof</em> for minutes. Causes, in order of likelihood:</p>
@@ -443,12 +447,13 @@ HTML,
 </ul>
 
 <h2>Where the logs live</h2>
-<p>Pipe Pay logs to two places:</p>
+<p>Pipe Pay logs to three places:</p>
 <ul>
-    <li><strong>WooCommerce -> Orders -> [order] -> Order notes.</strong> The primary log surface. Per-order events: status changes, AI confidence and reasoning, manual approve/reject, refund actions. Use this for support correspondence about a specific order.</li>
-    <li><strong>PHP <code>error_log</code>.</strong> Unexpected failures (Imagick crashes, AI provider HTTP errors, license-server connectivity issues) land here. Path varies by host: typically <code>/var/log/php-fpm/error.log</code> or <code>wp-content/debug.log</code> if <code>WP_DEBUG_LOG</code> is enabled.</li>
+    <li><strong>WooCommerce -> Status -> Logs (source <code>pipepay</code>).</strong> The primary structured log surface. Status changes, AI calls, license events, and unexpected failures land here - filter the log list by the <code>pipepay</code> source.</li>
+    <li><strong>WooCommerce -> Orders -> [order] -> Order notes.</strong> Per-order events: status changes, AI confidence and reasoning, manual approve/reject, refund actions. Use this for support correspondence about a specific order.</li>
+    <li><strong>PHP <code>error_log</code>.</strong> A fallback for when the WooCommerce logger is unavailable. Path varies by host: typically <code>/var/log/php-fpm/error.log</code> or <code>wp-content/debug.log</code> if <code>WP_DEBUG_LOG</code> is enabled.</li>
 </ul>
-<p>The Kestrel licensing SDK additionally writes to <em>WooCommerce -> Status -> Logs</em> on failed license-server calls; those follow WooCommerce's default 30-day rotation.</p>
+<p>The Kestrel licensing SDK also writes to <em>WooCommerce -> Status -> Logs</em> on failed license-server calls; those follow WooCommerce's default 30-day rotation.</p>
 
 <h2>Telling whether an issue is in Pipe Pay, WooCommerce, or your AI provider</h2>
 <ul>
