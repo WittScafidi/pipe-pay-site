@@ -98,7 +98,7 @@ $sections = array(
     <div class="pp-container">
         <span class="pp-page-hero__kicker">Documentation</span>
         <h1 class="pp-page-title">Pipe Pay docs</h1>
-        <p class="pp-page-hero__sub">Everything we know about running Pipe Pay in production. The articles are still being written; the topic areas below are the table of contents we are filling in.</p>
+        <p class="pp-page-hero__sub">Everything we know about running Pipe Pay in production, from installation and AI verification to the review queue, refunds, security, and troubleshooting. Pick a topic below to dive in.</p>
     </div>
 </section>
 
@@ -127,7 +127,7 @@ $sections = array(
     <div class="pp-container pp-container--narrow">
         <div class="pp-docs-cta">
             <h2>Can't find what you need?</h2>
-            <p>The docs are still under construction. If you are mid-trial and stuck, email me directly and I will answer.</p>
+            <p>If you are mid-trial and stuck on something the docs don't cover, email me directly and I will answer.</p>
             <a class="pp-btn pp-btn--primary" href="<?php echo esc_url( home_url( '/contact' ) ); ?>">Contact support</a>
         </div>
     </div>
