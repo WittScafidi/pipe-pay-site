@@ -132,6 +132,11 @@ add_action( 'wp_head', function() {
         $title       = 'Pipe Pay - P2P Payment Verification for WooCommerce Stores';
         $description = 'WooCommerce plugin for store owners who accept Venmo, Cash App, PayPal, or Zelle from customers. AI-verified, queue-managed, merchant-controlled. A verification tool installed on your own WordPress store - not a payment processor.';
         $canonical   = home_url( '/' );
+    } elseif ( is_home() ) {
+        // Blog posts index (the page set as "Posts page" in Settings → Reading).
+        $title       = 'Blog - Pipe Pay';
+        $description = 'The Pipe Pay blog: practical guides for WooCommerce store owners accepting Venmo, Cash App, PayPal, and Zelle, and for merchants underserved by the major card processors.';
+        $canonical   = get_permalink( (int) get_option( 'page_for_posts' ) ) ?: home_url( '/blog/' );
     } elseif ( is_singular() ) {
         $slug        = get_post_field( 'post_name', get_the_ID() );
         $title       = single_post_title( '', false ) . ' - Pipe Pay';
@@ -143,8 +148,23 @@ add_action( 'wp_head', function() {
             $description = 'Pipe Pay - a WooCommerce verification plugin for store owners accepting Venmo, Cash App, PayPal, or Zelle. Not a payment processor.';
         }
         $canonical   = wp_get_canonical_url() ?: get_permalink();
+    } elseif ( is_archive() || is_search() ) {
+        if ( is_search() ) {
+            $title       = 'Search - Pipe Pay';
+            $description = 'Search the Pipe Pay blog and site.';
+            $canonical   = home_url( '/blog/' );
+        } else {
+            $title       = wp_strip_all_tags( get_the_archive_title() ) . ' - Pipe Pay';
+            $description = wp_strip_all_tags( get_the_archive_description() );
+            if ( ! $description ) {
+                $description = 'Pipe Pay blog archive: guides for WooCommerce store owners accepting Venmo, Cash App, PayPal, and Zelle.';
+            }
+            $qo          = get_queried_object();
+            $canonical   = ( $qo instanceof WP_Term ) ? get_term_link( $qo ) : home_url( '/blog/' );
+            if ( is_wp_error( $canonical ) ) { $canonical = home_url( '/blog/' ); }
+        }
     } else {
-        return; // Archive / 404 / etc. Skip the meta block.
+        return; // 404 / other. Skip the meta block.
     }
 
     // Canonical: only emit on the front page. WordPress's built-in rel_canonical()

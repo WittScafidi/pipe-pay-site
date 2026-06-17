@@ -77,6 +77,7 @@ $changelog_url   = home_url( '/changelog' );
             <a href="<?php echo esc_url( home_url( '/how-it-works' ) ); ?>">How it works</a>
             <a href="<?php echo esc_url( home_url( '/pricing' ) ); ?>">Pricing</a>
             <a href="<?php echo esc_url( home_url( '/docs' ) ); ?>">Docs</a>
+            <a href="<?php echo esc_url( home_url( '/blog' ) ); ?>">Blog</a>
             <a href="<?php echo esc_url( home_url( '/changelog' ) ); ?>">Changelog</a>
             <a href="<?php echo esc_url( home_url( '/contact' ) ); ?>">Contact</a>
             <a href="<?php echo esc_url( home_url( '/my-account' ) ); ?>"><?php echo is_user_logged_in() ? 'Account' : 'Sign in'; ?></a>
