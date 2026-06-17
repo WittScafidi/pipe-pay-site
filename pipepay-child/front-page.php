@@ -109,7 +109,6 @@ $changelog_url   = home_url( '/changelog' );
                 <a class="pp-btn pp-btn--inverse pp-btn--lg" href="<?php echo esc_url( $checkout_url ); ?>">Start 7-day free trial &rarr;</a>
                 <a class="pp-btn pp-btn--ghost-light pp-btn--lg" href="#how">How it works &darr;</a>
             </div>
-            <p class="pp-cta-skip pp-cta-skip--inverse"><a href="<?php echo esc_url( $pricing_url ); ?>">or skip the trial - buy a license now &rarr;</a></p>
         </div>
 
         <div class="pp-hero-mock-col">
