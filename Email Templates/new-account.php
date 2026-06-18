@@ -72,7 +72,7 @@ if ( $plain_text ) :
     echo "  - View your orders and license keys\n";
     echo "  - Download the latest Pipe Pay plugin build\n";
     echo "  - Manage billing and account details\n\n";
-    echo "Questions? Reply to this email or contact support@pipepay.app.\n\n";
+    echo "Questions? Email support@pipepay.app.\n\n";
     echo "- Pipe Pay\n";
     return;
 endif;

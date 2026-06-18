@@ -134,7 +134,7 @@ if ( $plain_text ) :
         echo "  3. Paste the license key into Pipe Pay -> License\n\n";
     }
     echo "We'll email a one-click renewal link 30 days before your license expires.\n\n";
-    echo "Questions? Reply to this email or contact support@pipepay.app.\n\n";
+    echo "Questions? Email support@pipepay.app.\n\n";
     echo "- Pipe Pay\n";
     return;
 endif;

@@ -94,7 +94,7 @@ if ( $plain_text ) :
     echo "We'll send a one-click renewal link before your trial expires so you\n";
     echo "can convert to a paid tier without re-entering your details. No charge\n";
     echo "unless you choose to continue.\n\n";
-    echo "Questions? Reply to this email or contact support@pipepay.app.\n\n";
+    echo "Questions? Email support@pipepay.app.\n\n";
     echo "- Pipe Pay\n";
     return;
 endif;

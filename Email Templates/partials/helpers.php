@@ -101,7 +101,7 @@ if ( ! function_exists( 'pp_email_signoff' ) ) {
         $text  = pp_email_text_color();
         ?>
         <p style="margin:0 0 16px 0;font-size:16px;line-height:1.6;color:<?php echo esc_attr( $text ); ?>;">
-            Questions? Reply to this email or contact <a href="mailto:support@pipepay.app" style="color:<?php echo esc_attr( $blue ); ?>;text-decoration:underline;">support@pipepay.app</a>.
+            Questions? Email <a href="mailto:support@pipepay.app" style="color:<?php echo esc_attr( $blue ); ?>;text-decoration:underline;">support@pipepay.app</a>.
         </p>
         <?php
     }

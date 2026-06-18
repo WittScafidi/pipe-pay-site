@@ -36,7 +36,7 @@ if ( $plain_text ) :
     echo "expiry date if you haven't renewed by then.\n\n";
     echo "Prefer a card? Choose the card option at checkout and your license\n";
     echo "switches to automatic yearly renewal.\n\n";
-    echo "Questions? Reply to this email or contact support@pipepay.app.\n\n";
+    echo "Questions? Email support@pipepay.app.\n\n";
     echo "- Pipe Pay\n";
     return;
 endif;
