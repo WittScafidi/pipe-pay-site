@@ -19,6 +19,10 @@
  * Registered email IDs (visible at WC -> Settings -> Emails):
  *   pipepay_trial_ending_soon    - T-2 days before trial expiry
  *   pipepay_trial_ended          - T+0 trial ended
+ *   pipepay_trial_day1           - day 1 of trial (segmented: activated vs not)
+ *   pipepay_trial_day3           - day 3 of trial (segmented: activated vs not)
+ *   pipepay_trial_winback        - T+3 after trial ended (skipped if converted)
+ *   pipepay_trial_winback_final  - T+7 after trial ended (skipped if converted)
  *   pipepay_renewal_30           - T-30 paid license
  *   pipepay_renewal_7            - T-7 paid license
  *   pipepay_renewal_expiry       - T-0 paid license expires today
@@ -51,6 +55,10 @@ function pipepay_register_custom_emails( array $emails ): array {
 
     $emails['WC_Email_PipePay_Trial_Ending_Soon']   = new WC_Email_PipePay_Trial_Ending_Soon();
     $emails['WC_Email_PipePay_Trial_Ended']         = new WC_Email_PipePay_Trial_Ended();
+    $emails['WC_Email_PipePay_Trial_Day1']          = new WC_Email_PipePay_Trial_Day1();
+    $emails['WC_Email_PipePay_Trial_Day3']          = new WC_Email_PipePay_Trial_Day3();
+    $emails['WC_Email_PipePay_Trial_Winback']       = new WC_Email_PipePay_Trial_Winback();
+    $emails['WC_Email_PipePay_Trial_Winback_Final'] = new WC_Email_PipePay_Trial_Winback_Final();
     $emails['WC_Email_PipePay_Renewal_30']          = new WC_Email_PipePay_Renewal_30();
     $emails['WC_Email_PipePay_Renewal_7']           = new WC_Email_PipePay_Renewal_7();
     $emails['WC_Email_PipePay_Renewal_Expiry']      = new WC_Email_PipePay_Renewal_Expiry();

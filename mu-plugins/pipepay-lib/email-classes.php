@@ -93,8 +93,16 @@ abstract class PipePay_Cadence_Email_Base extends WC_Email {
         return $this->render_template( /* plain_text */ true );
     }
 
+    /**
+     * Segmented subclasses (day-1 / day-3) override this to pick a template
+     * by activation state at render time.
+     */
+    protected function resolve_template_basename(): string {
+        return $this->template_basename;
+    }
+
     private function render_template( bool $plain_text ): string {
-        $path = PIPEPAY_EMAIL_TEMPLATES_DIR . $this->template_basename;
+        $path = PIPEPAY_EMAIL_TEMPLATES_DIR . $this->resolve_template_basename();
         if ( ! file_exists( $path ) ) {
             if ( function_exists( 'pipepay_log' ) ) {
                 pipepay_log( 'error', 'Cadence email template missing', [ 'expected_path' => $path, 'email_id' => $this->id ] );
@@ -112,6 +120,12 @@ abstract class PipePay_Cadence_Email_Base extends WC_Email {
         $tier_name     = $this->license_data['tier_name']     ?? '';
         $expires_label = $this->license_data['expires_label'] ?? '';
         $renewal_url   = $this->license_data['renewal_url']   ?? '';
+
+        $license_key          = $this->license_data['license_key']          ?? '';
+        $intent_tier_name     = $this->license_data['intent_tier_name']     ?? '';
+        $intent_tier_price    = $this->license_data['intent_tier_price']    ?? '';
+        $intent_monthly_price = $this->license_data['intent_monthly_price'] ?? '';
+        $trial_extension_url  = $this->license_data['trial_extension_url']  ?? '';
 
         ob_start();
         include $path;
@@ -213,3 +227,58 @@ class WC_Email_PipePay_Renewal_Final extends PipePay_Cadence_Email_Base {
     }
 }
 
+class WC_Email_PipePay_Trial_Day1 extends PipePay_Cadence_Email_Base {
+    public function __construct() {
+        $this->id          = 'pipepay_trial_day1';
+        $this->title       = 'Pipe Pay - Trial day 1 (setup nudge)';
+        $this->description = 'Sent the day after a trial starts. Not-activated users get an install walkthrough; activated users get a setup checklist.';
+        $this->subject     = 'Get Pipe Pay running on your store';
+        $this->heading     = 'Get set up';
+        parent::__construct();
+    }
+    protected function resolve_template_basename(): string {
+        return ! empty( $this->license_data['activated'] )
+            ? 'trial-day1-activated.php'
+            : 'trial-day1-not-activated.php';
+    }
+}
+
+class WC_Email_PipePay_Trial_Day3 extends PipePay_Cadence_Email_Base {
+    public function __construct() {
+        $this->id          = 'pipepay_trial_day3';
+        $this->title       = 'Pipe Pay - Trial day 3 (value / unblock)';
+        $this->description = 'Sent 3 days into a trial. Not-activated users get a short unblock note; activated users get the value rundown and first pricing mention.';
+        $this->subject     = 'Halfway through your Pipe Pay trial';
+        $this->heading     = 'Halfway there';
+        parent::__construct();
+    }
+    protected function resolve_template_basename(): string {
+        return ! empty( $this->license_data['activated'] )
+            ? 'trial-day3-activated.php'
+            : 'trial-day3-not-activated.php';
+    }
+}
+
+class WC_Email_PipePay_Trial_Winback extends PipePay_Cadence_Email_Base {
+    protected $template_basename = 'trial-winback.php';
+    public function __construct() {
+        $this->id          = 'pipepay_trial_winback';
+        $this->title       = 'Pipe Pay - Trial win-back (T+3)';
+        $this->description = 'Sent 3 days after a trial ended, only if the user has not converted. Leads with the monthly lane. No discounts.';
+        $this->subject     = 'A smaller way to keep Pipe Pay';
+        $this->heading     = 'Monthly starts at $35';
+        parent::__construct();
+    }
+}
+
+class WC_Email_PipePay_Trial_Winback_Final extends PipePay_Cadence_Email_Base {
+    protected $template_basename = 'trial-winback-final.php';
+    public function __construct() {
+        $this->id          = 'pipepay_trial_winback_final';
+        $this->title       = 'Pipe Pay - Trial win-back final (T+7)';
+        $this->description = 'Sent 7 days after a trial ended, only if the user has not converted. Last automated email for the trial.';
+        $this->subject     = 'Your Pipe Pay license is saved in your account';
+        $this->heading     = 'Whenever you are ready';
+        parent::__construct();
+    }
+}
