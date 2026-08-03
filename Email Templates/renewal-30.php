@@ -45,12 +45,12 @@ do_action( 'woocommerce_email_header', $email_heading, $email );
 
 pp_email_greeting( $first_name );
 pp_email_paragraph(
-    'Just a heads-up: your Pipe Pay <strong>' . esc_html( $tier_name ) . '</strong> license expires on <strong>' . esc_html( $expires_label ) . '</strong> &mdash; 30 days from now. It does not renew on its own; renew before that date to keep everything running.'
+    'Just a heads-up: your Pipe Pay <strong>' . esc_html( $tier_name ) . '</strong> license expires on <strong>' . esc_html( $expires_label ) . '</strong>, 30 days from now. It does not renew on its own; renew before that date to keep everything running.'
 );
 pp_email_paragraph( 'Renew now in one click to keep auto-updates, support, and the fraud-detection improvements we ship monthly.' );
 pp_email_button( $renewal_url, 'Renew now &rarr;' );
-pp_email_paragraph( 'Your billing details are pre-filled — renewal takes about 30 seconds. Or just wait; we\'ll send another reminder a week before your expiry date.' );
-pp_email_paragraph( 'Prefer a card? <a href=\"https://pipepay.app/pricing/\" style=\"color:' . esc_attr( pp_email_brand_color() ) . ';text-decoration:underline;\">Auto-renewing card billing is available on the pricing page</a> &mdash; pick your tier and use the Buy now button.' );
+pp_email_paragraph( 'Your billing details are pre-filled; renewal takes about 30 seconds. Or just wait; we\'ll send another reminder a week before your expiry date.' );
+pp_email_paragraph( 'Prefer a card? <a href="https://pipepay.app/pricing/" style="color:' . esc_attr( pp_email_brand_color() ) . ';text-decoration:underline;">Auto-renewing card billing is available on the pricing page</a>. Pick your tier and use the Buy now button.' );
 pp_email_signoff();
 
 if ( ! empty( $additional_content ) ) {

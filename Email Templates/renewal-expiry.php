@@ -51,8 +51,8 @@ pp_email_paragraph(
     'Your gateway keeps accepting orders during a 30-day grace period. Around <strong>' . esc_html( date_i18n( 'F j, Y', time() + 30 * DAY_IN_SECONDS ) ) . '</strong> it stops offering Pipe Pay at checkout until you renew. Auto-updates and support pause starting today.'
 );
 pp_email_button( $renewal_url, 'Renew now &rarr;' );
-pp_email_paragraph( 'Orders already in progress always finish normally, and renewing at any point &mdash; before or after the stop date &mdash; restores checkout.' );
-pp_email_paragraph( 'Prefer a card? <a href=\"https://pipepay.app/pricing/\" style=\"color:' . esc_attr( pp_email_brand_color() ) . ';text-decoration:underline;\">Auto-renewing card billing is available on the pricing page</a> &mdash; pick your tier and use the Buy now button.' );
+pp_email_paragraph( 'Orders already in progress always finish normally, and renewing at any point, before or after the stop date, restores checkout.' );
+pp_email_paragraph( 'Prefer a card? <a href="https://pipepay.app/pricing/" style="color:' . esc_attr( pp_email_brand_color() ) . ';text-decoration:underline;">Auto-renewing card billing is available on the pricing page</a>. Pick your tier and use the Buy now button.' );
 pp_email_signoff();
 
 if ( ! empty( $additional_content ) ) {

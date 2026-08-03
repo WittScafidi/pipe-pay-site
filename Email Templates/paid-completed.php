@@ -149,7 +149,7 @@ do_action( 'woocommerce_email_header', $email_heading, $email );
 
 pp_email_greeting( $first_name );
 if ( $is_renewal ) {
-    pp_email_paragraph( 'Thanks for renewing the <strong>' . esc_html( $paid_product_title ) . '</strong> license. Your existing license has been extended &mdash; same key, no changes needed on your store.' );
+    pp_email_paragraph( 'Thanks for renewing the <strong>' . esc_html( $paid_product_title ) . '</strong> license. Your existing license has been extended: same key, no changes needed on your store.' );
 } else {
     pp_email_paragraph( 'Thanks for purchasing the <strong>' . esc_html( $paid_product_title ) . '</strong> license. Your activation details are below.' );
 }
@@ -160,7 +160,7 @@ pp_email_paragraph(
 );
 
 if ( $is_renewal ) {
-    pp_email_paragraph( 'Updates and support continue uninterrupted. There is nothing to reinstall or re-activate &mdash; your store keeps working exactly as it is.' );
+    pp_email_paragraph( 'Updates and support continue uninterrupted. There is nothing to reinstall or re-activate; your store keeps working exactly as it is.' );
 } else {
     pp_email_paragraph( 'Three steps to activate:', 12 );
 }

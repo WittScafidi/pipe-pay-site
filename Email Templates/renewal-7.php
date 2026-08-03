@@ -44,9 +44,9 @@ pp_email_paragraph(
     'One week left on your Pipe Pay <strong>' . esc_html( $tier_name ) . '</strong> license. Expires <strong>' . esc_html( $expires_label ) . '</strong>.'
 );
 pp_email_button( $renewal_url, 'Renew now &rarr;' );
-pp_email_paragraph( 'Your details are pre-filled — renewal takes about 30 seconds.' );
-pp_email_paragraph( 'If it lapses, auto-updates and support pause right away &mdash; and <strong>30 days after expiry, the gateway stops accepting new orders</strong> on your store until you renew. Renewing at any point restores everything.' );
-pp_email_paragraph( 'Prefer a card? <a href=\"https://pipepay.app/pricing/\" style=\"color:' . esc_attr( pp_email_brand_color() ) . ';text-decoration:underline;\">Auto-renewing card billing is available on the pricing page</a> &mdash; pick your tier and use the Buy now button.' );
+pp_email_paragraph( 'Your details are pre-filled; renewal takes about 30 seconds.' );
+pp_email_paragraph( 'If it lapses, auto-updates and support pause right away, and <strong>30 days after expiry, the gateway stops accepting new orders</strong> on your store until you renew. Renewing at any point restores everything.' );
+pp_email_paragraph( 'Prefer a card? <a href="https://pipepay.app/pricing/" style="color:' . esc_attr( pp_email_brand_color() ) . ';text-decoration:underline;">Auto-renewing card billing is available on the pricing page</a>. Pick your tier and use the Buy now button.' );
 pp_email_signoff();
 
 if ( ! empty( $additional_content ) ) {

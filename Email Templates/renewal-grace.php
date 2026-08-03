@@ -46,12 +46,12 @@ pp_email_paragraph(
     'Your Pipe Pay <strong>' . esc_html( $tier_name ) . '</strong> license expired 7 days ago.'
 );
 pp_email_paragraph(
-    'You\'re in the 30-day grace period: the gateway is still accepting orders, but auto-updates and support have paused &mdash; and around <strong>' . esc_html( date_i18n( 'F j, Y', time() + 23 * DAY_IN_SECONDS ) ) . '</strong> the gateway stops offering Pipe Pay at checkout until you renew.'
+    'You\'re in the 30-day grace period: the gateway is still accepting orders, but auto-updates and support have paused, and around <strong>' . esc_html( date_i18n( 'F j, Y', time() + 23 * DAY_IN_SECONDS ) ) . '</strong> the gateway stops offering Pipe Pay at checkout until you renew.'
 );
 pp_email_paragraph( 'About 23 days remain. Renew now and nothing changes.' );
 pp_email_button( $renewal_url, 'Renew now &rarr;' );
 pp_email_paragraph( 'Your billing details are pre-filled. About 30 seconds to renew.' );
-pp_email_paragraph( 'Prefer a card? <a href=\"https://pipepay.app/pricing/\" style=\"color:' . esc_attr( pp_email_brand_color() ) . ';text-decoration:underline;\">Auto-renewing card billing is available on the pricing page</a> &mdash; pick your tier and use the Buy now button.' );
+pp_email_paragraph( 'Prefer a card? <a href="https://pipepay.app/pricing/" style="color:' . esc_attr( pp_email_brand_color() ) . ';text-decoration:underline;">Auto-renewing card billing is available on the pricing page</a>. Pick your tier and use the Buy now button.' );
 pp_email_signoff();
 
 if ( ! empty( $additional_content ) ) {

@@ -56,13 +56,13 @@ pp_email_paragraph( 'What this means:', 12 );
 <ul style="margin:0 0 24px 22px;padding:0;font-size:16px;line-height:1.6;color:<?php echo esc_attr( pp_email_text_color() ); ?>;">
     <li style="margin:0 0 6px 0;"><strong>The gateway has stopped offering Pipe Pay at checkout</strong> on your store. Orders already in progress finish normally.</li>
     <li style="margin:0 0 6px 0;">Auto-updates and support remain paused until you renew</li>
-    <li style="margin:0 0 6px 0;">Your orders, settings, and history are untouched &mdash; renewing picks up exactly where you left off</li>
+    <li style="margin:0 0 6px 0;">Your orders, settings, and history are untouched; renewing picks up exactly where you left off</li>
 </ul>
 <?php
 
 pp_email_button( $renewal_url, 'Renew now &rarr;' );
-pp_email_paragraph( 'After renewing, checkout restores on its own within 24 hours &mdash; or immediately if you open WP&nbsp;Admin &rarr; Pipe&nbsp;Pay &rarr; License and click Activate.' );
-pp_email_paragraph( 'Prefer a card? <a href=\"https://pipepay.app/pricing/\" style=\"color:' . esc_attr( pp_email_brand_color() ) . ';text-decoration:underline;\">Auto-renewing card billing is available on the pricing page</a> &mdash; pick your tier and use the Buy now button.' );
+pp_email_paragraph( 'After renewing, checkout restores on its own within 24 hours, or immediately if you open WP&nbsp;Admin &rarr; Pipe&nbsp;Pay &rarr; License and click Activate.' );
+pp_email_paragraph( 'Prefer a card? <a href="https://pipepay.app/pricing/" style="color:' . esc_attr( pp_email_brand_color() ) . ';text-decoration:underline;">Auto-renewing card billing is available on the pricing page</a>. Pick your tier and use the Buy now button.' );
 pp_email_paragraph( 'Or email <a href="mailto:support@pipepay.app" style="color:' . esc_attr( pp_email_brand_color() ) . ';text-decoration:underline;">support@pipepay.app</a> with any questions about renewing or switching tiers.' );
 
 if ( ! empty( $additional_content ) ) {
