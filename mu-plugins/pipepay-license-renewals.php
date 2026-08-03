@@ -47,6 +47,8 @@ const PIPEPAY_RENEWAL_TIER_PRODUCT_IDS = [ 34, 35, 36 ];
 const PIPEPAY_RENEWAL_TRIAL_PRODUCT_ID = 38;
 const PIPEPAY_RENEWAL_PAGE_SLUG        = 'renew';
 
+require_once __DIR__ . '/pipepay-lib/cadence-logic.php';
+
 // ── HMAC helpers ─────────────────────────────────────────────────────────────
 
 /**
@@ -434,18 +436,6 @@ function pipepay_renewal_render_error( string $title, string $body_html, int $st
 
 const PIPEPAY_CADENCE_HOOK = 'pipepay_license_check_renewals';
 
-const PIPEPAY_CADENCE_STAGES = [
-    // [ days_from_now, email_id, product_id_filter ('trial' | 'paid'), stamp_key ]
-    'trial_t-2'     => [ 'days' =>  2, 'email' => 'WC_Email_PipePay_Trial_Ending_Soon', 'kind' => 'trial', 'stamp' => '_pipepay_renewal_stamp_trial_t-2' ],
-    'trial_t+0'     => [ 'days' =>  0, 'email' => 'WC_Email_PipePay_Trial_Ended',       'kind' => 'trial', 'stamp' => '_pipepay_renewal_stamp_trial_t+0' ],
-    'paid_t-30'     => [ 'days' => 30, 'email' => 'WC_Email_PipePay_Renewal_30',        'kind' => 'paid',  'stamp' => '_pipepay_renewal_stamp_paid_t-30' ],
-    'paid_t-7'      => [ 'days' =>  7, 'email' => 'WC_Email_PipePay_Renewal_7',         'kind' => 'paid',  'stamp' => '_pipepay_renewal_stamp_paid_t-7' ],
-    'paid_t-0'      => [ 'days' =>  0, 'email' => 'WC_Email_PipePay_Renewal_Expiry',    'kind' => 'paid',  'stamp' => '_pipepay_renewal_stamp_paid_t-0' ],
-    'paid_t+7'      => [ 'days' => -7, 'email' => 'WC_Email_PipePay_Renewal_Grace',     'kind' => 'paid',  'stamp' => '_pipepay_renewal_stamp_paid_t+7' ],
-    'paid_t+30'     => [ 'days' =>-30, 'email' => 'WC_Email_PipePay_Renewal_Final',     'kind' => 'paid',  'stamp' => '_pipepay_renewal_stamp_paid_t+30' ],
-];
-
-const PIPEPAY_CADENCE_TOLERANCE_DAYS = 1;
 const PIPEPAY_CADENCE_FAIL_CAP       = 3;  // skip license after this many consecutive send failures per stage
 
 /**
