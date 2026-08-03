@@ -14,6 +14,9 @@
  *   $sent_to_admin     bool
  *   $plain_text        bool
  *   $additional_content string
+ *   $intent_tier_name     string
+ *   $intent_tier_price    string
+ *   $intent_monthly_price string
  *
  * @package pipe-pay-site
  */
@@ -70,7 +73,7 @@ if ( $intent_tier_name ) {
     pp_email_paragraph( 'Tiers: $297 / $497 / $997 per year, or $35 / $65 / $129 per month, cancel anytime. Your details are pre-filled so converting takes about 30 seconds.' );
 }
 pp_email_paragraph( 'If the trial ends without an upgrade, the gateway keeps accepting orders for a 30-day grace period, then stops offering Pipe Pay at checkout until you pick a paid tier. Auto-updates and support pause as soon as the trial ends.' );
-pp_email_paragraph( 'Prefer a card? <a href=\"https://pipepay.app/pricing/\" style=\"color:' . esc_attr( pp_email_brand_color() ) . ';text-decoration:underline;\">Auto-renewing card billing is available on the pricing page</a>. Pick your tier and use the Buy now button.' );
+pp_email_paragraph( 'Prefer a card? <a href="https://pipepay.app/pricing/" style="color:' . esc_attr( pp_email_brand_color() ) . ';text-decoration:underline;">Auto-renewing card billing is available on the pricing page</a>. Pick your tier and use the Buy now button.' );
 pp_email_signoff();
 
 if ( ! empty( $additional_content ) ) {

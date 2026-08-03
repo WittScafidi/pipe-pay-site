@@ -6,7 +6,8 @@
  *
  * Expected scope:
  *   $first_name, $renewal_url, $email, $email_heading, $sent_to_admin,
- *   $plain_text, $additional_content
+ *   $plain_text, $additional_content, $intent_tier_name, $intent_tier_price,
+ *   $intent_monthly_price, $trial_extension_url
  *
  * @package pipe-pay-site
  */
@@ -68,7 +69,7 @@ if ( $trial_extension_url ) {
     pp_email_paragraph( 'Still setting up? You can extend your trial once, by 7 days:' );
     pp_email_button( $trial_extension_url, 'Extend my trial 7 days' );
 }
-pp_email_paragraph( 'Prefer a card? <a href=\"https://pipepay.app/pricing/\" style=\"color:' . esc_attr( pp_email_brand_color() ) . ';text-decoration:underline;\">Auto-renewing card billing is available on the pricing page</a>. Pick your tier and use the Buy now button.' );
+pp_email_paragraph( 'Prefer a card? <a href="https://pipepay.app/pricing/" style="color:' . esc_attr( pp_email_brand_color() ) . ';text-decoration:underline;">Auto-renewing card billing is available on the pricing page</a>. Pick your tier and use the Buy now button.' );
 pp_email_signoff();
 
 if ( ! empty( $additional_content ) ) {

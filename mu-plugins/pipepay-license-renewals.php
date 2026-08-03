@@ -47,7 +47,11 @@ const PIPEPAY_RENEWAL_TIER_PRODUCT_IDS = [ 34, 35, 36 ];
 const PIPEPAY_RENEWAL_TRIAL_PRODUCT_ID = 38;
 const PIPEPAY_RENEWAL_PAGE_SLUG        = 'renew';
 
-require_once __DIR__ . '/pipepay-lib/cadence-logic.php';
+// Hard dependency, but fail SOFT if the lib didn't ship in a partial sync:
+// the /renew/ landing keeps working; only the cadence cron degrades.
+if ( file_exists( __DIR__ . '/pipepay-lib/cadence-logic.php' ) ) {
+    require_once __DIR__ . '/pipepay-lib/cadence-logic.php';
+}
 
 // ── HMAC helpers ─────────────────────────────────────────────────────────────
 
@@ -357,11 +361,14 @@ function pipepay_renewal_handle_trial_extension( array $license, string $key ): 
 
     if ( $order_id ) {
         update_post_meta( $order_id, '_pipepay_trial_extended', gmdate( 'c' ) );
-        // Fresh window: T-2 / T+0 fire again against the new expiry.
-        foreach ( [ 'trial_t-2', 'trial_t+0' ] as $stage_key ) {
-            $stamp = PIPEPAY_CADENCE_STAGES[ $stage_key ]['stamp'];
-            delete_post_meta( $order_id, $stamp );
-            delete_post_meta( $order_id, $stamp . '_fails' );
+        // Fresh window: T-2 / T+0 fire again against the new expiry. Guarded
+        // because the lib require above fails soft on a partial sync.
+        if ( defined( 'PIPEPAY_CADENCE_STAGES' ) ) {
+            foreach ( [ 'trial_t-2', 'trial_t+0' ] as $stage_key ) {
+                $stamp = PIPEPAY_CADENCE_STAGES[ $stage_key ]['stamp'];
+                delete_post_meta( $order_id, $stamp );
+                delete_post_meta( $order_id, $stamp . '_fails' );
+            }
         }
         $wc_order = wc_get_order( $order_id );
         if ( $wc_order ) {
@@ -374,7 +381,7 @@ function pipepay_renewal_handle_trial_extension( array $license, string $key ): 
     }
 
     pipepay_renewal_render_extension_confirmation(
-        wc_format_datetime( ( new DateTime( '@' . $new_expires ) )->setTimezone( wp_timezone() ), 'F j, Y' )
+        wp_date( 'F j, Y', $new_expires )
     );
 }
 
@@ -424,8 +431,18 @@ function pipepay_renewal_render_tier_picker( string $key, string $token ): void 
             <div class="pp-pricing-grid">
                 <?php
                 $tiers = [];
+                // Hardcoded fallback for a partial sync where the cadence lib
+                // (and pipepay_cadence_tier_display()) didn't ship - the
+                // picker must still render real prices, not blank cards.
+                $fallback_tier_display = [
+                    34 => [ 'name' => 'Single Site',     'annual' => '$297', 'monthly' => '$35' ],
+                    35 => [ 'name' => '5 Sites',         'annual' => '$497', 'monthly' => '$65' ],
+                    36 => [ 'name' => 'Unlimited Sites', 'annual' => '$997', 'monthly' => '$129' ],
+                ];
                 foreach ( [ 34, 35, 36 ] as $tid ) {
-                    $display = pipepay_cadence_tier_display( $tid );
+                    $display = function_exists( 'pipepay_cadence_tier_display' )
+                        ? pipepay_cadence_tier_display( $tid )
+                        : $fallback_tier_display[ $tid ];
                     $tiers[ $tid ] = [
                         'title'    => $display['name'],
                         'price'    => $display['annual'],
@@ -618,6 +635,12 @@ function pipepay_cadence_user_has_paid_license( int $user_id ): bool {
  * sends the appropriate email if not already sent.
  */
 function pipepay_license_cadence_run(): void {
+    // The cadence lib didn't ship in a partial sync - degrade the cron
+    // silently rather than fatal on the undefined stage table below.
+    if ( ! defined( 'PIPEPAY_CADENCE_TOLERANCE_DAYS' ) ) {
+        return;
+    }
+
     global $wpdb;
 
     // Monthly Stripe-billed products (526/527/528) are excluded: Stripe auto-renews
@@ -751,8 +774,10 @@ function pipepay_cadence_maybe_send( array $lic, string $stage_key, array $stage
 function pipepay_cadence_build_license_data( array $lic, WC_Order $order, ?bool $is_activated = null ): array {
     $license_key   = (string) $lic['master_api_key'];
     $expires       = (int) $lic['access_expires'];
-    $expires_dt    = ( new DateTime( '@' . $expires ) )->setTimezone( wp_timezone() );
-    $expires_label = wc_format_datetime( $expires_dt, 'F j, Y' );
+    // wc_format_datetime() returns '' unless given a WC_DateTime (a plain
+    // DateTime fails its is_a() check) - wp_date() renders correctly in the
+    // site timezone without that trap.
+    $expires_label = wp_date( 'F j, Y', $expires );
 
     $renewal_url = add_query_arg(
         [
@@ -908,10 +933,13 @@ function pipepay_renewal_extend( $order_id ): void {
 
     // Year-1 cadence stamps live on the ORIGINAL license order and would
     // otherwise suppress every year-2 reminder forever. Fresh year, fresh
-    // cadence.
-    foreach ( PIPEPAY_CADENCE_STAGES as $stage ) {
-        delete_post_meta( (int) $row->order_id, $stage['stamp'] );
-        delete_post_meta( (int) $row->order_id, $stage['stamp'] . '_fails' );
+    // cadence. Guarded because the lib require above fails soft on a
+    // partial sync.
+    if ( defined( 'PIPEPAY_CADENCE_STAGES' ) ) {
+        foreach ( PIPEPAY_CADENCE_STAGES as $stage ) {
+            delete_post_meta( (int) $row->order_id, $stage['stamp'] );
+            delete_post_meta( (int) $row->order_id, $stage['stamp'] . '_fails' );
+        }
     }
     $order->add_order_note( sprintf(
         'Pipe Pay renewal: extended license ...%s to %s (+365 days, same key).',

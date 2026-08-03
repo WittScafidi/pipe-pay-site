@@ -54,6 +54,8 @@ check( ! pipepay_cadence_stage_matches( PIPEPAY_CADENCE_STAGES['paid_t-30'], 30,
 // New stages carry the right flags + email class names.
 check( ! empty( PIPEPAY_CADENCE_STAGES['trial_t-6']['segmented'] ), 'trial_t-6 segmented' );
 check( ! empty( PIPEPAY_CADENCE_STAGES['trial_t-4']['segmented'] ), 'trial_t-4 segmented' );
+check( ! empty( PIPEPAY_CADENCE_STAGES['trial_t-2']['skip_if_converted'] ), 'trial_t-2 skip_if_converted' );
+check( ! empty( PIPEPAY_CADENCE_STAGES['trial_t+0']['skip_if_converted'] ), 'trial_t+0 skip_if_converted' );
 check( ! empty( PIPEPAY_CADENCE_STAGES['trial_t+3']['skip_if_converted'] ), 'trial_t+3 skip_if_converted' );
 check( ! empty( PIPEPAY_CADENCE_STAGES['trial_t+7']['skip_if_converted'] ), 'trial_t+7 skip_if_converted' );
 check( 'WC_Email_PipePay_Trial_Day1' === PIPEPAY_CADENCE_STAGES['trial_t-6']['email'], 'trial_t-6 email class' );

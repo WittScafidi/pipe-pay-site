@@ -34,8 +34,8 @@ const PIPEPAY_CADENCE_TOLERANCE_DAYS = 1;
 const PIPEPAY_CADENCE_STAGES = [
     'trial_t-6' => [ 'days' =>  6, 'email' => 'WC_Email_PipePay_Trial_Day1',          'kind' => 'trial', 'stamp' => '_pipepay_renewal_stamp_trial_t-6', 'segmented' => true ],
     'trial_t-4' => [ 'days' =>  4, 'email' => 'WC_Email_PipePay_Trial_Day3',          'kind' => 'trial', 'stamp' => '_pipepay_renewal_stamp_trial_t-4', 'segmented' => true ],
-    'trial_t-2' => [ 'days' =>  2, 'email' => 'WC_Email_PipePay_Trial_Ending_Soon',   'kind' => 'trial', 'stamp' => '_pipepay_renewal_stamp_trial_t-2' ],
-    'trial_t+0' => [ 'days' =>  0, 'email' => 'WC_Email_PipePay_Trial_Ended',         'kind' => 'trial', 'stamp' => '_pipepay_renewal_stamp_trial_t+0' ],
+    'trial_t-2' => [ 'days' =>  2, 'email' => 'WC_Email_PipePay_Trial_Ending_Soon',   'kind' => 'trial', 'stamp' => '_pipepay_renewal_stamp_trial_t-2', 'skip_if_converted' => true ],
+    'trial_t+0' => [ 'days' =>  0, 'email' => 'WC_Email_PipePay_Trial_Ended',         'kind' => 'trial', 'stamp' => '_pipepay_renewal_stamp_trial_t+0', 'skip_if_converted' => true ],
     'trial_t+3' => [ 'days' => -3, 'email' => 'WC_Email_PipePay_Trial_Winback',       'kind' => 'trial', 'stamp' => '_pipepay_renewal_stamp_trial_t+3', 'skip_if_converted' => true ],
     'trial_t+7' => [ 'days' => -7, 'email' => 'WC_Email_PipePay_Trial_Winback_Final', 'kind' => 'trial', 'stamp' => '_pipepay_renewal_stamp_trial_t+7', 'skip_if_converted' => true ],
     'paid_t-30' => [ 'days' => 30, 'email' => 'WC_Email_PipePay_Renewal_30',          'kind' => 'paid',  'stamp' => '_pipepay_renewal_stamp_paid_t-30' ],
