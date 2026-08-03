@@ -3,7 +3,7 @@
  * Plugin Name: Pipe Pay - License Renewals
  * Description: HMAC-signed /renew/ landing page for trial conversions and paid renewals. Stages 3 + 4 of the trial-tier-intent flow.
  * Author:      Pipe Pay
- * Version:     1.0.0
+ * Version:     1.1.0
  *
  * Routes (single page, all flows):
  *   /renew/?key=<license>&token=<hmac>             Conversion / renewal landing
@@ -456,6 +456,52 @@ add_action( 'init', function () {
 add_action( PIPEPAY_CADENCE_HOOK, 'pipepay_license_cadence_run' );
 
 /**
+ * Has this trial license ever been activated on a store?
+ * Primary signal: a seat row in Kestrel's activation table. Fallback: any
+ * daily revalidation ping (proves a live install even if the seat row was
+ * later cleaned up).
+ */
+function pipepay_cadence_trial_is_activated( int $api_resource_id ): bool {
+    global $wpdb;
+    if ( $api_resource_id <= 0 ) {
+        return false;
+    }
+    $seats = (int) $wpdb->get_var( $wpdb->prepare(
+        "SELECT COUNT(*) FROM {$wpdb->prefix}wc_am_api_activation WHERE api_resource_id = %d",
+        $api_resource_id
+    ) );
+    if ( $seats > 0 ) {
+        return true;
+    }
+    $log_table = $wpdb->prefix . 'pipepay_revalidate_log';
+    if ( $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $log_table ) ) !== $log_table ) {
+        return false;
+    }
+    return (int) $wpdb->get_var( $wpdb->prepare(
+        "SELECT COUNT(*) FROM {$log_table} WHERE api_resource_id = %d",
+        $api_resource_id
+    ) ) > 0;
+}
+
+/**
+ * Does this user already hold a live paid entitlement (annual 34/35/36 or
+ * monthly 526/527/528)? Used to silence win-back emails after conversion.
+ */
+function pipepay_cadence_user_has_paid_license( int $user_id ): bool {
+    global $wpdb;
+    if ( $user_id <= 0 ) {
+        return false;
+    }
+    return (int) $wpdb->get_var( $wpdb->prepare(
+        "SELECT COUNT(*) FROM {$wpdb->prefix}wc_am_api_resource
+         WHERE user_id = %d AND product_id IN (34, 35, 36, 526, 527, 528)
+           AND active = 1 AND access_expires > %d",
+        $user_id,
+        time()
+    ) ) > 0;
+}
+
+/**
  * Main cadence handler. Walks active licenses, matches each against a stage,
  * sends the appropriate email if not already sent.
  */
@@ -493,20 +539,31 @@ function pipepay_license_cadence_run(): void {
             continue;
         }
 
-        $expires       = (int) $lic['access_expires'];
+        $expires        = (int) $lic['access_expires'];
         $days_to_expiry = (int) floor( ( $expires - $now ) / DAY_IN_SECONDS );
-        $is_trial      = (int) $lic['product_id'] === PIPEPAY_RENEWAL_TRIAL_PRODUCT_ID;
-        $kind          = $is_trial ? 'trial' : 'paid';
+        $is_trial       = (int) $lic['product_id'] === PIPEPAY_RENEWAL_TRIAL_PRODUCT_ID;
+        $kind           = $is_trial ? 'trial' : 'paid';
+
+        // Segment lookup once per trial license, at send time (fresh: a user
+        // who activated an hour ago gets the activated branch today).
+        $is_activated = $is_trial
+            ? pipepay_cadence_trial_is_activated( (int) $lic['api_resource_id'] )
+            : null;
 
         foreach ( PIPEPAY_CADENCE_STAGES as $stage_key => $stage ) {
-            if ( $stage['kind'] !== $kind ) {
+            if ( ! pipepay_cadence_stage_matches( $stage, $days_to_expiry, $kind ) ) {
                 continue;
             }
-            // Match with +/- 1 day tolerance so a missed cron run doesn't drop the email.
-            if ( abs( $days_to_expiry - $stage['days'] ) > PIPEPAY_CADENCE_TOLERANCE_DAYS ) {
+            if ( ! empty( $stage['skip_if_converted'] ) && pipepay_cadence_user_has_paid_license( (int) $lic['user_id'] ) ) {
                 continue;
             }
-            pipepay_cadence_maybe_send( $lic, $stage_key, $stage );
+            // At most ONE email per license per run: after cron downtime the
+            // earliest overdue stage fires today, later ones on later days
+            // (stage table is chronological). Already-stamped stages return
+            // false and don't consume the slot.
+            if ( pipepay_cadence_maybe_send( $lic, $stage_key, $stage, $is_activated ) ) {
+                break;
+            }
         }
     }
 }
@@ -514,11 +571,15 @@ function pipepay_license_cadence_run(): void {
 /**
  * Send one cadence email if idempotency permits. Stamps on success; bumps a
  * failure counter on failure and gives up after PIPEPAY_CADENCE_FAIL_CAP misses.
+ *
+ * Returns true only on an actual successful send - false on every skip/failure
+ * path, including "already sent." Callers use the return value to decide
+ * whether the per-license stage slot was consumed this run.
  */
-function pipepay_cadence_maybe_send( array $lic, string $stage_key, array $stage ): void {
+function pipepay_cadence_maybe_send( array $lic, string $stage_key, array $stage, ?bool $is_activated = null ): bool {
     $order_id = (int) $lic['order_id'];
     if ( ! $order_id ) {
-        return;
+        return false;
     }
 
     $stamp_key = $stage['stamp'];
@@ -526,21 +587,21 @@ function pipepay_cadence_maybe_send( array $lic, string $stage_key, array $stage
 
     // Already sent?
     if ( get_post_meta( $order_id, $stamp_key, true ) ) {
-        return;
+        return false;
     }
     // Hit the fail cap?
     if ( (int) get_post_meta( $order_id, $fail_key, true ) >= PIPEPAY_CADENCE_FAIL_CAP ) {
-        return;
+        return false;
     }
 
     $order = wc_get_order( $order_id );
     if ( ! $order ) {
-        return;
+        return false;
     }
 
-    $license_data = pipepay_cadence_build_license_data( $lic, $order );
+    $license_data = pipepay_cadence_build_license_data( $lic, $order, $is_activated );
     if ( ! $license_data ) {
-        return;
+        return false;
     }
 
     $emails = WC()->mailer()->get_emails();
@@ -550,7 +611,7 @@ function pipepay_cadence_maybe_send( array $lic, string $stage_key, array $stage
         if ( function_exists( 'pipepay_log' ) ) {
             pipepay_log( 'error', 'Cadence email class not registered', [ 'email_id' => $stage['email'], 'stage' => $stage_key ] );
         }
-        return;
+        return false;
     }
 
     $sent = (bool) $email->trigger( $license_data );
@@ -561,19 +622,21 @@ function pipepay_cadence_maybe_send( array $lic, string $stage_key, array $stage
         if ( function_exists( 'pipepay_log' ) ) {
             pipepay_log( 'info', 'Cadence email sent', [ 'stage' => $stage_key, 'order_id' => $order_id, 'recipient_domain' => substr( strrchr( $license_data['recipient'], '@' ), 1 ) ] );
         }
-    } else {
-        $fails = (int) get_post_meta( $order_id, $fail_key, true ) + 1;
-        update_post_meta( $order_id, $fail_key, $fails );
-        if ( function_exists( 'pipepay_log' ) ) {
-            pipepay_log( 'warning', 'Cadence email send failed', [ 'stage' => $stage_key, 'order_id' => $order_id, 'fail_count' => $fails ] );
-        }
+        return true;
     }
+
+    $fails = (int) get_post_meta( $order_id, $fail_key, true ) + 1;
+    update_post_meta( $order_id, $fail_key, $fails );
+    if ( function_exists( 'pipepay_log' ) ) {
+        pipepay_log( 'warning', 'Cadence email send failed', [ 'stage' => $stage_key, 'order_id' => $order_id, 'fail_count' => $fails ] );
+    }
+    return false;
 }
 
 /**
  * Assemble the context expected by the cadence email classes / templates.
  */
-function pipepay_cadence_build_license_data( array $lic, WC_Order $order ): array {
+function pipepay_cadence_build_license_data( array $lic, WC_Order $order, ?bool $is_activated = null ): array {
     $license_key   = (string) $lic['master_api_key'];
     $expires       = (int) $lic['access_expires'];
     $expires_dt    = ( new DateTime( '@' . $expires ) )->setTimezone( wp_timezone() );
@@ -587,15 +650,52 @@ function pipepay_cadence_build_license_data( array $lic, WC_Order $order ): arra
         home_url( '/' . PIPEPAY_RENEWAL_PAGE_SLUG . '/' )
     );
 
+    $is_trial = PIPEPAY_RENEWAL_TRIAL_PRODUCT_ID === (int) $lic['product_id'];
+
+    // Intended-tier display (trial signups that clicked a specific pricing
+    // card carry ?intent= through to the order item meta).
+    $intent_tier_name = $intent_tier_price = $intent_monthly_price = '';
+    $intent_pid       = pipepay_renewal_get_intended_tier( $order->get_id() );
+    if ( $intent_pid ) {
+        $tier = pipepay_cadence_tier_display( $intent_pid );
+        if ( $tier ) {
+            $intent_tier_name     = $tier['name'];
+            $intent_tier_price    = $tier['annual'];
+            $intent_monthly_price = $tier['monthly'];
+        }
+    }
+
+    // One-time trial extension link: only offered to trials that were never
+    // activated and never extended. Signed with the CURRENT access_expires,
+    // so the link self-invalidates the moment the extension changes it.
+    $trial_extension_url = '';
+    if ( $is_trial
+        && false === $is_activated
+        && ! get_post_meta( $order->get_id(), '_pipepay_trial_extended', true ) ) {
+        $trial_extension_url = add_query_arg(
+            [
+                'key'       => rawurlencode( $license_key ),
+                'token'     => pipepay_renewal_hmac_sign( $license_key, $expires ),
+                'pp_action' => 'extend_trial',
+            ],
+            home_url( '/' . PIPEPAY_RENEWAL_PAGE_SLUG . '/' )
+        );
+    }
+
     return [
-        'license_key'   => $license_key,
-        'order_id'      => $order->get_id(),
-        'recipient'     => $order->get_billing_email(),
-        'first_name'    => $order->get_billing_first_name(),
-        'tier_name'     => $lic['product_title'] ?: 'Pipe Pay',
-        'expires_at'    => $expires,
-        'expires_label' => $expires_label,
-        'renewal_url'   => $renewal_url,
+        'license_key'          => $license_key,
+        'order_id'             => $order->get_id(),
+        'recipient'            => $order->get_billing_email(),
+        'first_name'           => $order->get_billing_first_name(),
+        'tier_name'            => $lic['product_title'] ?: 'Pipe Pay',
+        'expires_at'           => $expires,
+        'expires_label'        => $expires_label,
+        'renewal_url'          => $renewal_url,
+        'activated'            => (bool) $is_activated,
+        'intent_tier_name'     => $intent_tier_name,
+        'intent_tier_price'    => $intent_tier_price,
+        'intent_monthly_price' => $intent_monthly_price,
+        'trial_extension_url'  => $trial_extension_url,
     ];
 }
 
