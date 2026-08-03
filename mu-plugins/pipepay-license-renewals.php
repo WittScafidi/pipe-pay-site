@@ -96,7 +96,7 @@ function pipepay_renewal_lookup_license( string $license_key ): ?array {
     // phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.DB.DirectDatabaseQuery
     $row = $wpdb->get_row(
         $wpdb->prepare(
-            "SELECT master_api_key, product_id, product_title, order_id, access_expires, active
+            "SELECT api_resource_id, master_api_key, product_id, product_title, order_id, access_expires, active
              FROM {$table}
              WHERE master_api_key = %s
              ORDER BY api_resource_id ASC
@@ -165,6 +165,7 @@ function pipepay_renewal_route_handler(): void {
     $key   = isset( $_GET['key'] )   ? sanitize_text_field( wp_unslash( $_GET['key'] ) )   : '';
     $token = isset( $_GET['token'] ) ? sanitize_text_field( wp_unslash( $_GET['token'] ) ) : '';
     $tier_override_raw = isset( $_GET['tier'] ) ? (int) $_GET['tier'] : 0;
+    $pp_action = isset( $_GET['pp_action'] ) ? sanitize_key( wp_unslash( $_GET['pp_action'] ) ) : '';
     // phpcs:enable
 
     if ( '' === $key || '' === $token ) {
@@ -202,6 +203,11 @@ function pipepay_renewal_route_handler(): void {
             'This license has been deactivated. Please <a href="' . esc_url( home_url( '/contact' ) ) . '">contact support</a> if this is unexpected.',
             403
         );
+        return;
+    }
+
+    if ( 'extend_trial' === $pp_action ) {
+        pipepay_renewal_handle_trial_extension( $license, $key );
         return;
     }
 
@@ -288,6 +294,114 @@ function pipepay_renewal_redirect_to_checkout( int $tier_product_id, string $ren
     exit;
 }
 
+// ── One-time trial extension ─────────────────────────────────────────────────
+
+/**
+ * One-time 7-day trial extension. The email link is only built for trials
+ * that were never activated, and the once-ever guard lives here: after the
+ * first extension the order carries _pipepay_trial_extended forever. The
+ * HMAC token also self-invalidates because access_expires (a signed input)
+ * changes.
+ */
+function pipepay_renewal_handle_trial_extension( array $license, string $key ): void {
+    global $wpdb;
+
+    if ( PIPEPAY_RENEWAL_TRIAL_PRODUCT_ID !== (int) $license['product_id'] ) {
+        pipepay_renewal_render_error(
+            'Not available',
+            'Extensions apply to trial licenses only. Paid licenses renew from the link in your renewal email.',
+            400
+        );
+        return;
+    }
+
+    $order_id = (int) $license['order_id'];
+    if ( $order_id && get_post_meta( $order_id, '_pipepay_trial_extended', true ) ) {
+        pipepay_renewal_render_error(
+            'Extension already used',
+            'This trial has already been extended once. To keep using Pipe Pay, pick a tier on the <a href="' . esc_url( home_url( '/pricing/' ) ) . '">pricing page</a>.',
+            410
+        );
+        return;
+    }
+
+    $new_expires = max( time(), (int) $license['access_expires'] ) + 7 * DAY_IN_SECONDS;
+
+    $updated = $wpdb->update(
+        $wpdb->prefix . 'wc_am_api_resource',
+        [ 'access_expires' => $new_expires ],
+        [ 'api_resource_id' => (int) $license['api_resource_id'] ],
+        [ '%d' ],
+        [ '%d' ]
+    );
+    if ( false === $updated ) {
+        pipepay_renewal_render_error(
+            'Something went wrong',
+            'We could not extend the trial. Please <a href="' . esc_url( home_url( '/contact/' ) ) . '">contact support</a>.',
+            500
+        );
+        return;
+    }
+
+    // Re-open the plugin zip download: product 38's download permission
+    // expired with the original 7-day window, and a not-yet-activated
+    // customer still needs the zip.
+    $wpdb->query( $wpdb->prepare(
+        "UPDATE {$wpdb->prefix}woocommerce_downloadable_product_permissions
+         SET access_expires = %s
+         WHERE order_id = %d AND product_id = %d",
+        gmdate( 'Y-m-d H:i:s', $new_expires ),
+        $order_id,
+        PIPEPAY_RENEWAL_TRIAL_PRODUCT_ID
+    ) );
+
+    if ( $order_id ) {
+        update_post_meta( $order_id, '_pipepay_trial_extended', gmdate( 'c' ) );
+        // Fresh window: T-2 / T+0 fire again against the new expiry.
+        foreach ( [ 'trial_t-2', 'trial_t+0' ] as $stage_key ) {
+            $stamp = PIPEPAY_CADENCE_STAGES[ $stage_key ]['stamp'];
+            delete_post_meta( $order_id, $stamp );
+            delete_post_meta( $order_id, $stamp . '_fails' );
+        }
+        $wc_order = wc_get_order( $order_id );
+        if ( $wc_order ) {
+            $wc_order->add_order_note( sprintf(
+                'Pipe Pay trial extension: expiry moved to %s (one-time, customer-initiated).',
+                gmdate( 'Y-m-d', $new_expires )
+            ) );
+            $wc_order->save();
+        }
+    }
+
+    pipepay_renewal_render_extension_confirmation(
+        wc_format_datetime( ( new DateTime( '@' . $new_expires ) )->setTimezone( wp_timezone() ), 'F j, Y' )
+    );
+}
+
+/**
+ * Confirmation page for a successful trial extension. Site chrome, next
+ * steps, and exit.
+ */
+function pipepay_renewal_render_extension_confirmation( string $new_expires_label ): void {
+    get_header();
+    ?>
+    <section class="pp-page-hero">
+        <div class="pp-container">
+            <span class="pp-page-hero__kicker">Trial extended</span>
+            <h1 class="pp-page-title">Your trial now runs through <?php echo esc_html( $new_expires_label ); ?>.</h1>
+            <p class="pp-page-hero__sub">Your license key is unchanged, and your plugin download has been re-opened in <a href="<?php echo esc_url( home_url( '/my-account/downloads/' ) ); ?>">your account</a>. This extension can be used once per trial.</p>
+        </div>
+    </section>
+    <section class="pp-section pp-section--tight">
+        <div class="pp-container">
+            <p>Pick up where you left off: <a href="<?php echo esc_url( home_url( '/docs/getting-started/' ) ); ?>">the setup guide</a> walks through install and activation step by step. If anything is in the way, email <a href="mailto:support@pipepay.app">support@pipepay.app</a>.</p>
+        </div>
+    </section>
+    <?php
+    get_footer();
+    exit;
+}
+
 // ── Stage 4: tier picker ─────────────────────────────────────────────────────
 
 /**
@@ -309,27 +423,25 @@ function pipepay_renewal_render_tier_picker( string $key, string $token ): void 
         <div class="pp-container">
             <div class="pp-pricing-grid">
                 <?php
-                $tiers = [
-                    34 => [
-                        'title'    => 'Single Site',
-                        'price'    => '$249',
-                        'subtitle' => 'For one WooCommerce store.',
-                        'features' => [ '1 site activation', '1 year of plugin updates', '1 year of email support' ],
-                    ],
-                    35 => [
-                        'title'    => '5 Sites',
-                        'price'    => '$599',
-                        'subtitle' => 'For agencies or multi-store owners.',
-                        'features' => [ 'Up to 5 site activations', '1 year of plugin updates', '1 year of email support' ],
-                        'featured' => true,
-                    ],
-                    36 => [
-                        'title'    => 'Unlimited Sites',
-                        'price'    => '$1,199',
-                        'subtitle' => 'No activation cap. Run it everywhere.',
-                        'features' => [ 'Unlimited site activations', '1 year of plugin updates', '1 year of email support' ],
-                    ],
-                ];
+                $tiers = [];
+                foreach ( [ 34, 35, 36 ] as $tid ) {
+                    $display = pipepay_cadence_tier_display( $tid );
+                    $tiers[ $tid ] = [
+                        'title'    => $display['name'],
+                        'price'    => $display['annual'],
+                        'subtitle' => [
+                            34 => 'For one WooCommerce store.',
+                            35 => 'For agencies or multi-store owners.',
+                            36 => 'No activation cap. Run it everywhere.',
+                        ][ $tid ],
+                        'features' => [
+                            34 => [ '1 site activation', '1 year of plugin updates', '1 year of email support' ],
+                            35 => [ 'Up to 5 site activations', '1 year of plugin updates', '1 year of email support' ],
+                            36 => [ 'Unlimited site activations', '1 year of plugin updates', '1 year of email support' ],
+                        ][ $tid ],
+                    ];
+                }
+                $tiers[35]['featured'] = true;
                 foreach ( $tiers as $tid => $t ) {
                     $continue_url = add_query_arg(
                         [
