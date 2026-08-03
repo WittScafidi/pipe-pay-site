@@ -40,13 +40,16 @@ if ( $plain_text ) :
     echo "To keep the gateway running with auto-updates and support, click the\n";
     echo "link below to convert to a paid tier:\n\n";
     echo "{$renewal_url}\n\n";
+    echo "Nothing is charged when you click; you pick a tier and confirm payment\n";
+    echo "at checkout.\n\n";
     if ( $intent_tier_name ) {
         echo "You picked the {$intent_tier_name} tier when you started: {$intent_tier_price}\n";
         echo "per year, or {$intent_monthly} per month, cancel anytime. Your details\n";
         echo "are pre-filled so converting takes about 30 seconds.\n\n";
     } else {
-        echo "Tiers: \$297/\$497/\$997 per year, or \$35/\$65/\$129 per month, cancel\n";
-        echo "anytime. Your details are pre-filled so converting takes about 30\n";
+        $pp_prices = pp_email_tier_prices();
+        echo "Tiers: {$pp_prices['annual']} per year, or {$pp_prices['monthly']} per month,\n";
+        echo "cancel anytime. Your details are pre-filled so converting takes about 30\n";
         echo "seconds.\n\n";
     }
     echo "If the trial ends without an upgrade, the gateway keeps accepting\n";
@@ -67,10 +70,12 @@ pp_email_paragraph(
     'Your free 7-day Pipe Pay trial ends in <strong>2 days</strong> (' . esc_html( $expires_label ) . '). To keep the gateway running with auto-updates and support, click below to convert to a paid tier.'
 );
 pp_email_button( $renewal_url, 'Pick a tier &rarr;' );
+pp_email_paragraph( 'Nothing is charged when you click; you pick a tier and confirm payment at checkout.' );
 if ( $intent_tier_name ) {
     pp_email_paragraph( 'You picked the <strong>' . esc_html( $intent_tier_name ) . '</strong> tier when you started: <strong>' . esc_html( $intent_tier_price ) . ' per year</strong>, or ' . esc_html( $intent_monthly_price ) . ' per month, cancel anytime. Your details are pre-filled so converting takes about 30 seconds.' );
 } else {
-    pp_email_paragraph( 'Tiers: $297 / $497 / $997 per year, or $35 / $65 / $129 per month, cancel anytime. Your details are pre-filled so converting takes about 30 seconds.' );
+    $pp_prices = pp_email_tier_prices();
+    pp_email_paragraph( 'Tiers: ' . esc_html( $pp_prices['annual'] ) . ' per year, or ' . esc_html( $pp_prices['monthly'] ) . ' per month, cancel anytime. Your details are pre-filled so converting takes about 30 seconds.' );
 }
 pp_email_paragraph( 'If the trial ends without an upgrade, the gateway keeps accepting orders for a 30-day grace period, then stops offering Pipe Pay at checkout until you pick a paid tier. Auto-updates and support pause as soon as the trial ends.' );
 pp_email_paragraph( 'Prefer a card? <a href="https://pipepay.app/pricing/" style="color:' . esc_attr( pp_email_brand_color() ) . ';text-decoration:underline;">Auto-renewing card billing is available on the pricing page</a>. Pick your tier and use the Buy now button.' );

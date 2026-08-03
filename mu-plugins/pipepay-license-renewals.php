@@ -329,6 +329,19 @@ function pipepay_renewal_handle_trial_extension( array $license, string $key ): 
         return;
     }
 
+    // The extension is for trials that never got set up. An activated trial
+    // holding a renewal link could otherwise append pp_action=extend_trial
+    // (the token does not bind the action) and self-serve 7 extra days.
+    if ( function_exists( 'pipepay_cadence_trial_is_activated' )
+        && pipepay_cadence_trial_is_activated( (int) $license['api_resource_id'] ) ) {
+        pipepay_renewal_render_error(
+            'Extension not available',
+            'This trial license is already activated on a store, so the setup extension does not apply. To keep using Pipe Pay, pick a tier on the <a href="' . esc_url( home_url( '/pricing/' ) ) . '">pricing page</a>.',
+            403
+        );
+        return;
+    }
+
     $new_expires = max( time(), (int) $license['access_expires'] ) + 7 * DAY_IN_SECONDS;
 
     $updated = $wpdb->update(
@@ -338,7 +351,12 @@ function pipepay_renewal_handle_trial_extension( array $license, string $key ): 
         [ '%d' ],
         [ '%d' ]
     );
-    if ( false === $updated ) {
+    // $wpdb->update() returns int(0) on a WHERE miss (e.g. the row was
+    // deleted since the lookup above - an RTBF race). new_expires always
+    // differs from the previously-stored value, so 0 affected rows can only
+    // mean the WHERE clause found nothing to update, not "no-op success" -
+    // treat it as failure alongside the false-on-query-error case.
+    if ( ! $updated ) {
         pipepay_renewal_render_error(
             'Something went wrong',
             'We could not extend the trial. Please <a href="' . esc_url( home_url( '/contact/' ) ) . '">contact support</a>.',
@@ -349,8 +367,11 @@ function pipepay_renewal_handle_trial_extension( array $license, string $key ): 
 
     // Re-open the plugin zip download: product 38's download permission
     // expired with the original 7-day window, and a not-yet-activated
-    // customer still needs the zip.
-    $wpdb->query( $wpdb->prepare(
+    // customer still needs the zip. A WC core "Revoke access" admin action
+    // deletes this permission row outright, so zero rows here is a reachable
+    // everyday state - not just a race - and the confirmation copy below
+    // must reflect whether the re-open actually happened.
+    $download_reopened = (bool) $wpdb->query( $wpdb->prepare(
         "UPDATE {$wpdb->prefix}woocommerce_downloadable_product_permissions
          SET access_expires = %s
          WHERE order_id = %d AND product_id = %d",
@@ -361,13 +382,16 @@ function pipepay_renewal_handle_trial_extension( array $license, string $key ): 
 
     if ( $order_id ) {
         update_post_meta( $order_id, '_pipepay_trial_extended', gmdate( 'c' ) );
-        // Fresh window: T-2 / T+0 fire again against the new expiry. Guarded
-        // because the lib require above fails soft on a partial sync.
+        // Fresh 7-day window: every trial stage may fire again against the
+        // new expiry (the extension exists precisely because setup stalled).
+        // Guarded because the lib require above fails soft on a partial sync.
         if ( defined( 'PIPEPAY_CADENCE_STAGES' ) ) {
-            foreach ( [ 'trial_t-2', 'trial_t+0' ] as $stage_key ) {
-                $stamp = PIPEPAY_CADENCE_STAGES[ $stage_key ]['stamp'];
-                delete_post_meta( $order_id, $stamp );
-                delete_post_meta( $order_id, $stamp . '_fails' );
+            foreach ( PIPEPAY_CADENCE_STAGES as $stage ) {
+                if ( 'trial' !== $stage['kind'] ) {
+                    continue;
+                }
+                delete_post_meta( $order_id, $stage['stamp'] );
+                delete_post_meta( $order_id, $stage['stamp'] . '_fails' );
             }
         }
         $wc_order = wc_get_order( $order_id );
@@ -381,7 +405,8 @@ function pipepay_renewal_handle_trial_extension( array $license, string $key ): 
     }
 
     pipepay_renewal_render_extension_confirmation(
-        wp_date( 'F j, Y', $new_expires )
+        wp_date( 'F j, Y', $new_expires ),
+        $download_reopened
     );
 }
 
@@ -389,14 +414,18 @@ function pipepay_renewal_handle_trial_extension( array $license, string $key ): 
  * Confirmation page for a successful trial extension. Site chrome, next
  * steps, and exit.
  */
-function pipepay_renewal_render_extension_confirmation( string $new_expires_label ): void {
+function pipepay_renewal_render_extension_confirmation( string $new_expires_label, bool $download_reopened ): void {
     get_header();
     ?>
     <section class="pp-page-hero">
         <div class="pp-container">
             <span class="pp-page-hero__kicker">Trial extended</span>
             <h1 class="pp-page-title">Your trial now runs through <?php echo esc_html( $new_expires_label ); ?>.</h1>
+            <?php if ( $download_reopened ) : ?>
             <p class="pp-page-hero__sub">Your license key is unchanged, and your plugin download has been re-opened in <a href="<?php echo esc_url( home_url( '/my-account/downloads/' ) ); ?>">your account</a>. This extension can be used once per trial.</p>
+            <?php else : ?>
+            <p class="pp-page-hero__sub">Your license key is unchanged. If you need the plugin zip again, email <a href="mailto:support@pipepay.app">support@pipepay.app</a> and we will send it over. This extension can be used once per trial.</p>
+            <?php endif; ?>
         </div>
     </section>
     <section class="pp-section pp-section--tight">
@@ -434,6 +463,11 @@ function pipepay_renewal_render_tier_picker( string $key, string $token ): void 
                 // Hardcoded fallback for a partial sync where the cadence lib
                 // (and pipepay_cadence_tier_display()) didn't ship - the
                 // picker must still render real prices, not blank cards.
+                // This is one of exactly two fallback copies of these prices
+                // (the other: pp_email_tier_prices() in
+                // "Email Templates/partials/helpers.php") - update BOTH plus
+                // cadence-logic.php's pipepay_cadence_tier_display() on any
+                // price change.
                 $fallback_tier_display = [
                     34 => [ 'name' => 'Single Site',     'annual' => '$297', 'monthly' => '$35' ],
                     35 => [ 'name' => '5 Sites',         'annual' => '$497', 'monthly' => '$65' ],
@@ -675,7 +709,7 @@ function pipepay_license_cadence_run(): void {
         }
 
         $expires        = (int) $lic['access_expires'];
-        $days_to_expiry = (int) floor( ( $expires - $now ) / DAY_IN_SECONDS );
+        $days_to_expiry = pipepay_cadence_days_to_expiry( $expires, $now );
         $is_trial       = (int) $lic['product_id'] === PIPEPAY_RENEWAL_TRIAL_PRODUCT_ID;
         $kind           = $is_trial ? 'trial' : 'paid';
 

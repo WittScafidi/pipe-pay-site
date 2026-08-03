@@ -34,14 +34,16 @@ if ( $plain_text ) :
     echo "are paused until you convert to a paid tier.\n\n";
     echo "Pick a tier and renew in one click (no need to re-enter details):\n";
     echo "{$renewal_url}\n\n";
+    echo "Nothing is charged when you click; you pick a tier and confirm payment\n";
+    echo "at checkout.\n\n";
     if ( $intent_tier_name ) {
         echo "You picked the {$intent_tier_name} tier when you started: {$intent_tier_price}\n";
         echo "per year, or {$intent_monthly} per month, cancel anytime.\n\n";
     } else {
-        echo "Three paid tiers:\n";
-        echo "  - Single Site     - \$297/yr or \$35/mo  - 1 site\n";
-        echo "  - 5 Sites         - \$497/yr or \$65/mo  - up to 5 sites\n";
-        echo "  - Unlimited Sites - \$997/yr or \$129/mo - any number\n\n";
+        $pp_prices = pp_email_tier_prices();
+        echo "Three paid tiers: Single Site, 5 Sites, or Unlimited Sites at\n";
+        echo "{$pp_prices['annual']} per year, or {$pp_prices['monthly']} per month,\n";
+        echo "cancel anytime.\n\n";
     }
     if ( $trial_extension_url ) {
         echo "Still setting up? You can extend your trial once, by 7 days:\n";
@@ -60,10 +62,12 @@ pp_email_greeting( $first_name );
 pp_email_paragraph( 'Your free 7-day Pipe Pay trial ended today.' );
 pp_email_paragraph( 'Your gateway keeps accepting orders during a <strong>30-day grace period</strong>, then stops offering Pipe Pay at checkout until you pick a paid tier. Auto-updates and support are paused starting today.' );
 pp_email_button( $renewal_url, 'Pick a tier &rarr;' );
+pp_email_paragraph( 'Nothing is charged when you click; you pick a tier and confirm payment at checkout.' );
 if ( $intent_tier_name ) {
     pp_email_paragraph( 'You picked the <strong>' . esc_html( $intent_tier_name ) . '</strong> tier when you started: <strong>' . esc_html( $intent_tier_price ) . ' per year</strong>, or ' . esc_html( $intent_monthly_price ) . ' per month, cancel anytime. Converting takes about 30 seconds, your details are pre-filled.' );
 } else {
-    pp_email_paragraph( 'Three tiers: Single Site $297/yr, 5 Sites $497/yr, Unlimited $997/yr. Monthly billing is also available at $35 / $65 / $129, cancel anytime. Converting takes about 30 seconds, your details are pre-filled.' );
+    $pp_prices = pp_email_tier_prices();
+    pp_email_paragraph( 'Three tiers: Single Site, 5 Sites, or Unlimited Sites at ' . esc_html( $pp_prices['annual'] ) . ' per year. Monthly billing is also available at ' . esc_html( $pp_prices['monthly'] ) . ', cancel anytime. Converting takes about 30 seconds, your details are pre-filled.' );
 }
 if ( $trial_extension_url ) {
     pp_email_paragraph( 'Still setting up? You can extend your trial once, by 7 days:' );

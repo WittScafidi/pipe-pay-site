@@ -13,6 +13,10 @@ if ( ! defined( 'ABSPATH' ) && ! defined( 'PIPEPAY_CADENCE_TEST' ) ) {
     exit;
 }
 
+if ( ! defined( 'DAY_IN_SECONDS' ) ) {
+    define( 'DAY_IN_SECONDS', 86400 );
+}
+
 const PIPEPAY_CADENCE_TOLERANCE_DAYS = 1;
 
 /**
@@ -33,7 +37,7 @@ const PIPEPAY_CADENCE_TOLERANCE_DAYS = 1;
  */
 const PIPEPAY_CADENCE_STAGES = [
     'trial_t-6' => [ 'days' =>  6, 'email' => 'WC_Email_PipePay_Trial_Day1',          'kind' => 'trial', 'stamp' => '_pipepay_renewal_stamp_trial_t-6', 'segmented' => true ],
-    'trial_t-4' => [ 'days' =>  4, 'email' => 'WC_Email_PipePay_Trial_Day3',          'kind' => 'trial', 'stamp' => '_pipepay_renewal_stamp_trial_t-4', 'segmented' => true ],
+    'trial_t-4' => [ 'days' =>  4, 'email' => 'WC_Email_PipePay_Trial_Day3',          'kind' => 'trial', 'stamp' => '_pipepay_renewal_stamp_trial_t-4', 'segmented' => true, 'skip_if_converted' => true ],
     'trial_t-2' => [ 'days' =>  2, 'email' => 'WC_Email_PipePay_Trial_Ending_Soon',   'kind' => 'trial', 'stamp' => '_pipepay_renewal_stamp_trial_t-2', 'skip_if_converted' => true ],
     'trial_t+0' => [ 'days' =>  0, 'email' => 'WC_Email_PipePay_Trial_Ended',         'kind' => 'trial', 'stamp' => '_pipepay_renewal_stamp_trial_t+0', 'skip_if_converted' => true ],
     'trial_t+3' => [ 'days' => -3, 'email' => 'WC_Email_PipePay_Trial_Winback',       'kind' => 'trial', 'stamp' => '_pipepay_renewal_stamp_trial_t+3', 'skip_if_converted' => true ],
@@ -44,6 +48,17 @@ const PIPEPAY_CADENCE_STAGES = [
     'paid_t+7'  => [ 'days' => -7, 'email' => 'WC_Email_PipePay_Renewal_Grace',       'kind' => 'paid',  'stamp' => '_pipepay_renewal_stamp_paid_t+7' ],
     'paid_t+30' => [ 'days' =>-30, 'email' => 'WC_Email_PipePay_Renewal_Final',       'kind' => 'paid',  'stamp' => '_pipepay_renewal_stamp_paid_t+30' ],
 ];
+
+/**
+ * Whole days until expiry, truncated toward zero on both sides of expiry:
+ * 2.9 days remaining -> 2 (two FULL days remain); 6.1 days elapsed -> -6
+ * (six full days elapsed). floor() was wrong here: floor(-6.1) = -7
+ * claimed a seventh day had elapsed and let post-expiry stages fire up to
+ * a day early.
+ */
+function pipepay_cadence_days_to_expiry( int $expires, int $now ): int {
+    return (int) ( ( $expires - $now ) / DAY_IN_SECONDS );
+}
 
 /**
  * Does this stage fire today? Late-direction window ONLY: the scheduled day,

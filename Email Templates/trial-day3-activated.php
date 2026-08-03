@@ -33,8 +33,9 @@ if ( $plain_text ) :
         echo "When you started, you picked the {$intent_tier_name} tier. Keeping it\n";
         echo "is {$intent_tier_price} per year, or {$intent_monthly} per month, cancel anytime.\n\n";
     } else {
-        echo "Keeping Pipe Pay after the trial: \$297/\$497/\$997 per year for\n";
-        echo "Single Site / 5 Sites / Unlimited, or \$35/\$65/\$129 per month,\n";
+        $pp_prices = pp_email_tier_prices();
+        echo "Keeping Pipe Pay after the trial: {$pp_prices['annual']} per year for\n";
+        echo "Single Site / 5 Sites / Unlimited, or {$pp_prices['monthly']} per month,\n";
         echo "cancel anytime.\n\n";
     }
     echo "Convert in one click (details pre-filled):\n{$renewal_url}\n\n";
@@ -57,7 +58,8 @@ pp_email_paragraph( 'You are halfway through your trial. Here is what Pipe Pay i
 if ( $intent_tier_name ) {
     pp_email_paragraph( 'When you started, you picked the <strong>' . esc_html( $intent_tier_name ) . '</strong> tier. Keeping it is <strong>' . esc_html( $intent_tier_price ) . ' per year</strong>, or ' . esc_html( $intent_monthly_price ) . ' per month, cancel anytime.' );
 } else {
-    pp_email_paragraph( 'Keeping Pipe Pay after the trial: $297 / $497 / $997 per year for Single Site / 5 Sites / Unlimited, or $35 / $65 / $129 per month, cancel anytime.' );
+    $pp_prices = pp_email_tier_prices();
+    pp_email_paragraph( 'Keeping Pipe Pay after the trial: ' . esc_html( $pp_prices['annual'] ) . ' per year for Single Site / 5 Sites / Unlimited, or ' . esc_html( $pp_prices['monthly'] ) . ' per month, cancel anytime.' );
 }
 pp_email_button( $renewal_url, 'Keep it running' );
 pp_email_signoff();

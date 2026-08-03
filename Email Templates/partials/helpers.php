@@ -3,10 +3,10 @@
  * Shared HTML helpers for Pipe Pay transactional email templates.
  *
  * Each template in `Email Templates/` requires this file and uses these
- * helpers to keep visual elements consistent — license-key cards, CTA buttons,
+ * helpers to keep visual elements consistent: license-key cards, CTA buttons,
  * intro paragraphs all render the same way across emails.
  *
- * Inline styles only (no CSS classes) — email clients strip <style> blocks
+ * Inline styles only (no CSS classes); email clients strip <style> blocks
  * inconsistently. Brand colors hardcoded; if `--pp-blue` ever changes update
  * here in one place.
  *
@@ -129,5 +129,35 @@ if ( ! function_exists( 'pp_email_greeting' ) ) {
 if ( ! function_exists( 'pp_email_text_line' ) ) {
     function pp_email_text_line( $line, $trailing_blanks = 1 ) {
         echo $line . str_repeat( "\n", max( 1, $trailing_blanks + 1 ) );
+    }
+}
+
+/**
+ * Tier price summary strings for email copy. Derives from
+ * pipepay_cadence_tier_display() (mu-plugins/pipepay-lib/cadence-logic.php,
+ * the price source of truth) when the lib is loaded; the literal fallback
+ * below is one of exactly two fallback copies (the other: the tier-picker
+ * fallback in mu-plugins/pipepay-license-renewals.php) - update BOTH plus
+ * the lib on any price change.
+ * @return array{annual:string, monthly:string} e.g. ['annual' => '$297 / $497 / $997', 'monthly' => '$35 / $65 / $129']
+ */
+if ( ! function_exists( 'pp_email_tier_prices' ) ) {
+    function pp_email_tier_prices() {
+        if ( function_exists( 'pipepay_cadence_tier_display' ) ) {
+            $a = [];
+            $m = [];
+            foreach ( [ 34, 35, 36 ] as $tid ) {
+                $t = pipepay_cadence_tier_display( $tid );
+                if ( ! $t ) {
+                    break;
+                }
+                $a[] = $t['annual'];
+                $m[] = $t['monthly'];
+            }
+            if ( 3 === count( $a ) ) {
+                return [ 'annual' => implode( ' / ', $a ), 'monthly' => implode( ' / ', $m ) ];
+            }
+        }
+        return [ 'annual' => '$297 / $497 / $997', 'monthly' => '$35 / $65 / $129' ];
     }
 }

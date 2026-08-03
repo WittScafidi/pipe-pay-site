@@ -54,6 +54,8 @@ check( ! pipepay_cadence_stage_matches( PIPEPAY_CADENCE_STAGES['paid_t-30'], 30,
 // New stages carry the right flags + email class names.
 check( ! empty( PIPEPAY_CADENCE_STAGES['trial_t-6']['segmented'] ), 'trial_t-6 segmented' );
 check( ! empty( PIPEPAY_CADENCE_STAGES['trial_t-4']['segmented'] ), 'trial_t-4 segmented' );
+check( ! empty( PIPEPAY_CADENCE_STAGES['trial_t-4']['skip_if_converted'] ), 'trial_t-4 skip_if_converted (day-3 pitch must not reach converted customers)' );
+check( empty( PIPEPAY_CADENCE_STAGES['trial_t-6']['skip_if_converted'] ), 'trial_t-6 has NO skip_if_converted (day-1 has no conversion CTA)' );
 check( ! empty( PIPEPAY_CADENCE_STAGES['trial_t-2']['skip_if_converted'] ), 'trial_t-2 skip_if_converted' );
 check( ! empty( PIPEPAY_CADENCE_STAGES['trial_t+0']['skip_if_converted'] ), 'trial_t+0 skip_if_converted' );
 check( ! empty( PIPEPAY_CADENCE_STAGES['trial_t+3']['skip_if_converted'] ), 'trial_t+3 skip_if_converted' );
@@ -78,6 +80,26 @@ check( [ 'name' => '5 Sites', 'annual' => '$497', 'monthly' => '$65' ] === pipep
 check( [ 'name' => 'Unlimited Sites', 'annual' => '$997', 'monthly' => '$129' ] === pipepay_cadence_tier_display( 36 ), 'tier 36' );
 check( null === pipepay_cadence_tier_display( 38 ), 'trial product has no tier display' );
 check( null === pipepay_cadence_tier_display( 0 ), 'zero pid' );
+
+// pipepay_cadence_days_to_expiry: truncation toward zero, NOT floor(). floor()
+// overstated elapsed days post-expiry (floor(-6.1) = -7), which let post-expiry
+// stages fire up to a day early.
+check( -6 === pipepay_cadence_days_to_expiry( 1000000, 1000000 + (int) ( 6.1 * 86400 ) ), 'days_to_expiry: 6.1 days elapsed truncates to -6, not -7' );
+check( 2 === pipepay_cadence_days_to_expiry( 1000000 + (int) ( 2.9 * 86400 ), 1000000 ), 'days_to_expiry: 2.9 days remaining truncates to 2' );
+check( 7 === pipepay_cadence_days_to_expiry( 1000000 + 7 * 86400, 1000000 ), 'days_to_expiry: exactly 7 days remaining is 7' );
+check( -3 === pipepay_cadence_days_to_expiry( 1000000, 1000000 + 3 * 86400 ), 'days_to_expiry: exactly 3 days elapsed is -3' );
+
+// End-to-end guard: 6.1 days elapsed (-6) must NOT land in either winback
+// window - t+3 is [-4,-3] and t+7 is [-8,-7]. The old floor()-based -7 would
+// have wrongly matched t+7 a day early.
+$days_6_1_elapsed = pipepay_cadence_days_to_expiry( 1000000, 1000000 + (int) ( 6.1 * 86400 ) );
+check( ! pipepay_cadence_stage_matches( PIPEPAY_CADENCE_STAGES['trial_t+3'], $days_6_1_elapsed, 'trial' ), 'days_to_expiry regression: 6.1 days elapsed must NOT match trial_t+3' );
+check( ! pipepay_cadence_stage_matches( PIPEPAY_CADENCE_STAGES['trial_t+7'], $days_6_1_elapsed, 'trial' ), 'days_to_expiry regression: 6.1 days elapsed must NOT match trial_t+7' );
+
+// 7.0 days elapsed (-7) correctly matches t+7 (the genuine scheduled day).
+$days_7_0_elapsed = pipepay_cadence_days_to_expiry( 1000000, 1000000 + 7 * 86400 );
+check( -7 === $days_7_0_elapsed, 'days_to_expiry: exactly 7.0 days elapsed is -7' );
+check( pipepay_cadence_stage_matches( PIPEPAY_CADENCE_STAGES['trial_t+7'], $days_7_0_elapsed, 'trial' ), 'days_to_expiry: 7.0 days elapsed correctly matches trial_t+7' );
 
 if ( $failures ) { echo "{$failures} failure(s)\n"; exit( 1 ); }
 echo "OK\n";
