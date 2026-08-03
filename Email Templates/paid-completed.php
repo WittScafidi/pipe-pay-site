@@ -74,8 +74,10 @@ foreach ( $order->get_items() as $item ) {
 }
 
 if ( $expires_raw && (int) $expires_raw > 0 ) {
-    $expires_dt    = ( new DateTime( '@' . (int) $expires_raw ) )->setTimezone( wp_timezone() );
-    $expires_label = wc_format_datetime( $expires_dt, 'F j, Y' );
+    // wc_format_datetime() returns '' for a plain DateTime (it requires a
+    // WC_DateTime) - wp_date() renders correctly in the site timezone
+    // without that trap and without needing an intermediate DateTime object.
+    $expires_label = wp_date( 'F j, Y', (int) $expires_raw );
 } else {
     // Fallback: order date + 365 days
     $expires_dt = clone $order->get_date_created();

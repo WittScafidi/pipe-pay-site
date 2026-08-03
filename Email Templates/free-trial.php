@@ -80,7 +80,7 @@ if ( $plain_text ) :
     $download_url  = esc_url_raw( (string) $download_url );
 
     echo "Hi " . ( $first_name ?: 'there' ) . ",\n\n";
-    echo "Your free 7-day Pipe Pay trial is live - no card required.\n\n";
+    echo "Your free 7-day Pipe Pay trial is live, no card required.\n\n";
     if ( $license_key ) {
         echo "Your license key:\n{$license_key}\n\n";
     } else {
@@ -91,6 +91,8 @@ if ( $plain_text ) :
     echo "  1. Download the plugin: " . ( $download_url ?: 'see your account dashboard' ) . "\n";
     echo "  2. Upload it in WordPress -> Plugins -> Add New -> Upload\n";
     echo "  3. Paste the license key into Pipe Pay -> License to activate\n\n";
+    echo "Step 3 is the one that turns the gateway on. Most stores are live\n";
+    echo "in about 10 minutes.\n\n";
     echo "We'll send a one-click renewal link before your trial expires so you\n";
     echo "can convert to a paid tier without re-entering your details. No charge\n";
     echo "unless you choose to continue.\n\n";
@@ -106,7 +108,7 @@ endif;
 do_action( 'woocommerce_email_header', $email_heading, $email );
 
 pp_email_greeting( $first_name );
-pp_email_paragraph( 'Your free 7-day Pipe Pay trial is live &mdash; no card required.' );
+pp_email_paragraph( 'Your free 7-day Pipe Pay trial is live, no card required.' );
 pp_email_license_card( $license_key );
 
 pp_email_paragraph( 'Three steps to get started:', 12 );
@@ -123,6 +125,8 @@ pp_email_paragraph( 'Three steps to get started:', 12 );
     <li style="margin:0 0 6px 0;">Paste your license key into <strong>Pipe Pay &rarr; License</strong> to activate</li>
 </ol>
 <?php
+
+pp_email_paragraph( 'Step 3 is the one that turns the gateway on. Most stores are live in about 10 minutes.' );
 
 pp_email_paragraph(
     'Your trial expires <strong>' . esc_html( $expires_label ) . '</strong>. We\'ll email a one-click renewal link before then so you can convert to a paid tier without re-entering your details. No charge unless you choose to continue.'
