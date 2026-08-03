@@ -16,8 +16,6 @@ The folder name has a space — quote it in shell commands.
 | `paid-completed.php` | `customer_completed_order` for paid tiers (#34, #35, #36) | same wrapper, paid-tier branch via `pp_order_is_paid_tier()` |
 | `new-account.php` | `customer_new_account` (fires when WC auto-creates account at checkout) | `pipepay-child/woocommerce/emails/customer-new-account.php` |
 
-### Ready, but trigger TBD
-
 > **Removed 2026-06-05:** `payment-pending.php` (the "awaiting-proof" order email) was dropped so the dogfood matches the customer plugin exactly — both now rely solely on the plugin's own 5/20/45-min reminder cadence (`pipepay_handle_reminder`). Don't re-add an order-placement email **here** (site-only) — it would diverge the dogfood from real customers again.
 >
 > **If you ever want this email back — do it as "Option A" (in the PLUGIN, not the site):**
@@ -28,17 +26,25 @@ The folder name has a space — quote it in shell commands.
 > 4. Customer-visible feature → minor version bump (e.g. 1.9.x → **1.10.0**), full TDD + new zip.
 > This deleted template (`payment-pending.php`, in git history before 2026-06-05) is a good body reference to copy from.
 
-| Template | Trigger needed | Notes |
-|---|---|---|
-| `trial-ending-soon.php` | Daily cron @ T-2 (trial) | Cron handler in `pipepay-license-renewals.php` mu-plugin still TODO |
-| `trial-ended.php` | Daily cron @ T+0 (trial) | same |
-| `renewal-30.php` | Daily cron @ T-30 (paid 34/35/36) | same |
-| `renewal-7.php` | Daily cron @ T-7 (paid) | same |
-| `renewal-expiry.php` | Daily cron @ T-0 (paid) | same |
-| `renewal-grace.php` | Daily cron @ T+7 (paid) | same |
-| `renewal-final.php` | Daily cron @ T+30 (paid) | same |
+**LIVE via the daily cadence cron** (`pipepay_license_check_renewals`, in `mu-plugins/pipepay-license-renewals.php`) since 2026-05-08 — the table below used to say "trigger TBD" but the cron handler shipped that day (see the "Renewal cadence + custom WC email classes shipped" ship-log entry in CLAUDE.md). As of 2026-08-02 the trial side of the cadence is a full 7-touch flow, activation-segmented at day-1/day-3, with two win-back sends after expiry (see the trial-conversion-email-flow entry in CLAUDE.md). Stage matching is late-only (fires on the scheduled day or up to 1 day after, never early) and at most one cadence email sends per license per cron run.
 
-The cadence cron handler is documented in CLAUDE.md as "License renewal email cadence + one-click renewal flow." The renewal mu-plugin already handles the `/renew/?key=...&token=...` landing URL — what's missing is the daily Action Scheduler cron that queries `wp_wc_am_api_resource` and triggers these emails.
+| Template | Trigger | Wrapper |
+|---|---|---|
+| `trial-day1-not-activated.php` | Cadence stage `trial_t-6`, not-activated segment | `WC_Email_PipePay_Trial_Day1` |
+| `trial-day1-activated.php` | Cadence stage `trial_t-6`, activated segment | same class |
+| `trial-day3-not-activated.php` | Cadence stage `trial_t-4`, not-activated segment | `WC_Email_PipePay_Trial_Day3` |
+| `trial-day3-activated.php` | Cadence stage `trial_t-4`, activated segment | same class |
+| `trial-ending-soon.php` | Cadence stage `trial_t-2` (trial) | `WC_Email_PipePay_Trial_Ending_Soon` |
+| `trial-ended.php` | Cadence stage `trial_t+0` (trial) | `WC_Email_PipePay_Trial_Ended` |
+| `trial-winback.php` | Cadence stage `trial_t+3` (skipped if converted) | `WC_Email_PipePay_Trial_Winback` |
+| `trial-winback-final.php` | Cadence stage `trial_t+7` (skipped if converted) | `WC_Email_PipePay_Trial_Winback_Final` |
+| `renewal-30.php` | Cadence stage `paid_t-30` (paid 34/35/36) | `WC_Email_PipePay_Renewal_30` |
+| `renewal-7.php` | Cadence stage `paid_t-7` (paid) | `WC_Email_PipePay_Renewal_7` |
+| `renewal-expiry.php` | Cadence stage `paid_t-0` (paid) | `WC_Email_PipePay_Renewal_Expiry` |
+| `renewal-grace.php` | Cadence stage `paid_t+7` (paid) | `WC_Email_PipePay_Renewal_Grace` |
+| `renewal-final.php` | Cadence stage `paid_t+30` (paid) | `WC_Email_PipePay_Renewal_Final` |
+
+Cron handler + custom email classes live in `mu-plugins/pipepay-license-renewals.php`, `mu-plugins/pipepay-email-classes.php`, and `mu-plugins/pipepay-lib/email-classes.php`. Pure stage-matching logic (late-only windows) lives in the standalone `mu-plugins/pipepay-lib/cadence-logic.php`, with its own test at `tests/cadence-logic-test.php` (run with plain `php`, no PHPUnit harness needed). Activation segmentation (day-1/day-3) reads seat rows from `wc_am_api_activation`, falling back to the `pipepay_revalidate_log` table, computed at send time. Win-back stages (`trial_t+3`/`trial_t+7`) are skipped once the customer holds any active paid entitlement (products 34/35/36/526/527/528).
 
 ## Partials
 
