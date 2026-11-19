@@ -335,10 +335,22 @@ function pipepay_license_revalidate_compute_state( string $api_key, array $row )
  */
 function pipepay_license_revalidate_is_revoked( string $api_key ): bool {
     $list = get_option( PIPEPAY_REVOKED_LICENSES_OPT, array() );
-    if ( ! is_array( $list ) ) {
+    if ( ! is_array( $list ) || '' === $api_key ) {
         return false;
     }
-    return array_key_exists( $api_key, $list );
+    // Case-insensitive on purpose (2026-11-18). wc_am_api_resource.master_api_key
+    // has a case-insensitive collation, so the lookup that follows this check
+    // finds the license for "CK_ABC" as readily as for "ck_abc". An exact-case
+    // list lookup let a revoked install switch itself back on by changing the
+    // case of one letter in its stored key: the row still matched, the state
+    // came back "active", and the response was signed for the altered key.
+    $needle = strtolower( $api_key );
+    foreach ( array_keys( $list ) as $revoked_key ) {
+        if ( strtolower( (string) $revoked_key ) === $needle ) {
+            return true;
+        }
+    }
+    return false;
 }
 
 /**
